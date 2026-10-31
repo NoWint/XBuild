@@ -47,15 +47,15 @@ jobs:
       matrix:
         include:
           - label: macOS arm64
-            runner: macos-14
+            runner: macos-15
             os: mac
             arch: arm64
           - label: macOS x64
-            runner: macos-13
+            runner: macos-15-intel
             os: mac
             arch: x64
           - label: Windows x64
-            runner: windows-latest
+            runner: windows-2025
             os: win
             arch: x64
           # Linux 暂不发布：deb/rpm/pacman 还要 rpmbuild/fpm，等确认分发形态后再开。
@@ -83,7 +83,7 @@ jobs:
 
       - name: Checkout
         if: steps.gate.outputs.run == 'true'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup pnpm
         if: steps.gate.outputs.run == 'true'
@@ -93,14 +93,20 @@ jobs:
 
       - name: Setup Node
         if: steps.gate.outputs.run == 'true'
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
 
+      # 同 ci.yml：hoisted 布局下 pnpm 解包偶发 rename 竞态，串行重试一次。
       - name: Install dependencies
         if: steps.gate.outputs.run == 'true'
-        run: pnpm install --frozen-lockfile
+        run: |
+          pnpm install --frozen-lockfile || {
+            echo "::warning::first install failed, retrying with child-concurrency=1"
+            sleep 5
+            pnpm install --frozen-lockfile --child-concurrency=1
+          }
 
       - name: Verify icon assets
         if: steps.gate.outputs.run == 'true'

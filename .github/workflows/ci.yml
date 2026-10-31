@@ -24,11 +24,11 @@ jobs:
   # 轻量门禁：图标资产回归 + lint。这两个不依赖完整构建，几分钟内出结果。
   verify:
     name: Assets & lint
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -36,13 +36,20 @@ jobs:
           version: ${{ env.PNPM_VERSION }}
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
 
+      # node-linker=hoisted 下 pnpm 偶发在解包 tsup/node_modules 时撞上 rename 竞态
+      # （ERR_PNPM_ENOENT ... _tmp_xxx -> esbuild），与代码无关；第二次串行重试即可越过。
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: |
+          pnpm install --frozen-lockfile || {
+            echo "::warning::first install failed, retrying with child-concurrency=1"
+            sleep 5
+            pnpm install --frozen-lockfile --child-concurrency=1
+          }
 
       # 图标回归：所有尺寸四角必须透明、圆角外不能残留偏白的半透明像素。
       - name: Verify app icon assets
@@ -53,11 +60,11 @@ jobs:
 
   typecheck:
     name: Typecheck
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 40
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -65,13 +72,20 @@ jobs:
           version: ${{ env.PNPM_VERSION }}
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
 
+      # node-linker=hoisted 下 pnpm 偶发在解包 tsup/node_modules 时撞上 rename 竞态
+      # （ERR_PNPM_ENOENT ... _tmp_xxx -> esbuild），与代码无关；第二次串行重试即可越过。
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: |
+          pnpm install --frozen-lockfile || {
+            echo "::warning::first install failed, retrying with child-concurrency=1"
+            sleep 5
+            pnpm install --frozen-lockfile --child-concurrency=1
+          }
 
       - name: Typecheck
         run: pnpm typecheck
@@ -79,11 +93,11 @@ jobs:
   # 构建门禁：只跑桌面端生产构建，不打包安装包（打包在 build-desktop.yml 里按需触发）。
   build:
     name: Build (desktop)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 45
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -91,13 +105,20 @@ jobs:
           version: ${{ env.PNPM_VERSION }}
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
 
+      # node-linker=hoisted 下 pnpm 偶发在解包 tsup/node_modules 时撞上 rename 竞态
+      # （ERR_PNPM_ENOENT ... _tmp_xxx -> esbuild），与代码无关；第二次串行重试即可越过。
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: |
+          pnpm install --frozen-lockfile || {
+            echo "::warning::first install failed, retrying with child-concurrency=1"
+            sleep 5
+            pnpm install --frozen-lockfile --child-concurrency=1
+          }
 
       - name: Build packages
         run: pnpm build:bootstrap
