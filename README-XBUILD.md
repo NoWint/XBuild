@@ -78,3 +78,16 @@ pnpm dev:desktop        # 桌面端开发
   登录/关于/启动/Windows 标题栏组件、provider 图标（svg+png）、Dock 图标（icns 全套尺寸）、web favicon
 - **免配置启动**：已在中转站建专用令牌 `xbuild`（default 组），预写入 `~/.xbuild/v2/provider_config.json`
 - **端到端已验证**：Mac → nowint.qzz.io/v1/messages → z-ai/glm-5.3-flash 真实推理响应
+
+## Round 3（隔离修复：env 消毒 + 全量数据路径）
+
+**根因**：在官方 ZCode 内启动 dev 实例时，shell 继承 `ZCODE_BASE_URL`、
+`ZCODE_BUILTIN_PROVIDER_CONFIG_FILE`、`ZCODE_PERSONAL_PROVIDER_CONFIG_FILE` 等注入变量，
+导致 Xbuild 读到官方 zcode.z.ai 的缓存目录/个人配置（"获取 API Key"打开 z.ai 的来源）。
+
+- `scripts/dev-desktop-env.mjs`：启动前清空全部 `ZCODE_*` / `ZAI_*` 继承变量
+- 补齐 15 处 home 级数据路径 `.zcode → .xbuild`：setting.json（settingService、chromium bootstrap、
+  dataBaseDirBootstrap）、credentials.json、会话 db.sqlite、cli/config.json、AGENTS.md、
+  telemetry-state、server root、exportLogs 等；skills/commands/plugins 用户资产按决策保持共享
+- 修复后实测：setting.json 落 `~/.xbuild/v2/`，运行日志 z.ai 引用 0 条，
+  provider `z-ai/glm-5.3-flash @ zai-api-2` 正常就绪

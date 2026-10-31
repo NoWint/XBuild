@@ -229,7 +229,7 @@ export function createCommandDataSyncMethods(): IDataSyncCategoryService<Command
     async checkSyncWriteAccess() {
       return await checkRemoteSyncDirectoriesWriteAccess([
         commandsRoot("zcode"),
-        join(resolveUserHomeDir(), ".zcode", "cli"),
+        join(resolveUserHomeDir(), ".xbuild", "cli"),
       ]);
     },
 

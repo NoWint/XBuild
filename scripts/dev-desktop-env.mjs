@@ -16,6 +16,16 @@ if (requestedEnv !== "test" && requestedEnv !== "production") {
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const pnpmCommand = process.platform === "win32" ? "pnpm.cmd" : "pnpm";
+// Xbuild：dev 启动必须与宿主环境隔离。从官方 ZCode（或其它 ZCode/Z.ai 环境）里启动时，
+// shell 会带入 ZCODE_BASE_URL / ZCODE_BUILTIN_PROVIDER_CONFIG_FILE / ZCODE_PERSONAL_PROVIDER_CONFIG_FILE /
+// ZAI_BUSINESS_BASE_URL 等注入变量，导致 dev 实例解析到官方 zcode.z.ai 的 endpoint、
+// 读到官方缓存与个人配置（builtin 目录被官方 revision 覆盖、API Key 管理链接指向 z.ai）。
+// dev 入口一律清掉这些继承变量，让 Xbuild 从自身默认值（nowint.qzz.io / ~/.xbuild）重新解析。
+for (const envKey of Object.keys(process.env)) {
+  if (envKey.startsWith("ZCODE_") || envKey.startsWith("ZAI_")) {
+    delete process.env[envKey];
+  }
+}
 // Computer Use Helper 只由真实 producer 提供；开源占位包下不构建 Helper、不注入 Helper 环境。
 // 见 docs/desktop/computer-use-producer-detection.md。
 const hasComputerUseProducer = isRealComputerUseProducerInstalled({

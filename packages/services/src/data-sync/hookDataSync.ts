@@ -37,7 +37,7 @@ interface HookEntry {
 
 /** 只同步用户级 `~/.zcode/cli/config.json` 的 hooks；`~/.agents`、`~/.claude` 下的只读来源不读。 */
 function userConfigPath(): string {
-  return join(resolveUserHomeDir(), ".zcode", "cli", "config.json");
+  return join(resolveUserHomeDir(), ".xbuild", "cli", "config.json");
 }
 
 function sha256(value: string): string {

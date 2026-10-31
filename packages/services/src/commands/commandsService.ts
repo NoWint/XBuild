@@ -87,7 +87,7 @@ function getUserCommandsRoot(agentSource?: CommandAgentSource): string {
 }
 
 function getUserCliConfigPath(): string {
-  return join(resolveUserHomeDir(), ".zcode", "cli", "config.json");
+  return join(resolveUserHomeDir(), ".xbuild", "cli", "config.json");
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

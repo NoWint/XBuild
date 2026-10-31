@@ -85,7 +85,7 @@ export async function resolveCanonicalServerLayout(
 
 function inferDataBaseDir(serverRoot: string): string {
   const parent = dirname(serverRoot);
-  if (basename(serverRoot) === "server" && basename(parent) === ".zcode") {
+  if (basename(serverRoot) === "server" && basename(parent) === ".xbuild" || basename(parent) === ".zcode") {
     return dirname(parent);
   }
   // 非标准的显式 server root 仍保持隔离，不向其父目录扩散 Agent/SQLite 数据。
@@ -147,5 +147,5 @@ export function assertServerDataRoot(serverRoot: string): string {
 }
 
 export function serverDataRootFromBase(baseDir: string): string {
-  return join(resolve(baseDir), ".zcode", "server");
+  return join(resolve(baseDir), ".xbuild", "server");
 }

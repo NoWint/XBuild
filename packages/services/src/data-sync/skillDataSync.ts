@@ -52,7 +52,7 @@ interface ResolvedUserSkill {
 }
 
 function getCliConfigPath(): string {
-  return join(resolveUserHomeDir(), ".zcode", "cli", "config.json");
+  return join(resolveUserHomeDir(), ".xbuild", "cli", "config.json");
 }
 
 function normalizeSkillConfigPath(path: string): string {

@@ -91,7 +91,7 @@ export async function resolveAgentSessionDbPath(
 
   // CLI createConfig 的默认 user config 位置在 home（~/.zcode/cli/config.json），
   // 与 App dataBaseDir 无关（评审三轮 CR-01 第 1 条，zcode-protocol-entrypoint 实证）。
-  const userConfigPath = options.userConfigPath ?? join(home, ".zcode", "cli", "config.json");
+  const userConfigPath = options.userConfigPath ?? join(home, ".xbuild", "cli", "config.json");
   let raw: string;
   try {
     raw = await readConfigFile(userConfigPath);
