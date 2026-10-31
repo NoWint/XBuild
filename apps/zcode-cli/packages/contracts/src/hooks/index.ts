@@ -3,6 +3,7 @@ import type { ModelToolSideEffectScope } from "../model/index.js";
 import type { CollaborationMode, RiskLevel } from "../interfaces/session.port.js";
 import type { PermissionUpdate } from "../interfaces/permission.port.js";
 import type { SessionId, ToolCallId, TraceId, TurnId } from "../interfaces/shared.js";
+import type { TokenUsage } from "../events/session.events.js";
 
 export const HookEventName = {
   SessionStart: "SessionStart",
@@ -12,6 +13,11 @@ export const HookEventName = {
   PostToolUse: "PostToolUse",
   PostToolUseFailure: "PostToolUseFailure",
   Stop: "Stop",
+  // 自定义内核 loop 钩子三节点（spec §6）：beforeModel 每次发起模型请求前、
+  // turnEnd 单个 turn 最终响应完成后、compact 自动/手动压缩触发前。
+  BeforeModel: "BeforeModel",
+  TurnEnd: "TurnEnd",
+  Compact: "Compact",
 } as const;
 
 export type HookEventName = (typeof HookEventName)[keyof typeof HookEventName];
@@ -98,6 +104,32 @@ export interface PreToolUseHookInput extends BaseHookInput {
   toolName: string;
 }
 
+// 自定义内核 loop 钩子三节点（spec §6），与 PreToolUse 同构：继承 BaseHookInput，
+// 追加 loop 循环事实。事件上下文以 stdin JSON 传给 run 脚本。
+export interface BeforeModelHookInput extends BaseHookInput {
+  hookEventName: typeof HookEventName.BeforeModel;
+  modelId?: string;
+  tokenUsage?: TokenUsage;
+  turnIndex: number;
+  workspacePath: string;
+}
+
+export interface TurnEndHookInput extends BaseHookInput {
+  hookEventName: typeof HookEventName.TurnEnd;
+  modelId?: string;
+  tokenUsage?: TokenUsage;
+  turnIndex: number;
+  workspacePath: string;
+}
+
+export interface CompactHookInput extends BaseHookInput {
+  hookEventName: typeof HookEventName.Compact;
+  modelId?: string;
+  tokenUsage?: TokenUsage;
+  turnIndex: number;
+  workspacePath: string;
+}
+
 export interface PermissionRequestHookInput extends BaseHookInput {
   permissionSuggestions?: PermissionUpdate[];
   hookEventName: typeof HookEventName.PermissionRequest;
@@ -152,6 +184,10 @@ export interface StopHookInput extends BaseHookInput {
   toolCallCount: number;
 }
 
+// loop 钩子三节点（BeforeModel/TurnEnd/Compact）目前只经自定义内核的
+// collectInjects 通道解释（core/customization/loop-hook-nodes.ts），不进
+// settings hooks 执行器，故暂不入 HookInput 联合；后续接线时再并入，
+// 并同步扩展 HookSpecificOutput 对 hookEventName 的可辨析联合。
 export type HookInput =
   | PreToolUseHookInput
   | PermissionRequestHookInput

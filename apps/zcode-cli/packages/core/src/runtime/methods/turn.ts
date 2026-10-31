@@ -1,5 +1,6 @@
 import { beginLocalTurnPreparation, type LocalTtftDetail } from "@zcode/contracts";
 import { runtimeInputMetadata } from "../../agent/runtime-input-presentation.js";
+import { runLoopHookNode } from "../../customization/loop-hook-nodes.js";
 import { refreshWorkspaceTrustAdmission } from "./mcp.js";
 import { withConversationQuotes } from "../helpers/conversation-quotes.js";
 import {
@@ -814,6 +815,16 @@ export async function executeTurnCommand(
         if (!loopModel) {
           throw new Error("Turn model was not created before execution");
         }
+        // Xbuild 自定义内核 beforeModel 节点：发起模型请求前收集 loop 钩子注入文本，
+        // 复用 hook_context 的 system-reminder 通道并入本次请求。必须先写历史再建
+        // loopState：首个请求的 entries 快照（turnRequestState）才会带上本次注入。
+        const beforeModelInjects = await runLoopHookNode(this, "beforeModel", {
+          modelId: `${loopModel.providerId}/${loopModel.modelId}`,
+        });
+        this.injectHookAdditionalContextIntoMessageHistory(
+          HookEventName.BeforeModel,
+          beforeModelInjects,
+        );
         startProjectMemoryRecallPrefetch(
           this,
           {
@@ -982,6 +993,19 @@ export async function executeTurnCommand(
           });
         }
 
+        // Xbuild 自定义内核 turnEnd 节点：turn 最终响应完成后、方法收尾 return 前触发；
+        // 注入结果不进请求，仅记日志（脚本副作用自负责）。
+        const turnEndInjects = await runLoopHookNode(this, "turnEnd", {
+          modelId: `${loopState.model.providerId}/${loopState.model.modelId}`,
+        });
+        if (turnEndInjects.length > 0) {
+          this.logger?.info("TurnEnd hook injects collected (log only)", {
+            ...traceContextToLogContext(turnTraceContext),
+            count: turnEndInjects.length,
+            event: "customization.loop_hook.turn_end_injects",
+            module: "core.runtime",
+          });
+        }
         const result: TurnResult = {
           response: loopState.modelResponse,
           turnId,

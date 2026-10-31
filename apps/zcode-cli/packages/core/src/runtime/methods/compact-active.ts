@@ -1,4 +1,8 @@
 import type { ModelToolContract } from "@zcode/contracts";
+import {
+  appendLoopHookInjectsToPrompt,
+  runLoopHookNode,
+} from "../../customization/loop-hook-nodes.js";
 import { buildToolSearchAnnouncement } from "../../tool/search/exposure.js";
 import {
   prepareRuntimeProviderRequest,
@@ -257,6 +261,11 @@ async function compactActiveConversationImpl(
     };
   }
 
+  // Xbuild 自定义内核 compact 节点：压缩真正开始前触发一次（重试不重发）；
+  // inject 文本包成 system-reminder 追加到摘要请求提示词（「压缩时务必保留…」类指令）。
+  const compactHookInjects = await runLoopHookNode(this, "compact", {
+    modelId: `${compactModel.providerId}/${compactModel.modelId}`,
+  });
   const compactStartedPayload = this.buildCompactTimelinePayload(compactTimeline, {
     ...(maxAttempts > 1 ? { attempt, maxAttempts } : {}),
     status: CompactTimelineStatus.Started,
@@ -285,7 +294,10 @@ async function compactActiveConversationImpl(
           querySource: "compact",
         },
       });
-      const compactPrompt = buildCompactPrompt(customInstructions);
+      const compactPrompt = appendLoopHookInjectsToPrompt(
+        buildCompactPrompt(customInstructions),
+        compactHookInjects,
+      );
       let result: RuntimeModelTextResult;
       let compactPromptTooLongAttempts = 0;
       let stripMediaForSummary = false;
