@@ -12,6 +12,7 @@ import type {
   UserInstructionsOptions,
 } from "@zcode/contracts";
 import type { AutoCompactPolicyConfig } from "../compact/index.js";
+import type { EffectiveConfig } from "../customization/registry.js";
 import type { AgentProfile } from "../subagent/profile.js";
 
 export type {
@@ -131,6 +132,8 @@ export interface ContextBuilderConfig {
   outputStyle?: OutputStylePromptConfig;
   compact?: AutoCompactPolicyConfig;
   guidanceToolNames?: readonly string[];
+  /** 自定义内核的生效配置（Task 7 loader 装配，经 applyPromptOverrides 过滤/替换/追加段）；缺席时 builder 行为与未接入完全一致。 */
+  customization?: EffectiveConfig;
 }
 
 /**

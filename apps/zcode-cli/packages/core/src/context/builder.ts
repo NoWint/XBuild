@@ -21,6 +21,7 @@ import { buildRequestUserContextSection } from "./sections/request-user-context.
 import { buildCurrentDateSection } from "./sections/current-date.js";
 import { buildMemorySection } from "./sections/memory.js";
 import { ACTIVE_PROJECT_MEMORY_RETRIEVAL_BRANCH } from "../memory/project-memory-retrieval-branch.js";
+import { applyPromptOverrides } from "../customization/apply-prompt-overrides.js";
 import { buildDesktopContextSection } from "./sections/desktop.js";
 import {
   buildContextManagementSection,
@@ -210,7 +211,13 @@ export class ContextBuilder {
     // 6. Custom sections
     sections.push(...this.customSections);
 
-    const orderedSections = orderSectionsForInjection(sections);
+    // 7. 自定义内核：组装完成后过滤/替换/追加提示词段（spec §5）。
+    // 无 customization 时直接沿用原数组，行为与未接入完全一致。
+    const finalSections = this.config.customization
+      ? applyPromptOverrides(sections, this.config.customization)
+      : sections;
+
+    const orderedSections = orderSectionsForInjection(finalSections);
 
     // 计算总计
     const totalChars = orderedSections.reduce((sum, s) => sum + s.chars, 0);
