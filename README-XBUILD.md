@@ -102,3 +102,27 @@ pnpm dev:desktop        # 桌面端开发
   (https://nowint.qzz.io) based on ZCode`（cli-prefix/identity/workflow-actor 及全部子代理、
   工具描述里的产品名统一改 XBuild；WebFetch UA 同步）
 - **删除安全条款提示词**（SECURITY_NOTICE 及其全部引用），省 token——安全策略由中转站渠道层承担
+
+## Round 5（自定义内核 P0：自定义中心）
+
+设置页新增「自定义中心」（Agent 能力分组），底层是能力注册表 + overrides 覆盖文件：
+
+**文件**（工作区级优先于全局）：
+- `~/.xbuild/custom/overrides.json`
+- `<workspace>/.zcode/custom/overrides.json`
+
+**可定制项**：
+- **提示词**：15 个内置段（身份/产品前缀/记忆/技能…）逐段启用或整段替换，实时 token 估算
+- **追加段**：按锚点插入自定义文本（如自有规则、人设）
+- **循环**：`beforeModel`/`turnEnd`/`compact` 三节点规则——`inject`（注入 system-reminder）
+  或 `run`（任意命令，stdin 收 JSON 上下文，stdout 返回 `{"inject":"…"}` 生效，有超时）；
+  另可设 `maxTurns` / `maxToolCallsPerTurn`
+- **环境变量**：只补缺不覆盖，作用于 agent 子进程与工具
+- **面板**：侧栏任务列表/自动化/插件市场 开关 + 排序
+- **功能**：memory 等镜像现有设置键
+
+**可靠性**：overrides 非法 → 忽略 + 自定义中心警告条；应用点全部回退内置默认；
+「恢复默认」一键清空。schema 定义在 `packages/shared/src/customization/`，
+装配在 `packages/core/src/customization/`（loader 于会话启动装配 EffectiveConfig），
+提示词管线在 `context/builder.ts` 一处接入，loop 钩子在 `runtime/methods/turn.ts`
+与 `compact-active.ts` 三处 emit。
