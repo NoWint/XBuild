@@ -1,6 +1,6 @@
 # XBuild 自定义内核（Customization Kernel）P0 设计
 
-日期：2026-10-31
+日期：2026-10-31  
 状态：已与用户确认方向（架构先行 / 钩子级 loop / 复用现有机制 / 尽可能简单可靠）
 
 ## 1. 目标与非目标
@@ -10,6 +10,7 @@
 **非目标（P1+，本期不做）**：插件包格式统一（收编 MCP 插件/skills）、热重载、loop 本体替换、常驻 worker 运行时、依赖注入框架、跨设备同步。
 
 **可靠性与简单性铁律**：
+
 - 不新造插件运行时；复用现有 settings hooks 执行器与 MCP-UI 面板机制。
 - 覆盖文件非法 → 忽略该文件 + 状态栏警告，绝不阻塞启动。
 - 每个覆盖应用点 try/catch，失败回退内置行为。
@@ -87,6 +88,7 @@ interface Capability {
 ```
 
 注：功能开关（memory 等）**不进 overrides.json**——它们直接镜像既有 settings 键（见 §8），避免同一状态两个存储。
+
 ```
 
 ## 5. 提示词管线
@@ -160,3 +162,4 @@ interface Capability {
 - 桌面 host RPC + `packages/ui/src/settings/`（自定义中心 UI）
 - `packages/ui/src/project-sidebar/`（面板槽位渲染）
 - `README-XBUILD.md` 补充说明
+```
