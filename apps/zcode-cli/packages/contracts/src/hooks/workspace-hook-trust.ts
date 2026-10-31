@@ -9,10 +9,13 @@ export const WORKSPACE_HOOK_SCHEMA_FIELDS = {
   events: [
     "SessionStart",
     "UserPromptSubmit",
+    "BeforeModel",
     "PreToolUse",
     "PermissionRequest",
     "PostToolUse",
     "PostToolUseFailure",
+    "TurnEnd",
+    "Compact",
     "Stop",
   ],
   // onError 进声明摘要（shared/workspace-hook-digest.ts），改了要重新信任。
@@ -190,10 +193,13 @@ export type WorkspaceHookEffectiveState = z.infer<typeof workspaceHookEffectiveS
 export const workspaceHookEventNameSchema = z.enum([
   "SessionStart",
   "UserPromptSubmit",
+  "BeforeModel",
   "PreToolUse",
   "PermissionRequest",
   "PostToolUse",
   "PostToolUseFailure",
+  "TurnEnd",
+  "Compact",
   "Stop",
 ]);
 
