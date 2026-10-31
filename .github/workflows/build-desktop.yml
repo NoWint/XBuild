@@ -1,0 +1,143 @@
+name: Build desktop installers
+
+# 触发方式：
+#   1. 推送 v* tag  → 构建 + 上传为 Release 资产
+#   2. 手动触发     → 构建 + 上传为 Actions artifacts（不发布）
+#   3. 被 CI 复用     → workflow_call
+on:
+  workflow_dispatch:
+    inputs:
+      mac_arch:
+        description: "macOS 目标架构"
+        type: choice
+        options: [arm64, x64, both]
+        default: arm64
+  push:
+    tags:
+      - "v*"
+  workflow_call:
+    inputs:
+      mac_arch:
+        description: "macOS 目标架构"
+        type: string
+        default: arm64
+
+concurrency:
+  group: build-desktop-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+env:
+  NODE_VERSION: "24.14.0"
+  PNPM_VERSION: "10.33.2"
+  COREPACK_ENABLE_PROJECT_SPEC: "0"
+  # 未配置签名证书时走 ad-hoc 签名，产物可本地运行（首次打开需右键 → 打开）。
+  ZCODE_ENABLE_MAC_SIGN: "0"
+  CSC_IDENTITY_AUTO_DISCOVERY: "false"
+
+jobs:
+  build:
+    name: ${{ matrix.label }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: macOS arm64
+            runner: macos-14
+            os: mac
+            arch: arm64
+          - label: macOS x64
+            runner: macos-13
+            os: mac
+            arch: x64
+          - label: Windows x64
+            runner: windows-latest
+            os: win
+            arch: x64
+          # Linux 暂不发布：deb/rpm/pacman 还要 rpmbuild/fpm，等确认分发形态后再开。
+          # - label: Linux x64
+          #   runner: ubuntu-latest
+          #   os: linux
+          #   arch: x64
+
+    steps:
+      - name: Skip matrix entries not requested
+        id: gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          wanted="${{ inputs.mac_arch || 'arm64' }}"
+          if [ "${{ github.event_name }}" = "push" ]; then wanted="both"; fi
+          if [ "${{ matrix.os }}" != "mac" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          elif [ "$wanted" = "both" ] || [ "$wanted" = "${{ matrix.arch }}" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "Skipping macOS ${{ matrix.arch }} (requested: $wanted)"
+          fi
+
+      - name: Checkout
+        if: steps.gate.outputs.run == 'true'
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        if: steps.gate.outputs.run == 'true'
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node
+        if: steps.gate.outputs.run == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        if: steps.gate.outputs.run == 'true'
+        run: pnpm install --frozen-lockfile
+
+      - name: Verify icon assets
+        if: steps.gate.outputs.run == 'true'
+        run: node scripts/verify-app-icons.mjs
+
+      # bundle:desktop 内部会跑 prepare:runtime-assets + build + electron-builder，
+      # 产物落在 packages/desktop/dist。
+      - name: Bundle installer
+        if: steps.gate.outputs.run == 'true'
+        working-directory: packages/desktop
+        run: pnpm bundle -- --os ${{ matrix.os }} --arch ${{ matrix.arch }}
+
+      - name: Collect artifacts
+        if: steps.gate.outputs.run == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "${{ github.workspace }}/artifacts"
+          find packages/desktop/dist -maxdepth 1 -type f \
+            \( -name '*.dmg' -o -name '*.zip' -o -name '*.exe' -o -name '*.msi' -o -name '*.AppImage' -o -name '*.deb' \) \
+            -exec cp {} "${{ github.workspace }}/artifacts/" \;
+          ls -lh "${{ github.workspace }}/artifacts"
+
+      - name: Upload artifacts
+        if: steps.gate.outputs.run == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: xbuild-${{ matrix.os }}-${{ matrix.arch }}
+          path: artifacts/*
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Attach to release
+        if: steps.gate.outputs.run == 'true' && startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/*
+          draft: false
+          prerelease: false
+          generate_release_notes: true
