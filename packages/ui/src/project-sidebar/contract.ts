@@ -147,6 +147,8 @@ export interface ProjectSidebarProps {
   onOpenPluginStore?: () => void;
   automationsActive?: boolean;
   pluginStoreActive?: boolean;
+  /** 面板槽位配置（EffectiveConfig.panels 透传）；缺省 = 全启用 + 内置注册顺序，行为与现状一致。 */
+  panelsUi?: { order: string[]; disabled: string[] };
   onFileTreeOpenChange?: (open: boolean) => void;
   onWebRemoteTaskOpen?: (options: { crossWorkspace: boolean }) => void;
   onWebRemoteTaskSwitchingChange?: (switching: boolean) => void;

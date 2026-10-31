@@ -47,6 +47,12 @@ interface PrepareCliProviderRuntimeEnvOptions {
   readonly sea?: SeaProviderConfigAssets;
   readonly appVersion?: string;
   readonly platform?: string;
+  /**
+   * 用户自定义 env（overrides 合并结果，EffectiveConfig.env）。只补缺不覆盖：
+   * 已存在的环境变量与本函数自产的 Provider Config 路径键优先。缺省 = 行为不变，
+   * 调用方由 Task 7 的 customization loader 接线。
+   */
+  readonly userEnv?: Readonly<Record<string, string>>;
 }
 
 /** 为运行 Core 或写入模型选择的 CLI Entry 定位同一 Environment 的 Provider Config。 */
@@ -59,10 +65,13 @@ export async function prepareCliProviderRuntimeEnv(
   const explicitPersonal = options.env[ZCODE_PERSONAL_PROVIDER_CONFIG_FILE_ENV]?.trim();
   const dataBaseDir = options.dataBaseDir ?? options.env.ZCODE_DATA_BASE_DIR?.trim() ?? homedir();
   if (explicitZCodeBuiltin && explicitPersonal) {
-    return {
-      [ZCODE_BUILTIN_PROVIDER_CONFIG_FILE_ENV]: explicitZCodeBuiltin,
-      [ZCODE_PERSONAL_PROVIDER_CONFIG_FILE_ENV]: explicitPersonal,
-    };
+    return applyUserEnvFill(
+      {
+        [ZCODE_BUILTIN_PROVIDER_CONFIG_FILE_ENV]: explicitZCodeBuiltin,
+        [ZCODE_PERSONAL_PROVIDER_CONFIG_FILE_ENV]: explicitPersonal,
+      },
+      options,
+    );
   }
 
   const zcodeBuiltinFilePath =
@@ -95,11 +104,32 @@ export async function prepareCliProviderRuntimeEnv(
     source.dispose();
   }
 
-  return {
-    [ZCODE_BUILTIN_PROVIDER_CONFIG_FILE_ENV]: cachePaths.activeFilePath,
-    [ZCODE_BUILTIN_PROVIDER_BUNDLED_CONFIG_FILE_ENV]: zcodeBuiltinFilePath,
-    [ZCODE_PERSONAL_PROVIDER_CONFIG_FILE_ENV]: personalFilePath,
-  };
+  return applyUserEnvFill(
+    {
+      [ZCODE_BUILTIN_PROVIDER_CONFIG_FILE_ENV]: cachePaths.activeFilePath,
+      [ZCODE_BUILTIN_PROVIDER_BUNDLED_CONFIG_FILE_ENV]: zcodeBuiltinFilePath,
+      [ZCODE_PERSONAL_PROVIDER_CONFIG_FILE_ENV]: personalFilePath,
+    },
+    options,
+  );
+}
+
+/**
+ * 用户 env 只补缺不覆盖（spec §4/§7）：已存在的环境变量优先，避免破坏运行时内部变量；
+ * 本函数自产的 Provider Config 路径键同样不让位于用户 env。userEnv 缺省时原样返回。
+ */
+function applyUserEnvFill(
+  prepared: Record<string, string>,
+  options: PrepareCliProviderRuntimeEnvOptions,
+): Record<string, string> {
+  const userEnv = options.userEnv;
+  if (!userEnv) return prepared;
+  for (const [key, value] of Object.entries(userEnv)) {
+    if (options.env[key] !== undefined) continue;
+    if (prepared[key] !== undefined) continue;
+    prepared[key] = value;
+  }
+  return prepared;
 }
 
 function requiresProviderRuntime(argv: readonly string[]): boolean {

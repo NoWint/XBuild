@@ -218,6 +218,9 @@ export const ProjectSidebar = memo(function ProjectSidebar(props: ProjectSidebar
   const banner = useMemo(() => <SidebarBottomActivity />, []);
   // 手机远控 home-only 没有 base attachment，也就没有项目契约；改用 relay 层工作区列表与重连入口。
   const homeOnlySwitcher = service ? undefined : props.webRemoteControlWorkspaceSwitcher;
+  // 面板槽位（spec §7）：任务列表按 panelsUi.disabled 隐藏；缺省 = 全启用，行为与现状一致。
+  // order 的重排本期只作用于导航入口（ProjectSidebarNavigation）；renderer 数据通道 Task 8 接入。
+  const tasksPanelVisible = !new Set(props.panelsUi?.disabled ?? []).has("panel.tasks");
   return (
     <ProjectTaskListContext.Provider value={taskPresentation}>
       <SidebarTooltipProvider>
@@ -235,7 +238,7 @@ export const ProjectSidebar = memo(function ProjectSidebar(props: ProjectSidebar
               <ProjectSidebarNavigation props={props} onCreate={() => props.onCreateTask()} />
               <div
                 data-testid="sidebar-task-list-region"
-                className="flex min-h-0 flex-1 flex-col border-t border-border/50 pt-3 [anchor-name:--sidebar-task-list-divider]"
+                className={`flex min-h-0 flex-1 flex-col border-t border-border/50 pt-3 [anchor-name:--sidebar-task-list-divider] ${tasksPanelVisible ? "" : "hidden"}`}
               >
                 <ProjectSidebarListHeader
                   onOpenCommandCenter={props.onOpenCommandCenter}
