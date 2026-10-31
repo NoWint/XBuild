@@ -9,10 +9,13 @@ export const DEFAULT_WORKSPACE_HOOK_MAX_OUTPUT_BYTES = 32_768;
 export const WORKSPACE_HOOK_EVENT_NAMES = [
   "SessionStart",
   "UserPromptSubmit",
+  "BeforeModel",
   "PreToolUse",
   "PermissionRequest",
   "PostToolUse",
   "PostToolUseFailure",
+  "TurnEnd",
+  "Compact",
   "Stop",
 ] as const;
 
@@ -72,10 +75,13 @@ export const workspaceHooksConfigSchema = z
       .object({
         SessionStart: z.array(workspaceHookMatcherConfigSchema).optional(),
         UserPromptSubmit: z.array(workspaceHookMatcherConfigSchema).optional(),
+        BeforeModel: z.array(workspaceHookMatcherConfigSchema).optional(),
         PreToolUse: z.array(workspaceHookMatcherConfigSchema).optional(),
         PermissionRequest: z.array(workspaceHookMatcherConfigSchema).optional(),
         PostToolUse: z.array(workspaceHookMatcherConfigSchema).optional(),
         PostToolUseFailure: z.array(workspaceHookMatcherConfigSchema).optional(),
+        TurnEnd: z.array(workspaceHookMatcherConfigSchema).optional(),
+        Compact: z.array(workspaceHookMatcherConfigSchema).optional(),
         Stop: z.array(workspaceHookMatcherConfigSchema).optional(),
       })
       .strict()

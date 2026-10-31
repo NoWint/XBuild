@@ -198,6 +198,10 @@ export type {
   RuntimeFactory,
 } from "./runtime.js";
 
+// 自定义内核：bootstrap / cli 装配 EffectiveConfig 用（Task 7 loader + 内置能力清单）。
+export { loadEffectiveConfig, registerBuiltinCapabilities } from "./customization/loader.js";
+export type { EffectiveConfig } from "./customization/registry.js";
+
 // Output helpers
 export { color, formatJson, supportsColor } from "./output.js";
 

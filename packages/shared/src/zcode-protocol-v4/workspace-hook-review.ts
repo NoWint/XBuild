@@ -114,10 +114,13 @@ export const workspaceHookReviewRequestPayloadSchema = z
           event: z.enum([
             "SessionStart",
             "UserPromptSubmit",
+            "BeforeModel",
             "PreToolUse",
             "PermissionRequest",
             "PostToolUse",
             "PostToolUseFailure",
+            "TurnEnd",
+            "Compact",
             "Stop",
           ]),
           matcher: z.string().optional(),

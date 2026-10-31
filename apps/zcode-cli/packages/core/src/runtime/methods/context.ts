@@ -166,6 +166,9 @@ export function createContextBuilderFromSnapshot(
     skillMetadataBudget: this.config.skillMetadataBudget,
     customSystemPrompt: this.config.systemPrompt,
     workflowActor: this.config.workflowActor,
+    // 自定义内核：EffectiveConfig 由 bootstrap 会话启动时装配进 runtime config（Task 7 接线）。
+    // 缺席时 builder 行为与未接入完全一致（提示词不做过滤/替换/追加，loop 钩子无规则）。
+    customization: this.config.customization,
     language: this.config.language,
     outputStyle: this.config.outputStyle,
     compact: this.config.compact,

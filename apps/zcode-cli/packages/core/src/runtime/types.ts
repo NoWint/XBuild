@@ -1,6 +1,7 @@
 import type { ToolSearchExecutionContext, ToolSearchMode } from "@zcode/contracts";
 import type { RequestVerificationReason } from "@zcode/shared";
 import type { GetAgentDefinitions, LoadAgentDefinitions } from "../subagent/definitions.js";
+import type { EffectiveConfig } from "../customization/registry.js";
 import type { RuntimeInputPresentation, TurnExecutionModelFallbackReason } from "@zcode/contracts";
 /* eslint-disable max-lines -- Runtime 类型集中承载 core/runtime 对外结构，拆分需要单独迁移。 */
 import { PermissionService, ToolScheduler } from "./deps.js";
@@ -250,6 +251,12 @@ export interface AgentRuntimeConfig {
   outputStyle?: OutputStylePromptConfig;
   agentName?: string; // Default: "zcode-agent"
   workingDirectory?: string; // Required for context builder
+  /**
+   * 自定义内核生效配置：bootstrap 会话启动时经 loader.loadEffectiveConfig 装配（Task 7）。
+   * 经 context builder 的 `customization` 字段进入提示词覆盖层，loop 钩子经
+   * readLoopHookEffectiveConfig 同源读取；缺席时行为与未接入完全一致。
+   */
+  customization?: EffectiveConfig;
   /** 本次运行的附加目录，仅用于环境 prompt 展示，不参与配置发现或持久化。 */
   additionalDirectories?: readonly string[];
   /**

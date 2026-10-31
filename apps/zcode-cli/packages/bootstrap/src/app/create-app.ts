@@ -2,7 +2,7 @@ import { createWorkspaceMcpTrust } from "../workspace-mcp-trust/index.js";
 import { subagentProfilesFromSnapshot } from "../runtime-subagents/index.js";
 import { CliDefaultSelection } from "./cli-default-selection.js";
 import { isAbsolute, join, resolve } from "node:path";
-import { tmpdir } from "node:os";
+import { homedir, tmpdir } from "node:os";
 import {
   createInMemorySessionEventStore,
   createNodeToolArtifactStore,
@@ -23,11 +23,13 @@ import { createNodeSkillAdapter } from "@zcode/adapters/skills";
 import { createMcpAdapter } from "@zcode/adapters/mcp";
 import {
   AgentRuntime,
+  loadEffectiveConfig,
   normalizeAgentProfiles,
   PermissionService,
   buildPluginReferenceCatalog,
   writeWorkflowDraft,
   type AmendWorkflowRunSettingsInput,
+  type EffectiveConfig,
   type ResumeSessionResult,
 } from "@zcode/core";
 import { createModelTelemetry } from "@zcode/telemetry";
@@ -35,6 +37,7 @@ import {
   createRootTraceContext,
   ModelRequestSessionFeature,
   traceContextToLogContext,
+  type Logger,
   type TraceContext,
   createSessionId,
   createSessionEvent,
@@ -300,6 +303,24 @@ export async function createZCodeApp(options: ZCodeAppOptions): Promise<ZCodeApp
         workingDirectory,
         workspaceIdentity: options.runtimeConfig?.memory?.workspaceIdentity,
       });
+    // 自定义内核（Task 7 接线）：会话启动装配 EffectiveConfig，供 builder 提示词覆盖层与
+    // loop 钩子节点消费。homeDir 与 provider runtime 的 ~/.xbuild 隔离体系同一来源
+    // （ZCODE_DATA_BASE_DIR ?? homedir，对照 provider-runtime-env）；工作区覆盖读会话 workingDirectory。
+    // 宿主显式传入 runtimeConfig.customization 时不读文件（嵌入式宿主自带装配优先）。
+    // 失败安全（spec §9）：loader 本身不抛，这里再兜一层 try/catch——任何异常只记警告，
+    // 返回 undefined 即内置默认生效，绝不阻塞启动。
+    runtimeConfig.customization =
+      options.runtimeConfig?.customization ??
+      resolveSessionEffectiveCustomization({
+        env: options.env,
+        workingDirectory,
+        logger,
+      });
+    // 用户 env 覆盖（spec §4）：只补缺不覆盖已有变量，避免破坏运行时内部键。
+    // 在会话装配点写入 process.env，工具子进程与 agent 侧后续 spawn 自然继承。
+    for (const [envKey, envValue] of Object.entries(runtimeConfig.customization?.env ?? {})) {
+      if (process.env[envKey] === undefined) process.env[envKey] = envValue;
+    }
     const browserControlPort = options.browserControlPort;
     if (
       browserControlPort &&
@@ -1528,5 +1549,38 @@ export async function createZCodeApp(options: ZCodeAppOptions): Promise<ZCodeApp
       stage: "total",
     });
     throw error;
+  }
+}
+
+/**
+ * 会话启动装配自定义内核 EffectiveConfig（Task 7 接线；spec §3/§4）。
+ * loader 自身失败安全（两级文件缺失/非法 → 空默认 + warning），这里只负责把警告
+ * 落到启动日志；任何未预料的异常同样吞掉并返回 undefined——内置默认生效，不阻塞启动。
+ */
+function resolveSessionEffectiveCustomization(input: {
+  env: NodeJS.ProcessEnv | undefined;
+  workingDirectory: string;
+  logger: Pick<Logger, "warn">;
+}): EffectiveConfig | undefined {
+  try {
+    const loaded = loadEffectiveConfig({
+      homeDir: input.env?.ZCODE_DATA_BASE_DIR?.trim() || homedir(),
+      workspacePath: input.workingDirectory,
+    });
+    for (const warning of loaded.warnings) {
+      input.logger.warn("Customization overrides ignored; builtin defaults in effect", {
+        event: "customization.overrides.ignored",
+        module: "bootstrap",
+        warning,
+      });
+    }
+    return loaded.eff;
+  } catch (error) {
+    input.logger.warn("Customization loader failed; builtin defaults in effect", {
+      event: "customization.load.failed",
+      module: "bootstrap",
+      errorMessage: error instanceof Error ? error.message : String(error),
+    });
+    return undefined;
   }
 }

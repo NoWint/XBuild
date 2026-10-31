@@ -23,10 +23,13 @@ export const WORKSPACE_HOOK_TRUST_STORE_SCHEMA_VERSION = 1 as const;
 const workspaceHookEventNameSchema = z.enum([
   "SessionStart",
   "UserPromptSubmit",
+  "BeforeModel",
   "PreToolUse",
   "PermissionRequest",
   "PostToolUse",
   "PostToolUseFailure",
+  "TurnEnd",
+  "Compact",
   "Stop",
 ]);
 

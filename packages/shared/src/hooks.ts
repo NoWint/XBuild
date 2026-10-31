@@ -4,10 +4,13 @@ import type { WorkspaceHookReviewTrustState } from "./zcode-protocol-v4/workspac
 export type HookEvent =
   | "SessionStart"
   | "UserPromptSubmit"
+  | "BeforeModel"
   | "PreToolUse"
   | "PermissionRequest"
   | "PostToolUse"
   | "PostToolUseFailure"
+  | "TurnEnd"
+  | "Compact"
   | "Stop";
 
 export type HookType = "command" | "process";
