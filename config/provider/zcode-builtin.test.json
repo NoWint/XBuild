@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 44,
+  "revision": 45,
   "config": {
     "providerConfigRules": {
       "templateRules": [
@@ -12,7 +12,7 @@
           },
           "config": {
             "access": {
-              "type": "zhipu-coding-plan-api-key",
+              "type": "api-key",
               "apiKeyManagementUrl": "https://nowint.qzz.io/console/token"
             },
             "api": {
@@ -20,8 +20,8 @@
               "baseUrl": "https://nowint.qzz.io"
             },
             "builtinModelIds": [
-              "GLM-5.3",
-              "GLM-5.3-Flash"
+              "z-ai/glm-5.3-flash",
+              "z-ai/glm-5.3"
             ],
             "logo": {
               "type": "builtin",
@@ -45,31 +45,8 @@
               "baseUrl": "https://nowint.qzz.io/v1"
             },
             "builtinModelIds": [
-              "GLM-5.3",
-              "GLM-5.3-Flash",
-              "glm-5.3-flashx",
-              "GLM-5V-Turbo",
-              "GLM-5.1",
-              "GLM-5.1-Highspeed",
-              "GLM-5",
-              "GLM-5-Turbo",
-              "GLM-4.7",
-              "GLM-4.7-FlashX",
-              "GLM-4.7-Flash",
-              "GLM-4.6",
-              "GLM-4.5-Air",
-              "GLM-4.5",
-              "GLM-4.6V",
-              "GLM-4.6V-Flash",
-              "GLM-4.6V-FlashX",
-              "GLM-4.1V-Thinking-FlashX",
-              "GLM-4.1V-Thinking-Flash",
-              "GLM-4-FlashX-250414",
-              "GLM-4-Flash-250414",
-              "GLM-4V-Flash",
-              "codegeex-4",
-              "charglm-4",
-              "emohaa"
+              "z-ai/glm-5.3-flash",
+              "z-ai/glm-5.3"
             ],
             "logo": {
               "type": "builtin",
@@ -85,7 +62,7 @@
           },
           "config": {
             "access": {
-              "type": "zhipu-coding-plan-api-key",
+              "type": "api-key",
               "apiKeyManagementUrl": "https://nowint.qzz.io/console/token"
             },
             "api": {
@@ -93,8 +70,8 @@
               "baseUrl": "https://nowint.qzz.io"
             },
             "builtinModelIds": [
-              "GLM-5.3",
-              "GLM-5.3-Flash"
+              "z-ai/glm-5.3-flash",
+              "z-ai/glm-5.3"
             ],
             "logo": {
               "type": "builtin",
@@ -118,30 +95,8 @@
               "baseUrl": "https://nowint.qzz.io/v1"
             },
             "builtinModelIds": [
-              "GLM-5.3",
-              "GLM-5.3-Flash",
-              "GLM-5V-Turbo",
-              "GLM-5.1",
-              "GLM-5.1-Highspeed",
-              "GLM-5",
-              "GLM-5-Turbo",
-              "GLM-4.7",
-              "GLM-4.7-FlashX",
-              "GLM-4.7-Flash",
-              "GLM-4.6",
-              "GLM-4.5-Air",
-              "GLM-4.5",
-              "GLM-4.6V",
-              "GLM-4.6V-Flash",
-              "GLM-4.6V-FlashX",
-              "GLM-4.1V-Thinking-FlashX",
-              "GLM-4.1V-Thinking-Flash",
-              "GLM-4-FlashX-250414",
-              "GLM-4-Flash-250414",
-              "GLM-4V-Flash",
-              "codegeex-4",
-              "charglm-4",
-              "emohaa"
+              "z-ai/glm-5.3-flash",
+              "z-ai/glm-5.3"
             ],
             "logo": {
               "type": "builtin",

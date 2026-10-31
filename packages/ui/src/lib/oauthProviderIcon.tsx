@@ -17,6 +17,6 @@ export function renderOAuthProviderIcon(provider: OAuthProviderId, className?: s
   }
 
   return (
-    <img src={src} alt="" aria-hidden="true" className={cn("shrink-0 object-contain", className)} />
+    <img src={src} alt="" aria-hidden="true" className={cn("shrink-0 object-contain dark:invert", className)} />
   );
 }

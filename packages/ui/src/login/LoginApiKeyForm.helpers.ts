@@ -9,8 +9,9 @@ import { encodeCustomModelValue } from "@/lib/zcodeCustomModelValue.js";
 
 export type ApiKeyProviderChoice = "zai" | "bigmodel";
 
-export function resolveLoginApiKeyDefaultProvider(locale: Locale): ApiKeyProviderChoice {
-  return locale === "zh-CN" ? "bigmodel" : "zai";
+export function resolveLoginApiKeyDefaultProvider(_locale: Locale): ApiKeyProviderChoice {
+  // Xbuild：唯一对接 Xiatian AI 中转站（nowint.qzz.io），固定走 Anthropic 主通道模板。
+  return "zai";
 }
 
 export function resolveLoginApiKeyTemplateId(
@@ -22,8 +23,8 @@ export function resolveLoginApiKeyTemplateId(
 }
 
 export function resolveLoginApiKeyProviderLabel(choice: ApiKeyProviderChoice): string {
-  // Welcome Screen API Key 错误提示需要使用 BigModel 品牌固定写法。
-  return choice === "zai" ? "Z.ai" : "BigModel";
+  // Xbuild：欢迎页 API Key 错误提示统一使用 Xiatian AI 品牌。
+  return "Xiatian AI";
 }
 
 export function resolveLoginApiKeyProviderFamilyDomain(

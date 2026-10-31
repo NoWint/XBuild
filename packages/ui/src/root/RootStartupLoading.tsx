@@ -61,10 +61,8 @@ export function ZCodeStartupLogo({
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      width="118"
-      height="100"
+      viewBox="0 0 21 21"
       fill="none"
-      viewBox="0 0 256 218"
       className={cn("shrink-0 text-current", className)}
       aria-hidden="true"
       focusable="false"
@@ -78,14 +76,18 @@ export function ZCodeStartupLogo({
           values="1;0.4;1"
         />
       ) : null}
+      <defs>
+        <linearGradient id="xbuild-startup-sheen" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="currentColor" />
+          <stop offset="0.5" stopColor="#6f6f6f" />
+          <stop offset="1" stopColor="currentColor" />
+        </linearGradient>
+      </defs>
       <path
-        fill="currentColor"
-        d="M134.4 0.130152L116.48 25.6022C113.665 29.5699 109.054 32.0019 104.064 32.0019H6.3999V0C6.3999 0.130149 134.4 0.130152 134.4 0.130152Z"
-      />
-      <path fill="currentColor" d="M256 0.130127L102.401 217.732H0L153.599 0.130127H256Z" />
-      <path
-        fill="currentColor"
-        d="M121.601 217.732L139.65 192.134C142.465 188.166 147.076 185.734 152.067 185.734H249.604V217.736H121.601V217.732Z"
+        fillRule="evenodd"
+        clipRule="evenodd"
+        fill="url(#xbuild-startup-sheen)"
+        d="M6 0 H15 A6 6 0 0 1 21 6 V15 A6 6 0 0 1 15 21 H6 A6 6 0 0 1 0 15 V6 A6 6 0 0 1 6 0 Z M7.5 5.5 H13.5 A2 2 0 0 1 15.5 7.5 V13.5 A2 2 0 0 1 13.5 15.5 H7.5 A2 2 0 0 1 5.5 13.5 V7.5 A2 2 0 0 1 7.5 5.5 Z"
       />
     </svg>
   );

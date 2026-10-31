@@ -1041,7 +1041,7 @@ export function zcodeSessionEventToZCodeStreamEvents(params: {
             taskId,
             traceId,
             eventInputId,
-            stringValue(errorPayload.message) ?? "ZCode compact failed",
+            stringValue(errorPayload.message) ?? "XBuild compact failed",
           ),
         ];
       }
@@ -1054,7 +1054,7 @@ export function zcodeSessionEventToZCodeStreamEvents(params: {
           taskId,
           traceId,
           ...(eventInputId ? { inputId: eventInputId } : {}),
-          error: stringValue(errorPayload.message) ?? "ZCode session failed",
+          error: stringValue(errorPayload.message) ?? "XBuild session failed",
           code: stringValue(errorPayload.code) ?? stringValue(errorPayload.type),
           detail: stringValue(errorPayload.detail),
           ...(attribution.success ? { attribution: attribution.data } : {}),

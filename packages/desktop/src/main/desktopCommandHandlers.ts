@@ -325,7 +325,7 @@ function buildZCodeEndpointPromptHtml(currentValue: string): string {
   </head>
   <body>
     <form id="form">
-      <label for="endpoint">ZCode endpoint origin</label>
+      <label for="endpoint">XBuild endpoint origin</label>
       <input id="endpoint" value="${value}" placeholder="https://nowint.qzz.io" spellcheck="false" />
       <div class="hint">Use an http or https origin, for example https://nowint.qzz.io.</div>
       <div class="actions">
@@ -364,7 +364,7 @@ function showZCodeEndpointPromptWindow(options: {
       resizable: false,
       minimizable: false,
       maximizable: false,
-      title: "ZCode Endpoint",
+      title: "XBuild Endpoint",
       webPreferences: {
         contextIsolation: true,
         nodeIntegration: false,
@@ -666,7 +666,7 @@ export async function executeDesktopCommand(options: {
       } catch (error) {
         await showMessageBoxWithOptionalParent(targetWindow, {
           type: "error",
-          title: "ZCode Endpoint",
+          title: "XBuild Endpoint",
           message: "Endpoint 无效",
           detail: error instanceof Error ? error.message : String(error),
         });

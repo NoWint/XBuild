@@ -68,3 +68,13 @@ pnpm dev:desktop        # 桌面端开发
 
 - `xwork/scripts/xbuild-deep-couple-xiatian.sh` — URL 批量改写（有序映射表）
 - `xwork/scripts/xbuild-edit-catalog.mjs` — provider 目录改名/隐藏/revision 自增
+
+## Round 2（UI 彻底对接 + XBuild 品牌）
+
+- **登录页**：OAuth 渠道列表（Z.ai/BigModel）整体移除，默认直接进 API Key 表单（provider 固定 Xiatian AI / Anthropic 主通道）
+- **模型名对齐中转站**：4 个模板 builtinModelIds → `z-ai/glm-5.3-flash`（主）+ `z-ai/glm-5.3`（default 组实测可用），access 统一 `api-key`，revision 45
+- **品牌**：locale 317 处 + TUI PRODUCT_NAME + desktop productName/Dev 包名 + 各窗口标题 → **XBuild**
+- **图标**：全面换成 nowint.qzz.io 的圆角环 mark（CSS 几何：21px/r6 + conic 金属光泽 + 镂空）——
+  登录/关于/启动/Windows 标题栏组件、provider 图标（svg+png）、Dock 图标（icns 全套尺寸）、web favicon
+- **免配置启动**：已在中转站建专用令牌 `xbuild`（default 组），预写入 `~/.xbuild/v2/provider_config.json`
+- **端到端已验证**：Mac → nowint.qzz.io/v1/messages → z-ai/glm-5.3-flash 真实推理响应

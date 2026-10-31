@@ -5,15 +5,12 @@
  * 通过 useOAuth hook 驱动 OAuth 流程。
  */
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { Loader2Icon, LoaderIcon, TriangleAlertIcon } from "lucide-react";
+import { LoaderIcon, TriangleAlertIcon } from "lucide-react";
 import { type OAuthProviderMeta, BIGMODEL_PROVIDER_ID, ZAI_PROVIDER_ID } from "@zcode/shared";
 import {
-  TID_LOGIN_USE_API_KEY_BUTTON,
   TID_OAUTH_CANCEL,
   TID_OAUTH_COPY_LOGIN_LINK,
   TID_OAUTH_ERROR,
-  TID_OAUTH_LOGIN_BUTTON,
-  testId,
 } from "@zcode/shared/test-ids";
 import { Alert, AlertDescription } from "./components/ui/alert.js";
 import { Button } from "./components/ui/button.js";
@@ -21,7 +18,6 @@ import { ZCodeAboutLogo } from "@/components/ui/ZCodeAboutLogo.js";
 import { useOAuth } from "./hooks/useOAuth.js";
 import { useZCodeIntl } from "./i18n/IntlProvider.js";
 import { LoginApiKeyForm } from "./login/LoginApiKeyForm.js";
-import { renderOAuthProviderIcon } from "./lib/oauthProviderIcon.js";
 import { ThemeHeroVisual } from "./openWorkspacePageThemeHero.js";
 import { useZCodeStore } from "./store/StoreProvider.js";
 import { DesktopOverlayWindowControls } from "@/DesktopOverlayWindowControls.js";
@@ -93,7 +89,8 @@ export function LoginPanel({ active, onComplete }: LoginPanelProps) {
   const loginEntryRequest = useZCodeStore((s) => s.loginEntryRequest);
   const clearLoginEntryRequest = useZCodeStore((s) => s.clearLoginEntryRequest);
   const markLoginEntryAttemptStatus = useZCodeStore((s) => s.markLoginEntryAttemptStatus);
-  const [loginMode, setLoginMode] = useState<"providers" | "apiKey">("providers");
+  // Xbuild：不提供 Z.ai/BigModel OAuth 入口，登录页默认直接进入 API Key 表单。
+  const [loginMode, setLoginMode] = useState<"providers" | "apiKey">("apiKey");
   const wasActiveRef = useRef(active);
   const consumedLoginRequestRef = useRef<number | null>(null);
   const observedOAuthSuccessSeqRef = useRef(oauthSuccessSeq);
@@ -147,7 +144,6 @@ export function LoginPanel({ active, onComplete }: LoginPanelProps) {
   const pendingProviderName = pendingProvider
     ? (providerNameMap.get(pendingProvider) ?? pendingProvider)
     : null;
-  const visibleProviders = useMemo(() => resolveVisibleLoginProviders(providers), [providers]);
 
   useEffect(() => {
     if (active) {
@@ -306,75 +302,17 @@ export function LoginPanel({ active, onComplete }: LoginPanelProps) {
       </LoginPanelHeader>
 
       <div className="space-y-6">
-        {/* Bugfix: Root 层写入 oauthError（轮询/回调失败）后 effect 会把 useOAuth reset 回 idle，
-            若只判断 status==="idle" 会让失败块和渠道按钮列表同屏、状态纠缠。
-            失败期间统一由下方失败块接管（重新登录/取消），渠道列表等错误清掉后再回来。 */}
-        {status === "idle" && !oauthError && loginMode === "providers" && (
-          <div className="space-y-4">
-            {loadingProviders ? (
-              <div className="flex items-center justify-center gap-2 rounded-xl border border-border bg-surface px-4 py-6 text-ui-base text-foreground-subtle">
-                <Loader2Icon className="size-4 animate-spin" />
-                {intl.formatMessage({ id: "login.oauth.loadingProviders" })}
-              </div>
-            ) : null}
-
-            {!loadingProviders && providers.length === 0 ? (
-              <Alert
-                variant="warning"
-                className="flex items-center justify-center gap-2 text-center"
-                data-testid={TID_OAUTH_ERROR}
-              >
-                <TriangleAlertIcon className="size-4" />
-                <AlertDescription className="text-center">
-                  {intl.formatMessage({ id: "login.oauth.noProviders" })}
-                </AlertDescription>
-              </Alert>
-            ) : null}
-
-            {!loadingProviders ? (
-              <div className="space-y-2">
-                {visibleProviders.map((provider) => (
-                  <Button
-                    key={provider.id}
-                    variant="default"
-                    className="h-10 w-full text-ui-base"
-                    size="lg"
-                    data-testid={
-                      provider.id === BIGMODEL_PROVIDER_ID
-                        ? TID_OAUTH_LOGIN_BUTTON
-                        : testId(TID_OAUTH_LOGIN_BUTTON, provider.id)
-                    }
-                    onClick={() => void startTrackedLogin(provider.id)}
-                  >
-                    {renderOAuthProviderIcon(provider.id, "size-4")}
-                    <span className="min-w-0 truncate">
-                      {intl.formatMessage(
-                        { id: getLoginOAuthButtonMessageId(provider.id) },
-                        { provider: provider.displayName },
-                      )}
-                    </span>
-                    <LoginOAuthRegionTag providerId={provider.id} />
-                  </Button>
-                ))}
-                <Button
-                  variant="outline"
-                  className="h-10 w-full text-ui-base"
-                  size="lg"
-                  data-testid={TID_LOGIN_USE_API_KEY_BUTTON}
-                  onClick={() => {
-                    setLoginMode("apiKey");
-                  }}
-                >
-                  {intl.formatMessage({ id: "login.useApiKey" })}
-                </Button>
-              </div>
-            ) : null}
-          </div>
-        )}
+        {/* Xbuild：Z.ai/BigModel OAuth 渠道列表已移除（中转站只支持 API Key）。
+            OAuth 状态机仍保留，用于设置页潜在的 provider 重连请求路径。 */}
+        {status === "idle" && !oauthError && loginMode === "providers" && null}
 
         {status === "idle" && loginMode === "apiKey" ? (
           <LoginApiKeyForm
-            onCancel={() => setLoginMode("providers")}
+            onCancel={() => {
+              // Xbuild：没有 OAuth 渠道列表可返回，取消即视为跳过登录。
+              resetApiKeyForm();
+              void onComplete("skip");
+            }}
             onSaved={() => {
               resetApiKeyForm();
               return onComplete("apiKey");
@@ -508,48 +446,11 @@ function LoginPanelLogo() {
     // 登录 logo 壳是固定深色底，边框不能跟随浅色主题 token，否则浅色主题下边框过重。
     <div
       className="relative mb-1 flex size-16 items-center justify-center rounded-2xl bg-[linear-gradient(180deg,#000000_0%,#151718_100%)] text-[#ffffff] shadow-lg/20 before:pointer-events-none before:absolute before:inset-0 before:rounded-2xl before:border before:border-[rgba(255,255,255,0.1)]"
-      aria-label="ZCode"
+      aria-label="XBuild"
       role="img"
     >
       <ZCodeAboutLogo className="h-auto w-10" />
     </div>
-  );
-}
-
-function getLoginOAuthButtonMessageId(providerId: string): string {
-  switch (providerId) {
-    case ZAI_PROVIDER_ID:
-      return "login.oauth.button.zai";
-    case BIGMODEL_PROVIDER_ID:
-      return "login.oauth.button.bigmodel";
-    default:
-      return "login.oauth.button";
-  }
-}
-
-function getLoginOAuthRegionTagMessageId(providerId: string): string | null {
-  switch (providerId) {
-    case ZAI_PROVIDER_ID:
-      return "login.oauth.regionTag.zai";
-    case BIGMODEL_PROVIDER_ID:
-      return "login.oauth.regionTag.bigmodel";
-    default:
-      return null;
-  }
-}
-
-function LoginOAuthRegionTag({ providerId }: { providerId: string }) {
-  const { intl } = useZCodeIntl();
-  const messageId = getLoginOAuthRegionTagMessageId(providerId);
-
-  if (!messageId) {
-    return null;
-  }
-
-  return (
-    <span className="ml-1 inline-flex h-5 shrink-0 items-center rounded-full border border-primary-foreground/30 px-2 text-ui-xs font-medium leading-none text-primary-foreground/60">
-      {intl.formatMessage({ id: messageId })}
-    </span>
   );
 }
 
