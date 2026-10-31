@@ -98,15 +98,10 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
 
-      # 同 ci.yml：hoisted 布局下 pnpm 解包偶发 rename 竞态，串行重试一次。
+      # 同 ci.yml：pnpm 解包偶发 rename 竞态，脚本内串行重试一次。
       - name: Install dependencies
         if: steps.gate.outputs.run == 'true'
-        run: |
-          pnpm install --frozen-lockfile || {
-            echo "::warning::first install failed, retrying with child-concurrency=1"
-            sleep 5
-            pnpm install --frozen-lockfile --child-concurrency=1
-          }
+        run: node scripts/ci-install.mjs
 
       - name: Verify icon assets
         if: steps.gate.outputs.run == 'true'

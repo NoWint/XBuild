@@ -41,15 +41,10 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
 
-      # node-linker=hoisted 下 pnpm 偶发在解包 tsup/node_modules 时撞上 rename 竞态
-      # （ERR_PNPM_ENOENT ... _tmp_xxx -> esbuild），与代码无关；第二次串行重试即可越过。
+      # node-linker=hoisted 下 pnpm 解包偶发 rename 竞态（ERR_PNPM_ENOENT ... _tmp_xxx -> esbuild），
+      # 脚本内会以串行解包重试一次；跨平台统一，不依赖 runner 的默认 shell。
       - name: Install dependencies
-        run: |
-          pnpm install --frozen-lockfile || {
-            echo "::warning::first install failed, retrying with child-concurrency=1"
-            sleep 5
-            pnpm install --frozen-lockfile --child-concurrency=1
-          }
+        run: node scripts/ci-install.mjs
 
       # 图标回归：所有尺寸四角必须透明、圆角外不能残留偏白的半透明像素。
       - name: Verify app icon assets
@@ -77,15 +72,10 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
 
-      # node-linker=hoisted 下 pnpm 偶发在解包 tsup/node_modules 时撞上 rename 竞态
-      # （ERR_PNPM_ENOENT ... _tmp_xxx -> esbuild），与代码无关；第二次串行重试即可越过。
+      # node-linker=hoisted 下 pnpm 解包偶发 rename 竞态（ERR_PNPM_ENOENT ... _tmp_xxx -> esbuild），
+      # 脚本内会以串行解包重试一次；跨平台统一，不依赖 runner 的默认 shell。
       - name: Install dependencies
-        run: |
-          pnpm install --frozen-lockfile || {
-            echo "::warning::first install failed, retrying with child-concurrency=1"
-            sleep 5
-            pnpm install --frozen-lockfile --child-concurrency=1
-          }
+        run: node scripts/ci-install.mjs
 
       - name: Typecheck
         run: pnpm typecheck
@@ -110,15 +100,10 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
 
-      # node-linker=hoisted 下 pnpm 偶发在解包 tsup/node_modules 时撞上 rename 竞态
-      # （ERR_PNPM_ENOENT ... _tmp_xxx -> esbuild），与代码无关；第二次串行重试即可越过。
+      # node-linker=hoisted 下 pnpm 解包偶发 rename 竞态（ERR_PNPM_ENOENT ... _tmp_xxx -> esbuild），
+      # 脚本内会以串行解包重试一次；跨平台统一，不依赖 runner 的默认 shell。
       - name: Install dependencies
-        run: |
-          pnpm install --frozen-lockfile || {
-            echo "::warning::first install failed, retrying with child-concurrency=1"
-            sleep 5
-            pnpm install --frozen-lockfile --child-concurrency=1
-          }
+        run: node scripts/ci-install.mjs
 
       - name: Build packages
         run: pnpm build:bootstrap
