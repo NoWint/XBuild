@@ -15,6 +15,11 @@
   QQ 群 <b>1077924207</b>
 </p>
 
+<p align="center">
+  <a href="https://github.com/NoWint/XBuild/actions/workflows/ci.yml"><img src="https://github.com/NoWint/XBuild/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
+  <a href="https://github.com/NoWint/XBuild/actions/workflows/build-desktop.yml"><img src="https://github.com/NoWint/XBuild/actions/workflows/build-desktop.yml/badge.svg" alt="Build" /></a>
+</p>
+
 ---
 
 ## 界面预览
@@ -115,6 +120,26 @@ pnpm dev:desktop      # 启动桌面端开发模式
 
 > 在官方 ZCode 环境里启动开发实例时，启动脚本会清空继承的 `ZCODE_*` / `ZAI_*`
 > 变量，避免读到官方缓存与配置。
+
+## 持续集成与发布
+
+| Workflow | 触发 | 内容 |
+| --- | --- | --- |
+| [CI](.github/workflows/ci.yml) | push / PR 到 `main` | 图标资产回归、oxlint、全仓 typecheck、桌面端生产构建 |
+| [Build desktop installers](.github/workflows/build-desktop.yml) | 手动触发 / 推送 `v*` tag | 构建 macOS arm64+x64 与 Windows x64 安装包 |
+
+推送 tag 即发布：
+
+```bash
+git tag v3.18.0 && git push origin v3.18.0
+```
+
+工作流会把 `.dmg` / `.zip` / `.exe` 自动附加到对应的 GitHub Release；手动触发时产物
+留在 Actions artifacts（保留 14 天）。未配置签名证书时走 ad-hoc 签名，首次打开需右键
+→「打开」。
+
+`scripts/verify-app-icons.mjs` 是图标门禁：所有尺寸的四角必须 `alpha = 0`，且圆角外不能
+残留偏白的半透明像素（Dock 里那圈白角的来源）。CI 每次都会跑。
 
 ## 中转站与社区
 
