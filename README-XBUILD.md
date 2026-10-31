@@ -91,3 +91,14 @@ pnpm dev:desktop        # 桌面端开发
   telemetry-state、server root、exportLogs 等；skills/commands/plugins 用户资产按决策保持共享
 - 修复后实测：setting.json 落 `~/.xbuild/v2/`，运行日志 z.ai 引用 0 条，
   provider `z-ai/glm-5.3-flash @ zai-api-2` 正常就绪
+
+## Round 4（毛玻璃 UI + 身份提示词）
+
+- **UI 全透明化**：四个主题（zai-dark/zai-light/dark/light）`--color-background` 全改 transparent，
+  主表面（面板/聊天区/侧栏）直接透出窗口 vibrancy 毛玻璃；深色根容器加 22% 黑 tint 压深玻璃；
+  浮层 `--color-popover` 半透明 + 全局 `.bg-popover` 挂 `backdrop-filter: blur(28px)`（真毛玻璃浮层）
+- **侧栏品牌标题**：新建任务上方常驻 XBuild mark+标题（与按钮图标列对齐，text-ui-lg）
+- **身份提示词**：`You are XBuild, an interactive agent developed by Xiatian AI
+  (https://nowint.qzz.io) based on ZCode`（cli-prefix/identity/workflow-actor 及全部子代理、
+  工具描述里的产品名统一改 XBuild；WebFetch UA 同步）
+- **删除安全条款提示词**（SECURITY_NOTICE 及其全部引用），省 token——安全策略由中转站渠道层承担

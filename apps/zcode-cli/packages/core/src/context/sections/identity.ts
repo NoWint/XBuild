@@ -7,18 +7,10 @@ import type { OutputStylePromptConfig } from "../types.js";
 import { estimateTokens } from "../utils.js";
 
 const DEFAULT_AGENT_IDENTITY =
-  "You are an agent working with the user toward their goals, using your own judgment along the way.";
+  "You are XBuild, an agent developed by Xiatian AI (https://nowint.qzz.io) based on ZCode, working with the user toward their goals, using your own judgment along the way.";
 
 const OUTPUT_STYLE_AGENT_IDENTITY =
-  'You are an interactive agent that helps users according to your "Output Style", which describes how you should respond to user queries.';
-
-const SECURITY_NOTICE =
-  "IMPORTANT: Assist with authorized security testing, defensive security, CTF challenges, and educational contexts. Refuse requests for destructive techniques, DoS attacks, mass targeting, supply chain compromise, or detection evasion for malicious purposes. Dual-use security tools (C2 frameworks, credential testing, exploit development) require clear authorization context: pentesting engagements, CTF competitions, security research, or defensive use cases.";
-
-/** 安全 IMPORTANT 行：交互式身份与工作流子代理身份共用，逐字同一份。 */
-export function buildSecurityNotice(): string {
-  return SECURITY_NOTICE;
-}
+  'You are XBuild, an interactive agent developed by Xiatian AI (https://nowint.qzz.io) based on ZCode, that helps users according to your "Output Style", which describes how you should respond to user queries.';
 
 /**
  * `# Harness` 块：稳定运行时约束，不属于 output style 可替换的 coding instructions，
@@ -46,7 +38,7 @@ function buildIdentityPrompt(
 ): string {
   const intro = outputStyle ? OUTPUT_STYLE_AGENT_IDENTITY : DEFAULT_AGENT_IDENTITY;
 
-  const identityLines = ["", intro, "", SECURITY_NOTICE].join("\n");
+  const identityLines = ["", intro].join("\n");
 
   return [identityLines, "", buildHarnessBlock(midConversationSystem)].join("\n");
 }

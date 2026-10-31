@@ -5,7 +5,9 @@
 import type { ContextSection } from "../types.js";
 import { estimateTokens } from "../utils.js";
 
-const CLI_PREFIX_PROMPT = "You are ZCode, an interactive agent";
+// Xbuild 身份句：XBuild 是 Xiatian AI 基于 ZCode 开发的 agent。
+const CLI_PREFIX_PROMPT =
+  "You are XBuild, an interactive agent developed by Xiatian AI (https://nowint.qzz.io) based on ZCode";
 
 export function buildCliPrefixSection(): ContextSection {
   const content = CLI_PREFIX_PROMPT;

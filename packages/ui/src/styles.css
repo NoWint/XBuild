@@ -168,8 +168,9 @@ html[data-document-hidden] *::after {
   --text-mobile-input-safe: 16px;
   --animated-gradient-text-strong: rgba(10, 10, 10, 1);
   --animated-gradient-text-soft: rgba(10, 10, 10, 0.22);
-  --color-background: var(--color-neutral-50);
-  --color-background-alt: color-mix(in oklab, var(--color-neutral-100) 60%, transparent);
+  /* Xbuild：浅色主题同样直接透出 vibrancy 毛玻璃。 */
+  --color-background: transparent;
+  --color-background-alt: transparent;
   --color-background-win-alt: var(--color-neutral-200);
   --color-brand: var(--color-sky-400);
   --color-resize-handle: var(--color-sky-500);
@@ -202,7 +203,7 @@ html[data-document-hidden] *::after {
   --color-card: var(--color-white);
   --color-card-selected: var(--color-neutral-200);
   --color-card-border: var(--color-border);
-  --color-popover: var(--color-white);
+  --color-popover: color-mix(in oklab, var(--color-white) 65%, transparent);
   /* 修复：浮层组件已使用 text-popover-foreground，但变量缺失会让暗色主题日志浮层继承黑色文本。 */
   --color-popover-foreground: var(--color-foreground);
   --color-popover-header: var(--color-neutral-100);
@@ -343,8 +344,8 @@ html[data-document-hidden] *::after {
 .dark {
   --animated-gradient-text-strong: rgba(255, 255, 255, 1);
   --animated-gradient-text-soft: rgba(255, 255, 255, 0.2);
-  --color-background: var(--color-neutral-900);
-  --color-background-alt: color-mix(in oklab, var(--color-neutral-800) 60%, transparent);
+  --color-background: transparent;
+  --color-background-alt: color-mix(in oklab, #000000 22%, transparent);
   --color-background-win-alt: var(--color-neutral-800);
   --color-brand: var(--color-sky-500);
   --color-resize-handle: var(--color-sky-400);
@@ -372,7 +373,7 @@ html[data-document-hidden] *::after {
   --color-card: var(--color-neutral-800);
   --color-card-selected: var(--color-neutral-700);
   --color-card-border: var(--color-border);
-  --color-popover: var(--color-neutral-800);
+  --color-popover: color-mix(in oklab, var(--color-neutral-800) 62%, transparent);
   --color-popover-foreground: var(--color-foreground);
   --color-popover-header: var(--color-neutral-700);
   --color-popover-border: var(--color-border);
@@ -518,9 +519,9 @@ html[data-document-hidden] *::after {
   --shadow-composer-soft: 0 1px 3px rgb(0 0 0 / 4%), 0 6px 18px rgb(0 0 0 / 4%);
   --animated-gradient-text-strong: rgba(13, 13, 13, 1);
   --animated-gradient-text-soft: rgba(13, 13, 13, 0.22);
-  --color-background: #f8f8f8;
+  --color-background: transparent;
   --color-background-win-alt: #ececee;
-  --color-background-alt: color-mix(in oklab, var(--color-background) 70%, transparent);
+  --color-background-alt: transparent;
   --color-brand: #000000;
   --color-trajectory-user: #2563eb;
   --color-trajectory-assistant: #0f766e;
@@ -546,7 +547,7 @@ html[data-document-hidden] *::after {
   --color-card: #ffffff;
   --color-card-selected: var(--color-input);
   --color-card-border: var(--color-border);
-  --color-popover: #ffffff;
+  --color-popover: color-mix(in oklab, #ffffff 65%, transparent);
   --color-popover-foreground: var(--color-foreground);
   --color-popover-header: #f8f8f8;
   --color-popover-border: var(--color-border);
@@ -683,9 +684,11 @@ html[data-document-hidden] *::after {
 .theme-zai-dark {
   --animated-gradient-text-strong: rgba(255, 255, 255, 1);
   --animated-gradient-text-soft: rgba(255, 255, 255, 0.22);
-  --color-background: #161616;
+  /* Xbuild：主表面直接透出窗口 vibrancy 毛玻璃（macOS under-window），不再叠纯色面板。
+   * alt 作为根容器 tint：给底层毛玻璃整体压深一点，提升内容对比度。 */
+  --color-background: transparent;
   --color-background-win-alt: #2b2b2b;
-  --color-background-alt: color-mix(in oklab, var(--color-background-win-alt) 60%, transparent);
+  --color-background-alt: color-mix(in oklab, #000000 22%, transparent);
   --color-brand: #ffffff;
   --color-trajectory-user: #60a5fa;
   --color-trajectory-assistant: #2dd4bf;
@@ -711,9 +714,10 @@ html[data-document-hidden] *::after {
   --color-card: #2b2b2b;
   --color-card-selected: var(--color-input);
   --color-card-border: var(--color-border);
-  --color-popover: #2b2b2b;
+  /* Xbuild：浮层半透明 + .bg-popover 全局 backdrop-blur（见文件末尾），内容之上仍可读，观感为毛玻璃。 */
+  --color-popover: color-mix(in oklab, #2b2b2b 62%, transparent);
   --color-popover-foreground: var(--color-foreground);
-  --color-popover-header: #202020;
+  --color-popover-header: color-mix(in oklab, #202020 62%, transparent);
   --color-popover-border: var(--color-border);
   --color-input: #2b2b2b;
   --color-input-focused: var(--color-input);
@@ -2418,4 +2422,11 @@ html[data-document-hidden] *::after {
 }
 [data-scrollbar-active][data-scrollbar-dragging] {
   --zcode-scrollbar-thumb: color-mix(in oklab, var(--color-foreground) 45%, transparent);
+}
+
+/* Xbuild：所有 bg-popover 浮层统一毛玻璃——半透明 token + backdrop-blur，
+ * 浮在内容之上仍可读，同时透出窗口 vibrancy 的底层质感。 */
+.bg-popover {
+  backdrop-filter: blur(28px) saturate(160%);
+  -webkit-backdrop-filter: blur(28px) saturate(160%);
 }

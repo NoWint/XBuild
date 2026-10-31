@@ -73,7 +73,7 @@ const READ_PROVIDER_DESCRIPTION = [
   "- When you already know which part of the file you need, only read that part. This can be important for larger files.",
   "- Results are returned using cat -n format, with line numbers starting at 1",
   "- Reads images (PNG, JPG, …) and presents them visually.",
-  "- Reads videos (MP4, MOV, WEBM, …) and presents them as video input (subject to ZCode's video input limit).",
+  "- Reads videos (MP4, MOV, WEBM, …) and presents them as video input (subject to XBuild's video input limit).",
   "- Reading a directory, a missing file, or an empty file returns an error or system reminder rather than content.",
   "- Do NOT re-read a file you just edited to verify — Edit/Write would have errored if the change failed, and the harness tracks file state for you.",
 ].join("\n");
