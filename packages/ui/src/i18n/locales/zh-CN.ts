@@ -5190,6 +5190,7 @@ const zhCN: Record<string, string> = {
   "settings.hooks.review.reason.interaction_timeout": "审核已超时",
   "settings.hooks.review.reason.host_unavailable": "当前连接不支持审核此 Hook",
   "settings.hooks.review.reason.rejected": "操作被拒绝",
+  "settings.customization.title": "自定义中心",
   "settings.hooks.title": "钩子",
   "settings.workspaceFileSearch.title": "工作区搜索范围",
   "settings.workspaceFileSearch.description":

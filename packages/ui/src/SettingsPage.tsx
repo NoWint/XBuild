@@ -87,6 +87,7 @@ import { AutomationsSection } from "@/settings/AutomationsSection.js";
 import { SegmentPill } from "@/settings/PluginStoreListView.js";
 import { PluginsSection } from "@/settings/PluginsSection.js";
 import { HooksSection } from "@/settings/HooksSection.js";
+import { CustomizationSection } from "@/settings/CustomizationSection.js";
 import { WorkspaceFileSearchSection } from "@/settings/WorkspaceFileSearchSection.js";
 import { MemorySettingsSection } from "@/settings/MemorySettingsSection.js";
 import { PersonalizationSection } from "@/settings/PersonalizationSection.js";
@@ -2220,6 +2221,8 @@ export function SettingsPage({
                               workspacePath={activeWorkspacePath}
                               workspaceIdentity={activeWorkspaceIdentity}
                             />
+                          ) : activeSection === "customization" ? (
+                            <CustomizationSection workspacePath={activeWorkspacePath} />
                           ) : activeSection === "workspaceFileSearch" ? (
                             <WorkspaceFileSearchSection
                               workspacePath={activeWorkspacePath}

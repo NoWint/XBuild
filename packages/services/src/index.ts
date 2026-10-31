@@ -224,6 +224,11 @@ export { IHooksService } from "./hooks/hooks.js";
 // 自定义内核 overrides 读写：实现依赖 node:fs，value 导出只在 @zcode/services/node；
 // 根入口保持 browser-safe，仅暴露结果类型供 renderer 侧消费。
 export type { OverridesLoadResult } from "./customization/customizationService.js";
+export {
+  ICustomizationService,
+  type CustomizationOverridesSnapshot,
+  type ICustomizationService as ICustomizationServiceShape,
+} from "./customization/contract.js";
 
 // Memory service — IMemoryService is both a type (interface) and value (descriptor).
 export {

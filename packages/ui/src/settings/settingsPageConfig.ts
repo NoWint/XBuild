@@ -13,6 +13,7 @@ import {
   Terminal,
   AlarmClock,
   Anchor,
+  SlidersHorizontal,
   Brain,
   Blocks,
   Globe2,
@@ -133,6 +134,12 @@ const BASE_SETTINGS_SECTIONS: SettingsSectionDefinition[] = [
     id: "hooks",
     icon: Anchor,
     titleId: "settings.hooks.title",
+    groupId: "agentCapabilities",
+  },
+  {
+    id: "customization",
+    icon: SlidersHorizontal,
+    titleId: "settings.customization.title",
     groupId: "agentCapabilities",
   },
   {

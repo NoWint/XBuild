@@ -8,6 +8,7 @@ import type { IHighspeedCardService } from "./highspeed/highspeedCard.js";
 import type { IPluginUiBridgeService } from "./plugin-ui-bridge/contract.js";
 import type { IPluginUiSamplingService } from "./plugin-ui-bridge/samplingContract.js";
 import type { IPluginUiAppToolsService } from "./plugin-ui-bridge/appToolsContract.js";
+import type { ICustomizationService } from "./customization/customizationService.js";
 import type { IFileService } from "./file/file.js";
 import type { IMediaPreviewService } from "./media-preview/mediaPreview.js";
 import type { ICloudContentService } from "#src/cloud-content/cloudContent.js";
@@ -71,6 +72,8 @@ export interface IServiceAccessor {
   readonly systemService: ISystemService;
   readonly terminalService: ITerminalService;
   readonly settingService: ISettingService;
+  /** 自定义内核 overrides 读写（自定义中心）；Web 远端 attachment 可能不提供。 */
+  readonly customizationService?: ICustomizationService;
   /** Onboarding 完成记录（本地持久化）；旧测试 double / 不支持的 host 可不提供。 */
   readonly onboardingRecordService?: IOnboardingRecordService;
   readonly credentialService: ICredentialService;

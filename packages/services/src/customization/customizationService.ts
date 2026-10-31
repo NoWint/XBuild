@@ -1,6 +1,7 @@
 // 自定义内核 overrides 文件读写：load（zod 校验 + 失败回退空默认）与 save（原子写）。
 // 失败安全约定见 spec §9：文件缺失/非法 → 忽略 + warning，内置默认生效，绝不抛错中断主流程。
 import { readFileSync } from "node:fs";
+import { homedir } from "node:os";
 import { join } from "node:path";
 import { parseOverridesFile, type OverridesFileParsed } from "@zcode/shared";
 import { atomicWritePrivateTextFile } from "@zcode/shared/node";
@@ -81,4 +82,48 @@ export async function saveOverrides(
   }
   const targetPath = resolveOverridesTargetPath(scope, opts);
   await atomicWritePrivateTextFile(targetPath, `${JSON.stringify(validated.value, null, 2)}\n`);
+}
+
+import type { ICustomizationService } from "./contract.js";
+
+export * from "./contract.js";
+
+/**
+ * 服务实现：homeDir 解析与 bootstrap 的 loader 保持同一来源
+ * （ZCODE_DATA_BASE_DIR ?? HOME ?? homedir），保证 UI 写的文件和 agent 读的文件一致。
+ */
+export function createCustomizationService(options?: {
+  resolveHomeDir?: () => string;
+}): ICustomizationService {
+  const resolveHomeDir = () =>
+    options?.resolveHomeDir?.() ??
+    process.env.ZCODE_DATA_BASE_DIR?.trim() ??
+    process.env.HOME?.trim() ??
+    homedir();
+  return {
+    async load({ scope, workspacePath }) {
+      const homeDir = resolveHomeDir();
+      const path = resolveOverridesTargetPath(scope, { homeDir, workspacePath });
+      if (scope === "user") {
+        const result = loadUserOverrides(homeDir);
+        return {
+          overrides: result.file,
+          path,
+          ...(result.warning ? { warning: result.warning } : {}),
+        };
+      }
+      const result = loadWorkspaceOverrides(workspacePath ?? "");
+      return {
+        overrides: result.file,
+        path,
+        ...(result.warning ? { warning: result.warning } : {}),
+      };
+    },
+    async save({ scope, workspacePath, overrides }) {
+      const homeDir = resolveHomeDir();
+      const path = resolveOverridesTargetPath(scope, { homeDir, workspacePath });
+      await saveOverrides(scope, { homeDir, workspacePath }, overrides);
+      return { path };
+    },
+  };
 }

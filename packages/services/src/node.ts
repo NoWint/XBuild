@@ -435,6 +435,10 @@ import { getWorkspaceCheckpointDirectory } from "./git/repo/gitCheckpointStore.j
 import { createSystemService } from "./system/systemService.js";
 import { createTerminalService } from "./terminal/terminalService.js";
 import {
+  createCustomizationService,
+  ICustomizationService,
+} from "./customization/customizationService.js";
+import {
   createSettingService,
   createSettingServiceWithMigrations,
 } from "./setting/settingService.js";
@@ -2719,6 +2723,7 @@ export function createLocalServices(options: {
     .register(ISystemService, systemService)
     .register(ITerminalService, createTerminalService({ settingService }))
     .register(ISettingService, settingService)
+    .register(ICustomizationService, createCustomizationService())
     .register(IOnboardingRecordService, onboardingRecordService)
     .register(ICredentialService, credentialService)
     .register(IBroadcastService, broadcastService)

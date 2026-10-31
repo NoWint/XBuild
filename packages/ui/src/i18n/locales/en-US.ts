@@ -5562,6 +5562,7 @@ const enUS: Record<string, string> = {
   "settings.hooks.review.reason.interaction_timeout": "Review timed out",
   "settings.hooks.review.reason.host_unavailable": "This connection cannot review this Hook",
   "settings.hooks.review.reason.rejected": "Request rejected",
+  "settings.customization.title": "Customization Center",
   "settings.hooks.title": "Hooks",
   "settings.workspaceFileSearch.title": "Workspace Search Scope",
   "settings.workspaceFileSearch.description":
