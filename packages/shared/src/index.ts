@@ -385,3 +385,7 @@ export {
 export * from "./request-security-edition/verification-policy.js";
 
 export * from "./conversation-share-tool-presentation.js";
+
+// 自定义内核：overrides 文档结构与 zod 校验
+export * from "./customization/types.js";
+export * from "./customization/schema.js";
