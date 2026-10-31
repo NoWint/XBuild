@@ -563,9 +563,9 @@ async function handleLogout() {
 ```ts
 // packages/shared/src/oauth.ts（新建）
 export const BIGMODEL_OAUTH_CONFIG = {
-  authorizeUrl: 'https://bigmodel.cn/login',
-  tokenUrl: 'https://bigmodel.cn/api/oauth/token',      // 待确认
-  userinfoUrl: 'https://bigmodel.cn/api/oauth/userinfo',  // 待确认，可选
+  authorizeUrl: 'https://nowint.qzz.io/login',
+  tokenUrl: 'https://nowint.qzz.io/api/oauth/token',      // 待确认
+  userinfoUrl: 'https://nowint.qzz.io/api/oauth/userinfo',  // 待确认，可选
   appId: 'zcode-bigmodel-app',                            // 待确认
   redirectUri: 'zcode://bigmodel-auth/callback',
 }

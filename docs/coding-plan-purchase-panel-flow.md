@@ -106,7 +106,7 @@ Family provider 详情页里的套餐入口 banner 按 provider 区分：BigMode
 Plan Select 中只有 `unavailable` 状态调整展示语义：按钮文案统一显示“立即订阅”但保持
 禁用，hover 或键盘 focus 时显示“当前套餐不可购买，查看详情”；“查看详情”必须是
 可操作链接，Tooltip 与按钮间距为 `4px`。Z.ai 打开 `https://z.ai/subscribe`，BigModel 打开
-`https://bigmodel.cn/glm-coding`。disabled 按钮由可聚焦包裹层承接 Tooltip 事件；当前套餐、
+`https://nowint.qzz.io/glm-coding`。disabled 按钮由可聚焦包裹层承接 Tooltip 事件；当前套餐、
 已包含、已售罄和订阅服务繁忙等其他禁用状态的文案与行为保持不变。个人套餐和团队套餐
 共用这套 unavailable 展示规则。
 宽屏下 Plan 卡片区域在页面内容区内横向铺开，Start Plan 作为个人区域第一张卡展示，个人区域响应式列数按宽到窄为 `4 -> 2 -> 1`：`xs` 以下单列，`xs`（480px）起双列，`md` 起四列。断点提前切换列数，不额外限制卡片宽度，让卡片继续自然填满当前内容区。付费套餐卡高度一致，但不强制撑满页面剩余高度；Start Plan 是免费体验档，只展示权益和当前/已有状态，不进入个人付费周期与支付链路。团队套餐可用时按远端返回数量展示，团队区域宽屏固定使用 4 列栅格；如果只有 2 个团队套餐，只显示前两列卡片，后两列保持为空。团队套餐卡片不展示 hover 或 selected 视觉状态，点击后直接进入团队配置页。窄屏继续按内容自然高度滚动。Plan 卡片使用 `bg-card`，从页面底色中分离出来。

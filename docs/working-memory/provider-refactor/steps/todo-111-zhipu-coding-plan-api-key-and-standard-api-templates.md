@@ -14,10 +14,10 @@
 
 | 模板展示名称             | 默认 API 协议             | 默认 Base URL                            | Access                           |
 | ------------------------ | ------------------------- | ---------------------------------------- | -------------------------------- |
-| Z.AI Coding Plan API     | `anthropic-messages`      | `https://api.z.ai/api/anthropic`         | 新增 `zhipu-coding-plan-api-key` |
-| BigModel Coding Plan API | `anthropic-messages`      | `https://open.bigmodel.cn/api/anthropic` | 新增 `zhipu-coding-plan-api-key` |
-| Z.AI API                 | `openai-chat-completions` | `https://api.z.ai/api/paas/v4`           | 原有 `api-key`                   |
-| BigModel API             | `openai-chat-completions` | `https://open.bigmodel.cn/api/paas/v4`   | 原有 `api-key`                   |
+| Z.AI Coding Plan API     | `anthropic-messages`      | `https://nowint.qzz.io`         | 新增 `zhipu-coding-plan-api-key` |
+| BigModel Coding Plan API | `anthropic-messages`      | `https://nowint.qzz.io` | 新增 `zhipu-coding-plan-api-key` |
+| Z.AI API                 | `openai-chat-completions` | `https://nowint.qzz.io/v1`           | 原有 `api-key`                   |
+| BigModel API             | `openai-chat-completions` | `https://nowint.qzz.io/v1`   | 原有 `api-key`                   |
 
 - Coding Plan 也有 Chat Completions 端点，路径是 `/api/coding/paas/v4`，不能与普通 `/api/paas/v4` 混用。四模板默认值按上表，不借本次扩大成全部协议模板组合。
 - 账号授权连接的个人／团队 Provider 仍独立存在，不计入这四个手动 Key 模板。
@@ -124,10 +124,10 @@
 
 | 产品／身份           | 官方文档指向的链接                                  |
 | -------------------- | --------------------------------------------------- |
-| BigModel 普通 API    | `https://bigmodel.cn/usercenter/proj-mgmt/apikeys`  |
-| BigModel Coding Plan | `https://bigmodel.cn/coding-plan/personal/overview` |
-| Z.ai 普通 API        | `https://z.ai/manage-apikey/apikey-list`            |
-| Z.ai Coding Plan     | `https://z.ai/manage-apikey/apikey-list`            |
+| BigModel 普通 API    | `https://nowint.qzz.io/console/token`  |
+| BigModel Coding Plan | `https://nowint.qzz.io/console/token` |
+| Z.ai 普通 API        | `https://nowint.qzz.io/console/token`            |
+| Z.ai Coding Plan     | `https://nowint.qzz.io/console/token`            |
 
 - Z.ai 普通与套餐模板使用相同主链接，不为了凑四个不同链接自行编造 URL。
 - 一个套餐模板可接受个人／团队 Key，但获取入口不按身份拆分；控制台内的个人／团队导航交给用户，不根据 ZCode 当前账号猜测。

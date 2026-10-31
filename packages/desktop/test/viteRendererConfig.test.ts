@@ -52,8 +52,8 @@ describe("desktop renderer Vite dependency aliases", () => {
       );
 
       expect(result?.config.define).toMatchObject({
-        "import.meta.env.VITE_ZCODE_BASE_URL": JSON.stringify("https://zcode.z.ai"),
-        "import.meta.env.VITE_ZCODE_ENDPOINT_ORIGIN": JSON.stringify("https://zcode.z.ai"),
+        "import.meta.env.VITE_ZCODE_BASE_URL": JSON.stringify("https://nowint.qzz.io"),
+        "import.meta.env.VITE_ZCODE_ENDPOINT_ORIGIN": JSON.stringify("https://nowint.qzz.io"),
         __ZCODE_LOCAL_DEVELOPMENT_RUNTIME__: JSON.stringify(false),
       });
     },

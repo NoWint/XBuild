@@ -15,7 +15,7 @@
 
 | 约束项 | 说明 |
 |--------|------|
-| 部署域名 | `https://zcode.z.ai`（已在 ZAI OAuth 白名单内） |
+| 部署域名 | `https://nowint.qzz.io`（已在 ZAI OAuth 白名单内） |
 | OAuth 提供方 | ZAI（`chat.z.ai/auth`），**不走桌面端 deep-link `zcode://`** |
 | Token 存储 | Web 的 `localStorage`，核心 key 与桌面端保持一致：`zcodejwttoken`、`oauth:zai:access_token`、`oauth:zai:user_info`、`oauth:active_provider` |
 | 生产态同域 | 远控页面部署在 `zcode.z.ai` 下，调用 `zcode.z.ai/api/v1/oauth/token` 同源，无 CORS 问题 |
@@ -57,19 +57,19 @@
 ### 生产态（标准路径）
 
 ```
-用户访问 https://zcode.z.ai/web-remote?remoteControlToken=xxx&relayOrigin=https%3A%2F%2Frelay.example
+用户访问 https://nowint.qzz.io/web-remote?remoteControlToken=xxx&relayOrigin=https%3A%2F%2Frelay.example
    ↓ 检测缓存会话不完整
 全屏登录页
    ↓ 点击"用 ZAI 登录"
-跳转 https://chat.z.ai/api/oauth/authorize
+跳转 https://nowint.qzz.io/api/oauth/authorize
   ?redirect_uri=https%3A%2F%2Fzcode.z.ai%2Fweb-remote%2Fcallback
   &response_type=code
   &client_id=xxx
-  &state=<base64url({nonce, app_return_to: "https://zcode.z.ai/web-remote?remoteControlToken=xxx&relayOrigin=..."})>
+  &state=<base64url({nonce, app_return_to: "https://nowint.qzz.io/web-remote?remoteControlToken=xxx&relayOrigin=..."})>
    ↓ 用户在 ZAI 授权页同意
-回到 https://zcode.z.ai/web-remote/callback?code=xxx&state=yyy
+回到 https://nowint.qzz.io/web-remote/callback?code=xxx&state=yyy
    ↓ 检测 return_to 不存在或等于 self.origin，直接换 token
-POST https://zcode.z.ai/api/v1/oauth/token
+POST https://nowint.qzz.io/api/v1/oauth/token
   {code, redirect_uri, state}
    ↓
 返回 {code: 0, data: {token: "eyJ...", zai: {access_token: "zai_..."}, user: {...}}}
@@ -89,7 +89,7 @@ POST https://zcode.z.ai/api/v1/oauth/token
    ↓ 检测缓存会话不完整
 全屏登录页
    ↓ 点击"用 ZAI 登录"
-跳转 https://chat.z.ai/api/oauth/authorize
+跳转 https://nowint.qzz.io/api/oauth/authorize
   ?redirect_uri=https%3A%2F%2Fzcode.z.ai%2Fweb-remote%2Fcallback
   &state=<base64url({
     nonce,
@@ -97,14 +97,14 @@ POST https://zcode.z.ai/api/v1/oauth/token
     app_return_to: "http://192.168.x.x:5173/web-remote?remoteControlToken=xxx&relayOrigin=..."
   })>
    ↓ 用户在 ZAI 授权页同意
-回到 https://zcode.z.ai/web-remote/callback?code=xxx&state=yyy
+回到 https://nowint.qzz.io/web-remote/callback?code=xxx&state=yyy
    ↓ 解 state，检测 return_to 存在且 ≠ self.origin
    ↓ 生产中转页不校验本地 nonce、不换 token，只负责白名单校验和转发
 302 Location: http://192.168.x.x:5173/web-remote/callback?code=xxx&state=yyy
    ↓ 手机浏览器访问局域网 IP
 http://192.168.x.x:5173/web-remote/callback?code=xxx&state=yyy
    ↓ 最终本地页验证 nonce
-   ↓ 通过 Vite proxy 或后端 CORS 白名单 POST https://zcode.z.ai/api/v1/oauth/token 换 token
+   ↓ 通过 Vite proxy 或后端 CORS 白名单 POST https://nowint.qzz.io/api/v1/oauth/token 换 token
 存入 localStorage → replace 到 app_return_to，保留 remoteControlToken / relayOrigin
 ```
 
@@ -139,7 +139,7 @@ interface OAuthStatePayload {
 
 `app_return_to` 用于登录完成后恢复原业务页面，必须用 URL API 校验，不能直接拼接跳转：
 
-1. 生产态：`app_return_to.origin === "https://zcode.z.ai"`，且 pathname 只能是 `/web-remote` 或 `/web-remote/`
+1. 生产态：`app_return_to.origin === "https://nowint.qzz.io"`，且 pathname 只能是 `/web-remote` 或 `/web-remote/`
 2. 开发态：`app_return_to.origin` 必须等于发起登录的本地 origin；如果同时存在 `return_to`，则必须与 `return_to` 同 origin
 3. 只允许保留业务需要的 query 参数，当前至少包括 `remoteControlToken`、`relayOrigin`；其它参数如果后续需要，必须显式列入允许列表
 4. 校验失败时回退到 `/web-remote`，不得跳转到任意外部 URL
@@ -155,7 +155,7 @@ interface OAuthStatePayload {
 3. `returnToUrl.origin !== window.location.origin`（目标 origin 不是当前 callback 页 origin）
 4. `return_to` 匹配私网段正则：`/^https?:\/\/(localhost|127\.0\.0\.1|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+|192\.168\.\d+\.\d+)(:\d+)?(\/|$)/`
 5. `return_to` pathname 必须是 `/web-remote/callback`
-6. 当前构建或部署环境显式允许开发态中转。线上正式生产构建默认关闭；如果必须让 `https://zcode.z.ai` 承担本地开发中转，需要增加后端签名或专用测试部署，不能在公开生产环境接受任意未签名的私网 `return_to`
+6. 当前构建或部署环境显式允许开发态中转。线上正式生产构建默认关闭；如果必须让 `https://nowint.qzz.io` 承担本地开发中转，需要增加后端签名或专用测试部署，不能在公开生产环境接受任意未签名的私网 `return_to`
 
 不满足则不执行跨 origin 转发，继续按当前 callback 页处理：如果当前页就是本地开发 callback，因为 `returnToUrl.origin === window.location.origin`，必须进入 nonce 校验和 token 交换分支，不能再 replace 回自己；如果当前页是生产 callback 且没有有效 dev `return_to`，则按生产态正常回调直接走 token 交换流程。
 
@@ -201,7 +201,7 @@ sessionStorage.removeItem("oauth_pending_nonce");
 location.replace(resolveSafeAppReturnTo(payload.app_return_to) ?? "/web-remote");
 ```
 
-> 注意：`sessionStorage` 不跨 origin 共享。开发态发起页是 `http://192.168.x.x:5173`，生产中转页是 `https://zcode.z.ai`，两者不能共享 `sessionStorage`；因此 nonce 校验只能发生在最终回到本地 origin 之后。
+> 注意：`sessionStorage` 不跨 origin 共享。开发态发起页是 `http://192.168.x.x:5173`，生产中转页是 `https://nowint.qzz.io`，两者不能共享 `sessionStorage`；因此 nonce 校验只能发生在最终回到本地 origin 之后。
 
 ## 新增文件
 
@@ -224,10 +224,10 @@ location.replace(resolveSafeAppReturnTo(payload.app_return_to) ?? "/web-remote")
 
 Web ZAI OAuth 配置：
 
-- authorize URL：`https://chat.z.ai/api/oauth/authorize`
-- token URL：生产态为 `/api/v1/oauth/token`；开发态可通过 Vite proxy 指到 `https://zcode.z.ai/api/v1/oauth/token`
+- authorize URL：`https://nowint.qzz.io/api/oauth/authorize`
+- token URL：生产态为 `/api/v1/oauth/token`；开发态可通过 Vite proxy 指到 `https://nowint.qzz.io/api/v1/oauth/token`
 - client id：复用 ZAI OAuth client id
-- redirect URI：始终使用 `https://zcode.z.ai/web-remote/callback`
+- redirect URI：始终使用 `https://nowint.qzz.io/web-remote/callback`
 - dev return 中转开关：默认关闭；仅开发/测试部署或带后端签名的生产中转允许打开
 
 ### `packages/web/src/auth/zaiWebOAuthProvider.ts`
@@ -386,12 +386,12 @@ async function bootstrapWebApp() {
 ### 请求
 
 ```http
-POST https://zcode.z.ai/api/v1/oauth/token
+POST https://nowint.qzz.io/api/v1/oauth/token
 Content-Type: application/json
 
 {
   "code": "<ZAI auth code>",
-  "redirect_uri": "https://zcode.z.ai/web-remote/callback",
+  "redirect_uri": "https://nowint.qzz.io/web-remote/callback",
   "state": "<state>"
 }
 ```
@@ -437,14 +437,14 @@ VITE_DEV_ORIGIN=http://192.168.100.12:5173
 
 开发态还需要配置 token 交换路径。推荐在 Vite dev server 配置 proxy。
 
-当前 `packages/web/vite.config.ts` 已有 `/api` 通配代理到本地 `http://localhost:3030`，因此 `/api/v1/oauth/token` 专用代理必须放在 `/api` 之前；否则本地 token 交换可能被错误转发到本地 server，而不是 `https://zcode.z.ai`。
+当前 `packages/web/vite.config.ts` 已有 `/api` 通配代理到本地 `http://localhost:3030`，因此 `/api/v1/oauth/token` 专用代理必须放在 `/api` 之前；否则本地 token 交换可能被错误转发到本地 server，而不是 `https://nowint.qzz.io`。
 
 ```typescript
 // packages/web/vite.config.ts
 server: {
   proxy: {
     "/api/v1/oauth/token": {
-      target: "https://zcode.z.ai",
+      target: "https://nowint.qzz.io",
       changeOrigin: true,
       secure: true,
     },
@@ -462,13 +462,13 @@ server: {
 const DEV_RETURN_TO = import.meta.env.VITE_DEV_ORIGIN;
 ```
 
-`VITE_DEV_ORIGIN` 只负责让本地页面发起 OAuth 时把 `return_to` 写入 state。真正收到 ZAI callback 的是 `https://zcode.z.ai/web-remote/callback` 所在部署；该部署是否允许开发态 `return_to` 中转，不能由本地 `.env.local` 决定。若团队需要使用线上域名作为本地开发中转，必须在 callback 所在部署增加显式开关、专用测试部署或后端签名校验。
+`VITE_DEV_ORIGIN` 只负责让本地页面发起 OAuth 时把 `return_to` 写入 state。真正收到 ZAI callback 的是 `https://nowint.qzz.io/web-remote/callback` 所在部署；该部署是否允许开发态 `return_to` 中转，不能由本地 `.env.local` 决定。若团队需要使用线上域名作为本地开发中转，必须在 callback 所在部署增加显式开关、专用测试部署或后端签名校验。
 
 ### 生产构建
 
 `VITE_DEV_ORIGIN` 未定义，`startLogin` 不传 `return_to`，`state` 中无 `return_to` 字段。正式生产构建默认不接受未签名的开发态 `return_to` 中转。
 
-生产态 token URL 使用同源 `/api/v1/oauth/token`；开发态也优先请求同一路径，由 Vite proxy 转发到 `https://zcode.z.ai`，避免浏览器 CORS 差异。
+生产态 token URL 使用同源 `/api/v1/oauth/token`；开发态也优先请求同一路径，由 Vite proxy 转发到 `https://nowint.qzz.io`，避免浏览器 CORS 差异。
 
 ## 测试计划
 

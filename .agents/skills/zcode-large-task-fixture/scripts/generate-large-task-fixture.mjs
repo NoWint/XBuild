@@ -7,7 +7,7 @@ import { DatabaseSync } from "node:sqlite";
 import { spawnSync } from "node:child_process";
 
 const args = parseArgs(process.argv.slice(2));
-const zcodeRoot = join(homedir(), ".zcode");
+const zcodeRoot = join(homedir(), ".xbuild");
 const cliDbPath = join(zcodeRoot, "cli", "db", "db.sqlite");
 const taskIndexPath = join(zcodeRoot, "v2", "tasks-index.sqlite");
 

@@ -173,7 +173,7 @@ composer、services layer）逐个改 family-aware。多数已在 `createTeamPla
 
 ### 后端契约验证
 
-测试环境实际请求 `https://api.z.ai/api/biz/customer/getCustomerInfo`（zai 域名）成功，
+测试环境实际请求 `https://nowint.qzz.io/api/biz/customer/getCustomerInfo`（zai 域名）成功，
 返回结构与 bigmodel 同构（含 `organizations[].projects[]`，`projectType=2` 标识团队编程项目）。
 zai token 用 `Bearer` header（区别于 bigmodel 裸 token）。
 
@@ -747,7 +747,7 @@ oauthProvider === BIGMODEL_PROVIDER_ID
 ```
 
 - bigmodel：`buildBigModelCodingPlanAnthropicEndpoints` → `resolveBigModelCodingPlanAnthropicBaseUrl`
-  硬编码兜底 `https://open.bigmodel.cn/api/anthropic`，remote 不下发 baseUrl 也能构造 endpoint。
+  硬编码兜底 `https://nowint.qzz.io`，remote 不下发 baseUrl 也能构造 endpoint。
 - zai：`collectSchemaEndpoints` 在 `baseUrl` 为空时直接 `continue`（`oauthPresetProviderRepoShared.ts`），
   返回空 endpoint → `getModelProviderEndpointKinds(endpoints).length === 0` →
   `loadSinglePresetProvider` return null → `builtin:zai-coding-plan` 永远不落盘。

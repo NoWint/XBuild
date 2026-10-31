@@ -26,17 +26,17 @@ export interface ModelProviderFamilySpec {
 export const MODEL_PROVIDER_FAMILY_SPECS = [
   {
     id: "zai",
-    label: "Z.ai",
+    label: "Xiatian AI",
     rootDomain: "z.ai",
     oauthProviderId: ZAI_PROVIDER_ID,
     startPlanProviderId: BUILTIN_MODEL_PROVIDER_IDS.zaiStartPlan,
     individualCodingPlanProviderId: BUILTIN_MODEL_PROVIDER_IDS.zaiIndividualCodingPlan,
     teamCodingPlanProviderId: BUILTIN_MODEL_PROVIDER_IDS.zaiTeamCodingPlan,
-    teamCodingPlanManageUrl: "https://z.ai/manage-apikey/subscription",
+    teamCodingPlanManageUrl: "https://nowint.qzz.io/console/topup",
   },
   {
     id: "bigmodel",
-    label: "BigModel",
+    label: "Xiatian AI (2)",
     rootDomain: "bigmodel.cn",
     oauthProviderId: BIGMODEL_PROVIDER_ID,
     startPlanProviderId: BUILTIN_MODEL_PROVIDER_IDS.bigmodelStartPlan,

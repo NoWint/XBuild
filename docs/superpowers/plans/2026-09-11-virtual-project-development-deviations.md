@@ -500,7 +500,7 @@ D58–D60 验证回写：Bot/侧栏/footer 14 文件 193 例通过；typecheck 5
 
 - 证据：第 29 轮运行 `desktop-e2e-20260911010438954-p14956-f84ac66c1ea4d4d2` 在 120 秒超时。Desktop 进入 waiting_terminal，Web 控制台出现 `External relay terminal socket error`，没有进入项目导航。此前第 28 轮相同真实 relay 的草稿导航通过。
 - 处理：补充阶段标记及脱敏的 WebSocket origin/open/close 诊断后再复跑；不能据此判定 D67 正确或错误，也不能把网络问题直接归因于产品实现。
-- 状态：第 30 轮确认超时发生在 mobile relay admission，且 loopback 接收器清理遮盖原始异常。独立 Chromium 对两个 relay origin 均能握手，不能归为外网不可用。清理修正并增加 CDP 后，第 31 轮直接通过，握手 origin 为 `wss://zcode.z.ai`。前两轮配对失败的根因未确定，不以一次通过声称消除网络/开发服务间歇问题。
+- 状态：第 30 轮确认超时发生在 mobile relay admission，且 loopback 接收器清理遮盖原始异常。独立 Chromium 对两个 relay origin 均能握手，不能归为外网不可用。清理修正并增加 CDP 后，第 31 轮直接通过，握手 origin 为 `wss://nowint.qzz.io`。前两轮配对失败的根因未确定，不以一次通过声称消除网络/开发服务间歇问题。
 
 ### D69：Composer 仍沿旧 workspace/sessions-index 候选链路
 
@@ -643,7 +643,7 @@ VP18 测试设施说明：runtime lifecycle 在公共接口上是可选能力，
 
 ### D91：手机回归被外部 relay 的 TLS 证书校验拒绝
 
-- 证据：第 52 轮 CDP 在 `wss://zcode.z.ai` 握手收到 `net::ERR_CERT_AUTHORITY_INVALID`，VP13 停在 mobile relay admission；截图为“无法连接中转服务”，尚未进入项目或会话导航。与 D68 早前不明原因配对失败区分记录。
+- 证据：第 52 轮 CDP 在 `wss://nowint.qzz.io` 握手收到 `net::ERR_CERT_AUTHORITY_INVALID`，VP13 停在 mobile relay admission；截图为“无法连接中转服务”，尚未进入项目或会话导航。与 D68 早前不明原因配对失败区分记录。
 - 处理：保留 TLS 校验，不修改产品连接/恢复行为；独立核对证书连接并重跑手机代表用例，未通过前不得宣称这一轮完整通过。curl HTTPS 成功，独立 Chrome HTTPS 返回 200，证书签发者为本机 Proxyman CA；未更改用户代理、证书信任或 TLS 校验。HTTPS 成功不代表此前 WSS 证书异常已经消除。
 
 - D91 复验：第 54 轮手机单独运行仍在相同 relay TLS 握手失败；独立 Chrome 的无配对 WSS 探针没有成功建立应用握手，不能作为手机回归通过。第 48 轮既有手机完整交互通过记录保留，最后两轮失败不得覆盖或改写为通过。

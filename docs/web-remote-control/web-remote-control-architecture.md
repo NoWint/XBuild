@@ -64,8 +64,8 @@
 Desktop 和 mobile web 使用当前 endpoint origin 的 Relay V2 入口；HTTPS 对应 WSS，HTTP 对应 WS：
 
 ```bash
-production/default: wss://zcode.z.ai/api/v1/remote/ws2
-test endpoint:       wss://zcode.z.ai/api/v1/remote/ws2
+production/default: wss://nowint.qzz.io/api/v1/remote/ws2
+test endpoint:       wss://nowint.qzz.io/api/v1/remote/ws2
 local/custom:        ws://localhost:3030/api/v1/remote/ws2
 ```
 

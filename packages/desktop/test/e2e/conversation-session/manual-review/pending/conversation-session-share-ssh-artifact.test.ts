@@ -137,7 +137,7 @@ describe(`${CASE_MARKER}: Desktop SSH 产物分享`, () => {
     );
     const shareCode = new URL(shareUrl).pathname.split("/").filter(Boolean).at(-1)!;
     const response = await fetch(
-      `https://zcode.z.ai/api/v1/shares/${encodeURIComponent(shareCode)}/preview`,
+      `https://nowint.qzz.io/api/v1/shares/${encodeURIComponent(shareCode)}/preview`,
       { signal: AbortSignal.timeout(30_000) },
     );
     expect(response.status).toBe(200);

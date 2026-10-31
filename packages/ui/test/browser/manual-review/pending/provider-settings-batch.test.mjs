@@ -410,7 +410,7 @@ for (const [width, locale, theme] of [
       await keyLink.click();
       assert.equal(
         await page.getByTestId("opened").textContent(),
-        "https://bigmodel.cn/coding-plan/personal/overview",
+        "https://nowint.qzz.io/console/token",
       );
       const nav = page.getByRole("button", { name: "fixture", exact: true });
       const before = await nav.boundingBox();
@@ -473,7 +473,7 @@ for (const [width, locale, theme] of [
       await keyLink.click();
       assert.equal(
         await page.getByTestId("opened").textContent(),
-        "https://bigmodel.cn/coding-plan/personal/overview",
+        "https://nowint.qzz.io/console/token",
       );
       assert.deepEqual(errors, []);
       await page.screenshot({ path: join(artifacts, `detail-${width}.png`) });

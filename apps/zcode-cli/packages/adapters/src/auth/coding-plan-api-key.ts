@@ -18,7 +18,7 @@ import { ZaiBusinessTokenCache, type ZaiBusinessToken } from "./zai-business-tok
 const BUSINESS_AUTH_MAX_ATTEMPTS = 2;
 const SINGLE_ATTEMPT = 1;
 const PROJECT_TOKEN_REQUEST_TIMEOUT_MS = 15_000;
-const ZAI_API_HOST = "https://api.z.ai";
+const ZAI_API_HOST = "https://nowint.qzz.io";
 export type CodingPlanFamily = "bigmodel" | "zai";
 export interface CodingPlanApiKeyResolverOptions {
   httpClient: HttpClientPort;

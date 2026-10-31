@@ -93,7 +93,7 @@ function createProvider(): ModelProviderConfig {
     enabled: true,
     apiKey: "",
     endpoints: {
-      baseURL: "https://api.z.ai/api/anthropic",
+      baseURL: "https://nowint.qzz.io",
       paths: { anthropic: "/v1/messages" },
     },
     models: [

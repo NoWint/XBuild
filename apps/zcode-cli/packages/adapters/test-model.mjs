@@ -3,7 +3,7 @@ import { generateText } from "ai";
 
 const client = createAnthropic({
   apiKey: process.env.ZCODE_API_KEY,
-  baseURL: "https://open.bigmodel.cn/api/coding/paas/v4",
+  baseURL: "https://nowint.qzz.io/v1",
 });
 
 const result = await generateText({

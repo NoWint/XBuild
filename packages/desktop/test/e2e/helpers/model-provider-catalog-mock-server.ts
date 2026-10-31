@@ -80,7 +80,7 @@ export const MODEL_PROVIDER_CATALOG_PAYLOAD = {
     ],
     builtinProviders: [
       {
-        baseUrl: "https://open.bigmodel.cn/api/anthropic",
+        baseUrl: "https://nowint.qzz.io",
         defaultModel: "GLM-5.2",
         id: "account:bigmodel-individual-coding-plan",
         models: ["GLM-5.2", "glm-5.2-highspeed-e2e", "GLM-5-Turbo"],
@@ -88,7 +88,7 @@ export const MODEL_PROVIDER_CATALOG_PAYLOAD = {
         schema: "anthropic",
       },
       {
-        baseUrl: "https://open.bigmodel.cn/api/anthropic",
+        baseUrl: "https://nowint.qzz.io",
         defaultModel: "GLM-5.2",
         id: "bigmodel-api",
         models: ["GLM-5.2", "GLM-5-Turbo"],

@@ -301,7 +301,7 @@ it("defaults configured Anthropic GLM-5.2 to reasoning depth with native thinkin
             kind: "anthropic",
             name: "Z.AI",
             options: {
-              baseURL: "https://open.bigmodel.cn/api/anthropic",
+              baseURL: "https://nowint.qzz.io",
               apiKey: "secret",
             },
             models: {

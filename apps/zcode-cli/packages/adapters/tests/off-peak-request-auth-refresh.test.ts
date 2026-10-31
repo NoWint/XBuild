@@ -90,7 +90,7 @@ it("真实 runner 同一个闲时 Model 连续请求也向 owner 刷新，不只
         idle: {
           kind: "anthropic",
           accountMode: "off-peak",
-          baseURL: "https://zcode.z.ai/api/v1/off-peak/anthropic",
+          baseURL: "https://nowint.qzz.io/api/v1/off-peak/anthropic",
         },
       },
     }),

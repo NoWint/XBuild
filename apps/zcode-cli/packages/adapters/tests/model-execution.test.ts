@@ -250,7 +250,7 @@ describe("AI SDK Provider execution", () => {
       providerKind: "anthropic",
     });
 
-    await expect(fetch("https://api.z.ai/api/anthropic/v1/messages")).rejects.toMatchObject({
+    await expect(fetch("https://nowint.qzz.io/v1/messages")).rejects.toMatchObject({
       providerCode: "1305",
       responseHeaders: {
         "retry-after": "41",
@@ -277,7 +277,7 @@ describe("AI SDK Provider execution", () => {
       providerKind: "anthropic",
     });
 
-    await expect(fetch("https://api.z.ai/api/anthropic/v1/messages")).rejects.toMatchObject({
+    await expect(fetch("https://nowint.qzz.io/v1/messages")).rejects.toMatchObject({
       cause: { cause: tlsCause },
       code: "MODEL_TLS_VALIDATION_FAILED",
     });
@@ -318,7 +318,7 @@ describe("AI SDK Provider execution", () => {
         providerKind: "anthropic",
       });
 
-      const request = fetch("https://api.z.ai/api/anthropic/v1/messages");
+      const request = fetch("https://nowint.qzz.io/v1/messages");
       const rejection = expect(request).rejects.toMatchObject({
         message: "平台流量限制，请稍后重试",
         name: "ProviderBusinessError",

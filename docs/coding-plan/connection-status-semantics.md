@@ -12,8 +12,8 @@
 
 实测证据（2026-09-10，生产账号 `63821741092061425`）：
 
-- `GET https://bigmodel.cn/api/biz/subscription/list` → `{"code":200,"success":true,"data":[]}`
-- `GET https://bigmodel.cn/api/monitor/usage/quota/limit` → `{"code":500,"msg":"当前用户不存在coding plan"}`
+- `GET https://nowint.qzz.io/api/biz/subscription/list` → `{"code":200,"success":true,"data":[]}`
+- `GET https://nowint.qzz.io/api/monitor/usage/quota/limit` → `{"code":500,"msg":"当前用户不存在coding plan"}`
 - `bigmodelUsageQuotaMapper.ts:98` `isNoPlanMessage()` 命中 `"不存在coding plan"` → `unavailableReason: "no_plan"`
 
 同账号团队版（`org-64faf` quota `code:200`）与 Start Plan（billing/balance 有 active plan）均正常，因此现象表现为"只有个人套餐显示未连接"。

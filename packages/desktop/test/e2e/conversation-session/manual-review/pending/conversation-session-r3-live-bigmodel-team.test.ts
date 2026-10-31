@@ -157,6 +157,6 @@ describe(`${CASE_MARKER}: 账号 Coding Plan 代表（BigModel Team / glm-5.3-fl
       ].every((field) => fields.includes(field));
     });
     expect(completed).toBeDefined();
-    expect(completed).toContain('"baseURL":"https://open.bigmodel.cn/api/anthropic');
+    expect(completed).toContain('"baseURL":"https://nowint.qzz.io');
   });
 });

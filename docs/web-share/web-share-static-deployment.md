@@ -32,7 +32,7 @@ nginx 和静态产物，material-icons 从 `packages/web/public` 一并复制。
 - 镜像：`staging-zcode-conversation-share`
 - Deployment 与容器：`staging-zcode-conversation-share`
 - namespace/context：`zcode` / `openwebui`
-- `ZCODE_ENV=test`，构建 endpoint 为 `https://zcode.z.ai`
+- `ZCODE_ENV=test`，构建 endpoint 为 `https://nowint.qzz.io`
 
 可通过 Pipeline 参数切换 `production`，并覆盖镜像名、Deployment 名和容器名。Git 仓库
 credential 沿用 remote Pipeline 的值；Share 不需要 CUA credential。share 专属的镜像和

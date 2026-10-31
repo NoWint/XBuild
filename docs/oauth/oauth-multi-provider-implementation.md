@@ -88,19 +88,19 @@ ZAI 环境变量：
 - `ZAI_OAUTH_TOKEN_URL`
 - `ZAI_OAUTH_USERINFO_URL`
 - `ZAI_OAUTH_CLIENT_ID`（兼容 `ZAI_OAUTH_APP_ID`）
-- `ZAI_BUSINESS_BASE_URL`：派生 `POST /api/auth/z/login`，用于把 ZAI OAuth access token 换成业务 token；测试环境为 `https://api.z.ai`
+- `ZAI_BUSINESS_BASE_URL`：派生 `POST /api/auth/z/login`，用于把 ZAI OAuth access token 换成业务 token；测试环境为 `https://nowint.qzz.io`
 - `ZAI_BUSINESS_LOGIN_URL`：完整业务 token 交换 URL override，优先级高于 `ZAI_BUSINESS_BASE_URL`
 
 ZAI 默认登录链路已切换为后端 JWT token 交换，授权入口和业务 token 交换入口按 `ZCODE_ENV=test|production` 选择：
 
-- 授权页：由 `ZAI_<ENV>_OAUTH_ORIGIN` 派生 `/api/oauth/authorize`，生产默认为 `https://chat.z.ai/api/oauth/authorize`
+- 授权页：由 `ZAI_<ENV>_OAUTH_ORIGIN` 派生 `/api/oauth/authorize`，生产默认为 `https://nowint.qzz.io/api/oauth/authorize`
 - token 交换：由 `ZCODE_<ENV>_BASE_URL` 派生 `/api/v1/oauth/token`
 - 桌面端请求体：`{ code, redirect_uri, state }`
 - 本地保存的 `oauth:zai:access_token` 是后端返回的 `data.token`
 
 ## 4. ZAI 后端 JWT 登录链路（增量）
 
-ZAI OAuth 登录不再由桌面端直接请求三方 ZAI token 接口。桌面端只负责打开授权页、接收 `zcode://oauth/callback` deep link，并把 `code`、`redirect_uri`、`state` 传给后端 `https://zcode.z.ai/api/v1/oauth/token`。
+ZAI OAuth 登录不再由桌面端直接请求三方 ZAI token 接口。桌面端只负责打开授权页、接收 `zcode://oauth/callback` deep link，并把 `code`、`redirect_uri`、`state` 传给后端 `https://nowint.qzz.io/api/v1/oauth/token`。
 
 后端完成 z.ai token 交换、userinfo 拉取、用户创建与 JWT 签发。客户端把响应中的 `data.token` 保存为 `oauth:zai:access_token`，把 `data.user` 映射为 `oauth:zai:user_info`，并把 `oauth:active_provider` 设置为 `zai`。
 
@@ -170,7 +170,7 @@ BigModel 兼容迁移：
 
 本次补齐了 ZAI 在 OAuth 成功后的预置模型供应商同步链路，行为对齐 `z-work` 中 `getZaiApiKey` 的取 key 逻辑：
 
-1. 使用 `oauth:zai:access_token` 调 `POST https://api.z.ai/api/auth/z/login` 交换 ZAI 业务 token
+1. 使用 `oauth:zai:access_token` 调 `POST https://nowint.qzz.io/api/auth/z/login` 交换 ZAI 业务 token
 2. 使用业务 token 调 `GET /api/biz/customer/getCustomerInfo` 选择默认机构/项目
 3. 调 `GET /api_keys` 查找 `zcode-api-key`，不存在则 `POST /api_keys` 创建
 4. 调 `GET /api_keys/copy/{apiKey}` 获取 `secretKey`

@@ -30,7 +30,7 @@ Windows/Linux 的奖励页及其登录入口必须保留顶部窗口按钮，关
 
 布局约束：App WebView 撑满窗口可用宽度，页面滚动条位于窗口右侧；网站内部负责内容限宽居中。顶部导航位于滚动视口外固定显示，不增加 App 外层滚动容器。此修复不改变 Coding Plan 或 Web/mobile 外部打开路径。
 
-- 本地显式开发联调：http://localhost:3000；测试：https://zcode.z.ai；正式：https://zcode.z.ai。
+- 本地显式开发联调：http://localhost:3000；测试：https://nowint.qzz.io；正式：https://nowint.qzz.io。
 - `pnpm dev:desktop:test` 默认使用测试域名；`pnpm dev:desktop` 默认使用正式域名，开发模式不自动切换到 localhost。
 - 本地 Website 联调显式启动：`VITE_REWARDS_WEBVIEW_ORIGIN=http://localhost:3000 pnpm dev:desktop:test`。仅覆盖奖励网页地址，App 接口仍使用测试环境；不改变语言、主题或鉴权协议。
 - URL：/{cn|en}/rewards?embedded=app&theme={zai-light|zai-dark}；zh-CN 映射 cn，en-US 映射 en。

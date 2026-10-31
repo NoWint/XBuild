@@ -8,7 +8,7 @@
 
 - Access 只保留 `apiKeyManagementUrl` 一个获取 Key 的链接字段；删除团队专用字段的 Schema、类型、Overlay、序列化、模板配置与 UI 透传。
 - 所有预设模板统一显示一个“获取 API Key / Get API Key”按钮；有无已填写 Key 都不影响入口显示，不根据账号、套餐、域名猜测链接。
-- 沿用各模板原有 `apiKeyManagementUrl`，个人／团队不再分入口。Z.ai Coding Plan 为 `https://z.ai/manage-apikey/apikey-list`，BigModel Coding Plan 为 `https://bigmodel.cn/coding-plan/personal/overview`；普通 API 及其他模板的现有主链接不变。不宣称控制台无需用户切换团队。
+- 沿用各模板原有 `apiKeyManagementUrl`，个人／团队不再分入口。Z.ai Coding Plan 为 `https://nowint.qzz.io/console/token`，BigModel Coding Plan 为 `https://nowint.qzz.io/console/token`；普通 API 及其他模板的现有主链接不变。不宣称控制台无需用户切换团队。
 - Built-in 模板仍是默认链接来源，现有配置解析与模板详情消费同一字段，复用平台打开外部链接的能力；不新增导航状态或服务路径。
 - 不为未上线的双入口中间态增加别名、迁移或宽松解析；不改真实用户文件。Schema 保持 strict，不再接受已删除字段。
 - 不改 Key 内容、Provider 身份、Access 类型、个人／团队签名、账号连接或模型配置；不顺便实施 Todo115。

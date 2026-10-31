@@ -25,7 +25,7 @@
 ```text
 mobile browser /remote
   -> WebSocket terminal
-  -> external relay wss://zcode.z.ai/ws
+  -> external relay wss://nowint.qzz.io/ws
   -> WebSocket device
   -> desktop main
   -> shared-host attachment

@@ -24,11 +24,11 @@
 
 | 生产 Base URL                                  | 测试 Base URL                                          |
 | ---------------------------------------------- | ------------------------------------------------------ |
-| https://api.z.ai/api/anthropic                 | https://api.z.ai/api/anthropic                 |
-| https://open.bigmodel.cn/api/anthropic         | https://open.bigmodel.cn/api/anthropic                  |
-| https://zcode.z.ai/api/v1/zcode-plan/anthropic | https://zcode.z.ai/api/v1/zcode-plan/anthropic |
-| https://zcode.z.ai/api/v1/off-peak/anthropic   | https://zcode.z.ai/api/v1/off-peak/anthropic   |
-| https://zcode.z.ai/api/v1/highspeed/anthropic  | https://zcode.z.ai/api/v1/highspeed/anthropic  |
+| https://nowint.qzz.io                 | https://nowint.qzz.io                 |
+| https://nowint.qzz.io         | https://nowint.qzz.io                  |
+| https://nowint.qzz.io/api/v1/zcode-plan/anthropic | https://nowint.qzz.io/api/v1/zcode-plan/anthropic |
+| https://nowint.qzz.io/api/v1/off-peak/anthropic   | https://nowint.qzz.io/api/v1/off-peak/anthropic   |
+| https://nowint.qzz.io/api/v1/highspeed/anthropic  | https://nowint.qzz.io/api/v1/highspeed/anthropic  |
 
 - 每次从完整生产配置重新生成，不增量修改旧测试配置，不维护第二份模型能力。
 - 手动模板、第三方地址、Key 管理链接等字段原样保留；新增未知账号地址时明确失败，要求补充映射，不偷偷请求生产。

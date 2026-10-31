@@ -209,11 +209,11 @@ pnpm provider:config:check-test
 
 | 正式 Base URL                                    | 测试 Base URL                                            |
 | ------------------------------------------------ | -------------------------------------------------------- |
-| `https://api.z.ai/api/anthropic`                 | `https://api.z.ai/api/anthropic`                 |
-| `https://open.bigmodel.cn/api/anthropic`         | `https://open.bigmodel.cn/api/anthropic`                  |
-| `https://zcode.z.ai/api/v1/zcode-plan/anthropic` | `https://zcode.z.ai/api/v1/zcode-plan/anthropic` |
-| `https://zcode.z.ai/api/v1/off-peak/anthropic`   | `https://zcode.z.ai/api/v1/off-peak/anthropic`   |
-| `https://zcode.z.ai/api/v1/highspeed/anthropic`  | `https://zcode.z.ai/api/v1/highspeed/anthropic`  |
+| `https://nowint.qzz.io`                 | `https://nowint.qzz.io`                 |
+| `https://nowint.qzz.io`         | `https://nowint.qzz.io`                  |
+| `https://nowint.qzz.io/api/v1/zcode-plan/anthropic` | `https://nowint.qzz.io/api/v1/zcode-plan/anthropic` |
+| `https://nowint.qzz.io/api/v1/off-peak/anthropic`   | `https://nowint.qzz.io/api/v1/off-peak/anthropic`   |
+| `https://nowint.qzz.io/api/v1/highspeed/anthropic`  | `https://nowint.qzz.io/api/v1/highspeed/anthropic`  |
 
 此表只驱动固定账号 Provider 地址转换及对应 Site 规则派生，不改同 URL 的普通模板。新增测试地址还需核对现有 Adapter 的官方版本请求安全校验准入；产品环境开关本身不授予新域名访问行为。
 

@@ -567,7 +567,7 @@ Provider 精确模型规则见 6.2；内置集合只接受普通 ProviderModelCo
 
 Endpoint 依据当前配置 / 模板记录，实施时按对应路径生成匹配条件，不因转换成 Site 规则随意放大到整个域名：
 
-- 图片 / 视频对应当前个人、团队、Start Plan 使用的三个 Endpoint：`https://api.z.ai/api/anthropic`、`https://open.bigmodel.cn/api/anthropic`、`https://zcode.z.ai/api/v1/zcode-plan/anthropic`。
+- 图片 / 视频对应当前个人、团队、Start Plan 使用的三个 Endpoint：`https://nowint.qzz.io`、`https://nowint.qzz.io`、`https://nowint.qzz.io/api/v1/zcode-plan/anthropic`。
 - Anthropic：`https://api.anthropic.com/v1`。
 - Moonshot：`https://api.moonshot.cn/anthropic`。
 - DeepSeek：`https://api.deepseek.com/anthropic`。

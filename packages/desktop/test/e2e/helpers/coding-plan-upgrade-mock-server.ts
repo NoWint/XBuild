@@ -788,14 +788,14 @@ function enrichClientConfigPayloadForUpgradeE2E(
         id: BUILTIN_MODEL_PROVIDER_IDS.bigmodelStartPlan,
         name: "BigModel - Coding Plan",
         schema: "anthropic",
-        baseUrl: "https://open.bigmodel.cn/api/anthropic",
+        baseUrl: "https://nowint.qzz.io",
         models: ["GLM-5.3-Flash"],
       },
       {
         id: BUILTIN_MODEL_PROVIDER_IDS.bigmodelStartPlan,
         name: "BigModel - Start Plan",
         schema: "anthropic",
-        baseUrl: "https://open.bigmodel.cn/api/anthropic",
+        baseUrl: "https://nowint.qzz.io",
         models: ["GLM-5.3-Flash", "GLM-5-Turbo"],
       },
     ];
@@ -826,14 +826,14 @@ function enrichClientConfigPayloadForUpgradeE2E(
       id: "bigmodel",
       name: "BigModel - Coding Plan",
       schema: "anthropic",
-      baseUrl: "https://open.bigmodel.cn/api/anthropic",
+      baseUrl: "https://nowint.qzz.io",
       models: ["glm-5.1-highspeed"],
     },
     {
       id: "zai",
       name: "Z.ai - Coding Plan",
       schema: "anthropic",
-      baseUrl: "https://api.z.ai/api/anthropic",
+      baseUrl: "https://nowint.qzz.io",
       models: ["glm-5.1-highspeed"],
     },
   ];

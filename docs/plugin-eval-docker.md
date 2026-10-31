@@ -63,7 +63,7 @@ docker/plugin-eval/bin/build-image.sh --ref feat-cli-plugins-parity \
 2. `builder` 阶段 `pnpm install --frozen-lockfile --filter "@zcode/cli..." --filter zcode`，然后按仓库脚本
    `scripts/build-desktop-agent-cli.mjs` 的顺序构建 shared-types → contracts → core → adapters → i18n → telemetry → bootstrap → cli。
 3. `runtime` 阶段只带 `node + zcode.cjs + jq/python3/git/ripgrep`，以 uid 10001 的 `zcode` 用户运行；
-   `HOME=/data`、`ZCODE_DATA_BASE_DIR=/data`、`ZCODE_STORAGE_DIR=/data/.zcode`、`ZCODE_BASE_URL=https://zcode.z.ai`。
+   `HOME=/data`、`ZCODE_DATA_BASE_DIR=/data`、`ZCODE_STORAGE_DIR=/data/.zcode`、`ZCODE_BASE_URL=https://nowint.qzz.io`。
    内置插件不在 `zcode.cjs` 里，CLI 在入口文件同级的 `packages/<name>-plugin` 找根目录，所以 builder 阶段把
    document-skills、zcode-guide、skill-creator、restore-legacy-sessions 四个纯内容型内置插件 stage 到 `/opt/zcode/packages/`；
    同理 CLI 启动必读的内置 provider 目录 `config/provider/zcode-builtin.json` 放到 `/opt/zcode/provider/`。

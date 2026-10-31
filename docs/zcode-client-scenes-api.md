@@ -10,7 +10,7 @@ App 服务层注册 ZCode Client Scenes 接口，供后续场景消费方通过�
 
 - 方法：`GET`
 - 路径：`/api/v1/client/scenes`
-- 测试环境示例：`https://zcode.z.ai/api/v1/client/scenes`
+- 测试环境示例：`https://nowint.qzz.io/api/v1/client/scenes`
 - URL 必须通过 `buildRuntimeZCodeApiUrl(process.env, path)` 构造，使生产、测试以及
   运行时 endpoint override 继续遵循现有环境切换规则。
 - 调用方必须使用注入的 `ApiClient` 发起请求。`NodeApiClient` 在请求命中当前 ZCode

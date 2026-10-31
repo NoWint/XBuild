@@ -413,13 +413,13 @@ const E2E_USER_PROFILE = {
 };
 const GLM_HIGHSPEED_E2E_PROVIDER_ID = "e2e-glmhighspeed";
 const GLM_HIGHSPEED_E2E_MODEL = "glm-5.1-highspeed";
-const GLM_HIGHSPEED_E2E_BASE_URL = "https://open.bigmodel.cn/api";
+const GLM_HIGHSPEED_E2E_BASE_URL = "https://nowint.qzz.io/api";
 const BIGMODEL_GLM53_E2E_PROVIDER_ID = "e2e-bigmodel-glm53";
 const BIGMODEL_GLM53_E2E_MODEL = "GLM-5.3";
-const BIGMODEL_GLM53_E2E_BASE_URL = "https://open.bigmodel.cn/api";
+const BIGMODEL_GLM53_E2E_BASE_URL = "https://nowint.qzz.io/api";
 const STAGING_MODEL_E2E_PROVIDER_ID = "e2e-staging-model";
 const STAGING_MODEL_E2E_MODEL = "glm-5.2";
-const STAGING_MODEL_E2E_BASE_URL = "https://open.bigmodel.cn/api";
+const STAGING_MODEL_E2E_BASE_URL = "https://nowint.qzz.io/api";
 const E2E_PROVIDER_PRESETS = {
   env: {
     apiKeyEnvNames: ["E2E_PROVIDER_API_KEY"],
@@ -1470,7 +1470,7 @@ async function startCodingPlanTeamMockIfNeeded(specs: string[] = []) {
       writeJson(response, {
         code: 0,
         data: {
-          authorize_url: `https://bigmodel.cn/login?appId=zcode&redirect=${encodeURIComponent("https://zcode.z.ai/api/v1/oauth/cli/callback/bigmodel")}&state=${SUBAGENT_CODING_PLAN_OAUTH_STATE}`,
+          authorize_url: `https://nowint.qzz.io/login?appId=zcode&redirect=${encodeURIComponent("https://nowint.qzz.io/api/v1/oauth/cli/callback/bigmodel")}&state=${SUBAGENT_CODING_PLAN_OAUTH_STATE}`,
           expires_at: Math.floor(Date.now() / 1000) + 300,
           flow_id: SUBAGENT_CODING_PLAN_OAUTH_FLOW_ID,
           poll_interval_sec: 30,

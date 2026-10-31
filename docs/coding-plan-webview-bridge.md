@@ -9,8 +9,8 @@
   -> CodingPlanUpgradeDialog 收到 providerId、audience，以及可选的 teamPlanKey
   -> App 解析官网地址
      - 本地开发：    http://localhost:3000
-     - 测试环境：    https://zcode.z.ai
-     - 正式环境：    https://zcode.z.ai
+     - 测试环境：    https://nowint.qzz.io
+     - 正式环境：    https://nowint.qzz.io
      - 显式 override：VITE_CODING_PLAN_WEBVIEW_ORIGIN
   -> WebView 打开 /coding-plan?provider={zai|bigmodel}&audience={personal|team}&teamPlanKey={可选}&embedded=app&lang={cn|en}&theme={zai-light|zai-dark}
   -> dom-ready 后从 credentialService 读取 token

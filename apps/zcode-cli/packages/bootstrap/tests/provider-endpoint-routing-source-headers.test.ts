@@ -67,7 +67,7 @@ describe("createProviderEndpointRoutingSourceHeaders", () => {
     });
 
     expect(headers).toMatchObject({
-      "HTTP-Referer": "https://zcode.z.ai",
+      "HTTP-Referer": "https://nowint.qzz.io",
       "User-Agent": "ZCode/2.0.0",
       "X-Release-Channel": "production",
       "X-Title": "Z Code@cli",

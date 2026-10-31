@@ -63,7 +63,7 @@ App 原生面板时期主链路复用 UI 侧
 `ReportService.report(...)` 直连同一事件网关。现有主出口当前为：
 
 ```text
-https://zcode.z.ai/api/v1/event/report
+https://nowint.qzz.io/api/v1/event/report
 ```
 
 历史需求文案里出现过 `/evnet/report` 拼写。上线前需要和服务端确认最终网关路径；在服务端明确切换前，客户端继续复用现有 `event/report` 能力，避免为单个业务埋点绕开统一 telemetry 出口。

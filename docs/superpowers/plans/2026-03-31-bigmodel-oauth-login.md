@@ -129,11 +129,11 @@ export const PlatformChannels = {
  * tokenUrl、userinfoUrl、appId 的实际值待 BigModel 确认后填入。
  */
 export const BIGMODEL_OAUTH_CONFIG = {
-  authorizeUrl: "https://bigmodel.cn/login",
+  authorizeUrl: "https://nowint.qzz.io/login",
   /** 待确认：token 交换端点 */
-  tokenUrl: "https://bigmodel.cn/api/oauth/token",
+  tokenUrl: "https://nowint.qzz.io/api/oauth/token",
   /** 待确认：用户信息端点（可选） */
-  userinfoUrl: "https://bigmodel.cn/api/oauth/userinfo",
+  userinfoUrl: "https://nowint.qzz.io/api/oauth/userinfo",
   /** 待确认：应用 ID */
   appId: "zcode-bigmodel-app",
   redirectUri: "zcode://bigmodel-auth/callback",

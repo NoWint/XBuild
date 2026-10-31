@@ -57,7 +57,7 @@ reads the active free plan identity and the daily quota bucket renewal time from
 one balance request:
 
 ```http
-GET https://zcode.z.ai/api/v1/zcode-plan/billing/balance?app_version=<ZCODE_VERSION>
+GET https://nowint.qzz.io/api/v1/zcode-plan/billing/balance?app_version=<ZCODE_VERSION>
 Authorization: Bearer <zcodejwttoken>          # Z.AI
 Authorization: Bearer <zcodejwttoken>          # BigModel
 X-Device-Mid: <telemetry-state.json deviceMid>  # required; missing -> 400 {"code":3001,"msg":"parameter error"}
@@ -81,7 +81,7 @@ builds, so backend gating observes the same version identity as the running app.
 
 `zcodejwttoken` is the OAuth backend JWT saved during Z.AI or BigModel login.
 BigModel passes the one-time callback `code` directly to
-`https://zcode.z.ai/api/v1/oauth/token` with `state`, `redirect_uri`, and
+`https://nowint.qzz.io/api/v1/oauth/token` with `state`, `redirect_uri`, and
 `provider: "bigmodel"` to save the same JWT shape used by Z.AI Start Plan.
 Paid Coding Plan providers continue to use `/api/biz/subscription/list`;
 monitor quota APIs remain reserved for Coding Plan usage/limit views.
@@ -233,7 +233,7 @@ pricing cards, and any other client-config consumers in the same provider
 instance:
 
 ```http
-GET https://zcode.z.ai/api/v1/client/configs?app_version=<ZCODE_VERSION>&platform=<platform>-<arch>
+GET https://nowint.qzz.io/api/v1/client/configs?app_version=<ZCODE_VERSION>&platform=<platform>-<arch>
 ```
 
 `StartPlanCard` uses `configs.startPlanPreview`:
@@ -368,7 +368,7 @@ idle -> checking-auth -> verifying -> claiming -> success-dialog -> refreshing -
   `effective_at = 0` 继续按立即生效处理，不展示待生效说明。
   分享面板复制文案成功后，复制按钮应原位短暂切换为“✓ 已复制”，避免用户视线离开当前操作；
   复制图片成功使用全局 Toast。剪贴板或图片生成失败时显示失败 Toast，不能只写日志后静默结束。
-  分享文案必须包含 `https://zcode.z.ai` 入口，并邀请接收者下载安装 ZCode 后领取。中文链接独占最后一行；
+  分享文案必须包含 `https://nowint.qzz.io` 入口，并邀请接收者下载安装 ZCode 后领取。中文链接独占最后一行；
   英文链接直接跟在完整句子后。两种语言都不使用冒号引出链接，且链接必须位于文案末尾，避免社交平台把后续文字错误识别为 URL 的一部分。
 
   设置页 Start Plan 套餐卡中，若套餐 entitlement 的 `effective_at` 晚于当前时间，状态行显示

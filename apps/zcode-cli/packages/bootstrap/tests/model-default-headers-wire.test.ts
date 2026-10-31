@@ -188,7 +188,7 @@ describe("模型请求默认 Header：Bootstrap → Adapter → 真实 SDK", () 
         expect(headers.get("user-agent")).toContain(`ZCode/${CLIENT_VERSION}`);
         expect(headers.get("x-zcode-app-version")).toBe(CLIENT_VERSION);
         expect(headers.get("x-title")).toBe("Z Code@electron");
-        expect(headers.get("http-referer")).toBe("https://zcode.z.ai");
+        expect(headers.get("http-referer")).toBe("https://nowint.qzz.io");
         expect(headers.get("x-zcode-agent")).toBe("glm");
         expect(headers.get("x-release-channel")).toBe("production");
         for (const key of [

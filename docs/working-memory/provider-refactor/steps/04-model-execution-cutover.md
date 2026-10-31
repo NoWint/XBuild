@@ -157,7 +157,7 @@ Hidden Provider 不再获得 `access` 或 `baseURL` 的校验豁免。
   },
   "api": {
     "type": "anthropic-messages",
-    "baseURL": "https://zcode.z.ai/api/v1/off-peak/anthropic"
+    "baseURL": "https://nowint.qzz.io/api/v1/off-peak/anthropic"
   },
   "models": ["GLM-5.2", "GLM-5-Turbo"]
 }

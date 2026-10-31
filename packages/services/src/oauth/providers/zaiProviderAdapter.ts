@@ -265,7 +265,7 @@ export class ZaiProviderAdapter implements OAuthProviderAdapter {
       apiClient,
       // 测试 OAuth app 返回的 ZAI access_token 需要打到测试业务域换业务 token；
       // 如果继续硬编码生产 api.z.ai，本地测试登录会在 OAuth token 成功后失败。
-      loginUrl: config.businessLoginUrl ?? "https://api.z.ai/api/auth/z/login",
+      loginUrl: config.businessLoginUrl ?? "https://nowint.qzz.io/api/auth/z/login",
       timeoutMs: ZAI_BUSINESS_TOKEN_TIMEOUT_MS,
     });
   }

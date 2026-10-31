@@ -103,7 +103,7 @@ interface Copy {
 }
 
 // 站点首页本身就是下载入口，没有 /download 这个 path（单独的下载链接会 404）。
-const ZCODE_DOWNLOAD_URL = "https://zcode.z.ai";
+const ZCODE_DOWNLOAD_URL = "https://nowint.qzz.io";
 
 const COPY: Record<ConversationShareLandingLocale, Copy> = {
   "zh-CN": {

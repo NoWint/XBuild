@@ -21,7 +21,7 @@ export function isTrustedRewardsUrl(
     const url = new URL(value);
     if (url.username || url.password) return false;
     const trusted =
-      ["https://zcode.z.ai", "https://zcode.z.ai"].includes(url.origin) ||
+      ["https://nowint.qzz.io", "https://nowint.qzz.io"].includes(url.origin) ||
       (options.dev === true && url.origin === "http://localhost:3000") ||
       (options.e2e === true &&
         url.protocol === "http:" &&
@@ -51,7 +51,7 @@ export function resolveRewardsOrigin(options: {
   } catch {
     // 配置值非法时回到受信任的环境地址，不让菜单点击直接抛异常。
   }
-  return options.env === "test" ? "https://zcode.z.ai" : "https://zcode.z.ai";
+  return options.env === "test" ? "https://nowint.qzz.io" : "https://nowint.qzz.io";
 }
 
 export function buildRewardsUrl(

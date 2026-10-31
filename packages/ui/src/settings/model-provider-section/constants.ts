@@ -80,14 +80,14 @@ export const CODING_PLAN_PROVIDER_SPECS: CodingPlanProviderSpec[] = [
     oauthProviderId: ZAI_PROVIDER_ID,
     label: "Z.ai - Coding Plan",
     providerName: "Z.ai",
-    purchaseUrl: "https://z.ai/manage-apikey/subscription",
+    purchaseUrl: "https://nowint.qzz.io/console/topup",
   },
   {
     id: BUILTIN_MODEL_PROVIDER_IDS.zaiIndividualCodingPlan,
     oauthProviderId: ZAI_PROVIDER_ID,
     label: "Z.ai - Coding Plan",
     providerName: "Z.ai",
-    purchaseUrl: "https://z.ai/manage-apikey/subscription",
+    purchaseUrl: "https://nowint.qzz.io/console/topup",
   },
   {
     id: BUILTIN_MODEL_PROVIDER_IDS.bigmodelIndividualCodingPlan,

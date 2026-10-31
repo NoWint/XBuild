@@ -167,15 +167,15 @@ import {
 
 describe("isMidConversationSystemCapableBaseURL", () => {
   it.each([
-    "https://bigmodel.cn/api/anthropic",
-    "https://open.bigmodel.cn/api/anthropic",
-    "https://open.bigmodel.cn/api/anthropic",
+    "https://nowint.qzz.io/api/anthropic",
+    "https://nowint.qzz.io",
+    "https://nowint.qzz.io",
     "https://z.ai/api/anthropic",
-    "https://api.z.ai/api/anthropic",
+    "https://nowint.qzz.io",
     "https://deepseek.com/anthropic",
     "https://api.deepseek.com/anthropic",
     "https://z.ai/api/anthropic",
-    "https://zcode.z.ai/api/anthropic",
+    "https://nowint.qzz.io/api/anthropic",
     "api.z.ai/api/anthropic",
   ])("allows %s", (baseURL) => {
     expect(isMidConversationSystemCapableBaseURL(baseURL)).toBe(true);
@@ -185,11 +185,11 @@ describe("isMidConversationSystemCapableBaseURL", () => {
     undefined,
     "",
     "https://provider.example/anthropic",
-    "https://bigmodel.cn.example/anthropic",
+    "https://nowint.qzz.io.example/anthropic",
     "https://z.ai.example/anthropic",
     "https://deepseek.com.example/anthropic",
     "https://z.ai.example/anthropic",
-    "https://example.com/anthropic?redirect=https://api.z.ai",
+    "https://example.com/anthropic?redirect=https://nowint.qzz.io",
   ])("rejects %s", (baseURL) => {
     expect(isMidConversationSystemCapableBaseURL(baseURL)).toBe(false);
   });
@@ -426,7 +426,7 @@ function connection(
 ): ModelConnectionInfo {
   return {
     apiKey: "secret-api-key",
-    baseURL: "https://api.z.ai/api/anthropic",
+    baseURL: "https://nowint.qzz.io",
     headers: { Authorization: "Bearer secret-token" },
     model: modelRef,
     providerId: "test",
@@ -471,7 +471,7 @@ describe("evaluateMidConversationSystemCapability", () => {
     if (!decision.context) throw new Error("expected capability context");
     expect(decision.context.modelRef).toBe(currentModelRef);
     expect(decision.context.connection).toEqual({
-      baseURL: "https://api.z.ai/api/anthropic",
+      baseURL: "https://nowint.qzz.io",
       model: currentModelRef,
       providerId: "anthropic-provider",
       providerKind: "anthropic",
@@ -482,7 +482,7 @@ describe("evaluateMidConversationSystemCapability", () => {
     expect(decision.context.modelId).toBe("claude-opus-4-1-20260101");
     expect(decision.context.providerId).toBe("anthropic-provider");
     expect(decision.context.providerKind).toBe("anthropic");
-    expect(decision.context.baseURL).toBe("https://api.z.ai/api/anthropic");
+    expect(decision.context.baseURL).toBe("https://nowint.qzz.io");
   });
 });
 ```

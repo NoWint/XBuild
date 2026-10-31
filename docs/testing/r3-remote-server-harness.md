@@ -272,7 +272,7 @@ Host / Agent 最大数量各为 1。RSS 首尾采样 1220 / 1211 MB；这只是�
 | 模型请求          | 默认 replay：`createSSHReplayTunnel` 经 SSH 反向端口转发把本机 replay server 暴露成容器内 `127.0.0.1:<port>`；`tunnel` 用户单独承载，避免被"杀 dev 的 sshd"故障连带     |
 | 真实模型          | 仅 `live-zapi`、`live-bigmodel-team`、`docker-transport` 三个 case                                                                                                      |
 | 故障注入          | `docker exec` 杀容器内 sshd / 只读探针；本机 loopback TCP 代理挂起首连；本机 HTTP 代理验证下载路径；伪造 release 源                                                     |
-| 手机端            | 本机 chromium（`R3_MOBILE_CHROME`）390×844 viewport；默认托管同批源码的 v4 Web 构建，使用标准 test 外部 relay（`wss://zcode.z.ai/ws`）；显式页面 URL 覆盖仍有效 |
+| 手机端            | 本机 chromium（`R3_MOBILE_CHROME`）390×844 viewport；默认托管同批源码的 v4 Web 构建，使用标准 test 外部 relay（`wss://nowint.qzz.io/ws`）；显式页面 URL 覆盖仍有效 |
 
 ## Case 与档位映射
 
@@ -423,7 +423,7 @@ ZCODE_E2E_MOCHA_GREP                                 只跑 spec 内某个用例
 
 `conversation-session-r3-live-bigmodel-team.test.ts` 导入生产 BigModel 登录材料，必须独立运行，
 并由 WDIO 在 launcher / worker / Electron 启动前统一选择生产 ZCode 控制面；
-同时显式设置 `ZCODE_ENV=production` 和 `BIGMODEL_API_BASE_URL=https://bigmodel.cn`，
+同时显式设置 `ZCODE_ENV=production` 和 `BIGMODEL_API_BASE_URL=https://nowint.qzz.io`，
 因为 Team 组织/项目校验的域名独立于 ZCode 控制面。SSH 的环境白名单透传 `ZCODE_ENV`，
 不会透传 BigModel 地址覆盖；只覆盖本机地址时，远端仍会请求 `bigmodel.cn`。
 真实账号用例还必须使用 `R3_BUILD_ENV=production` 构建：Desktop 的 `buildHostProcessEnv`

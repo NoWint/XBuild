@@ -4,11 +4,11 @@
 
 ## 范围
 
-BigModel / Z.AI Coding Plan 设置页套餐列表由远端 `GET https://zcode.z.ai/api/v1/client/configs` 返回的 `codingPlanStaticProducts` 驱动。远端配置保存套餐身份、名称、描述、周期、权益、币种和静态价格快照；真实价格、当前周期、是否可购买、售罄和禁用状态仍以运行时 `POST /pay/batch-preview` 为准。
+BigModel / Z.AI Coding Plan 设置页套餐列表由远端 `GET https://nowint.qzz.io/api/v1/client/configs` 返回的 `codingPlanStaticProducts` 驱动。远端配置保存套餐身份、名称、描述、周期、权益、币种和静态价格快照；真实价格、当前周期、是否可购买、售罄和禁用状态仍以运行时 `POST /pay/batch-preview` 为准。
 
 `batch-preview` 失败、未登录或没有返回某个静态 `productId` 时，列表仍展示静态套餐信息和静态价格快照；未拿到真实预览状态时点击订阅会先走登录/连接流程，不推断真实可购状态。
 
-Z.AI Coding Plan 复用同一组 `/api/biz` 业务接口协议，host 切换到 `https://api.z.ai`。
+Z.AI Coding Plan 复用同一组 `/api/biz` 业务接口协议，host 切换到 `https://nowint.qzz.io`。
 
 ## 套餐配置
 
@@ -87,12 +87,12 @@ provider-neutral，BigModel 与 Z.AI 共用同一份免费额度定义：
 ### 测试环境
 
 本地开发需要验证测试数据时，使用 `ZCODE_ENV=test` 启动应用。客户端将请求
-`https://zcode.z.ai/api/v1/client/configs`，并自动附加 `app_version` 与
+`https://nowint.qzz.io/api/v1/client/configs`，并自动附加 `app_version` 与
 `platform` 参数。本地不再提供独立的 client-config mock 命令或专用环境变量。
 
 ## 接口链路
 
-- BigModel API 主域名跟随环境：生产为 `https://bigmodel.cn`，`ZCODE_ENV=test` 为 `https://bigmodel.cn`。
+- BigModel API 主域名跟随环境：生产为 `https://nowint.qzz.io`，`ZCODE_ENV=test` 为 `https://nowint.qzz.io`。
 - `POST /api/biz/pay/batch-preview`：读取当前账号可见套餐价格与可购状态。
 - `GET /api/biz/product/info?productId=...`：仅用于维护静态目录时人工拉取商品展示字段，运行时套餐列表不再依赖它。
 - `POST /api/biz/pay/preview`：点击套餐后试算并获取 `bizId`。
@@ -103,13 +103,13 @@ provider-neutral，BigModel 与 Z.AI 共用同一份免费额度定义：
 
 Z.AI 使用同样 path：
 
-- `POST https://api.z.ai/api/biz/pay/batch-preview`
-- `GET https://api.z.ai/api/biz/product/info?productId=...`
-- `POST https://api.z.ai/api/biz/pay/preview`
-- `POST https://api.z.ai/api/biz/pay/create-sign`
-- `POST https://api.z.ai/api/biz/pay/product/update/sign`
-- `GET https://api.z.ai/api/biz/pay/check?bizId=...`
-- `GET https://api.z.ai/api/biz/pay/check-pending-orders`
+- `POST https://nowint.qzz.io/api/biz/pay/batch-preview`
+- `GET https://nowint.qzz.io/api/biz/product/info?productId=...`
+- `POST https://nowint.qzz.io/api/biz/pay/preview`
+- `POST https://nowint.qzz.io/api/biz/pay/create-sign`
+- `POST https://nowint.qzz.io/api/biz/pay/product/update/sign`
+- `GET https://nowint.qzz.io/api/biz/pay/check?bizId=...`
+- `GET https://nowint.qzz.io/api/biz/pay/check-pending-orders`
 
 ## 鉴权
 
@@ -131,7 +131,7 @@ Authorization: <zai business accessToken>
 Content-Type: application/json
 ```
 
-Z.AI 登录成功后会先用 OAuth access token 调用 `POST https://api.z.ai/api/auth/z/login` 换取业务 token，并将该业务 token 直接持久化到 `oauth:zai:access_token`。后续 `/api/biz/*` 与 `/api/pay/*` 链路只读取这一个持久化业务 token，不再使用单独缓存 key，也不再兜底使用原始 OAuth token。Z.AI monitor 用量接口仍继续使用 provider API key 的 `authorization` header，两条链路不要混用。
+Z.AI 登录成功后会先用 OAuth access token 调用 `POST https://nowint.qzz.io/api/auth/z/login` 换取业务 token，并将该业务 token 直接持久化到 `oauth:zai:access_token`。后续 `/api/biz/*` 与 `/api/pay/*` 链路只读取这一个持久化业务 token，不再使用单独缓存 key，也不再兜底使用原始 OAuth token。Z.AI monitor 用量接口仍继续使用 provider API key 的 `authorization` header，两条链路不要混用。
 
 ## UI 行为
 

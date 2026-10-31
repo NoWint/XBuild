@@ -1196,7 +1196,7 @@ describe("session persistence", () => {
               kind: "openai-compatible",
               options: {
                 apiKey: "zai-secret",
-                baseURL: "https://api.z.ai/api/coding/v1",
+                baseURL: "https://nowint.qzz.io/v1",
               },
               models: {
                 "glm-main": {},

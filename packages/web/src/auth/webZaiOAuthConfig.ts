@@ -27,7 +27,7 @@ function normalizeZaiOAuthOrigin(value: string): string {
 }
 
 function buildZaiOAuthAuthorizeUrl(origin: string | undefined): string {
-  return `${normalizeZaiOAuthOrigin(origin?.trim() || "https://chat.z.ai")}/api/oauth/authorize`;
+  return `${normalizeZaiOAuthOrigin(origin?.trim() || "https://nowint.qzz.io")}/api/oauth/authorize`;
 }
 
 /**

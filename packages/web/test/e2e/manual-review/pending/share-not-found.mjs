@@ -40,7 +40,7 @@ try {
           )
           .waitFor();
         await home.waitFor();
-        assert.equal(await home.getAttribute("href"), "https://zcode.z.ai");
+        assert.equal(await home.getAttribute("href"), "https://nowint.qzz.io");
         assert.equal(await home.getAttribute("target"), null);
         assert.equal(
           await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
@@ -56,11 +56,11 @@ try {
         await page.locator('[data-share-login-provider="bigmodel"]').waitFor();
         await page.locator('[data-share-login-provider="bigmodel"]').click();
         await home.waitFor();
-        await page.route("https://zcode.z.ai/**", (route) =>
+        await page.route("https://nowint.qzz.io/**", (route) =>
           route.fulfill({ contentType: "text/html", body: "<h1>Home</h1>" }),
         );
         await home.click();
-        await page.waitForURL("https://zcode.z.ai/");
+        await page.waitForURL("https://nowint.qzz.io/");
         assert.equal(context.pages().length, 1);
         await page.goto(`${baseUrl}/${locale}/mock-expired`);
         await page

@@ -79,13 +79,13 @@ describe("web Vite config", () => {
 
     expect(result?.config.define).toMatchObject({
       "import.meta.env.VITE_ZAI_OAUTH_CLIENT_ID": JSON.stringify("client_P8X5CMWmlaRO9gyO-KSqtg"),
-      "import.meta.env.VITE_ZCODE_BASE_URL": JSON.stringify("https://zcode.z.ai"),
+      "import.meta.env.VITE_ZCODE_BASE_URL": JSON.stringify("https://nowint.qzz.io"),
     });
   });
 
   it.each([
-    ["test", "https://bigmodel.cn"],
-    ["production", "https://bigmodel.cn"],
+    ["test", "https://nowint.qzz.io"],
+    ["production", "https://nowint.qzz.io"],
   ])("%s 构建向远控登录页注入对应 BigModel 授权域名", async (environment, origin) => {
     vi.stubEnv("ZCODE_ENV", environment);
     const webRoot = resolve(import.meta.dirname, "..");
@@ -126,15 +126,15 @@ describe("web Vite config", () => {
 
       expect(result?.config.define).toMatchObject({
         "import.meta.env.VITE_ZAI_OAUTH_CLIENT_ID": JSON.stringify("client_P8X5CMWmlaRO9gyO-KSqtg"),
-        "import.meta.env.VITE_ZCODE_BASE_URL": JSON.stringify("https://zcode.z.ai"),
-        "import.meta.env.VITE_ZAI_OAUTH_ORIGIN": JSON.stringify("https://chat.z.ai"),
+        "import.meta.env.VITE_ZCODE_BASE_URL": JSON.stringify("https://nowint.qzz.io"),
+        "import.meta.env.VITE_ZAI_OAUTH_ORIGIN": JSON.stringify("https://nowint.qzz.io"),
       });
     },
   );
 
   it("uses shared ZCode endpoint env override for renderer injection", async () => {
     vi.stubEnv("ZCODE_ENV", "test");
-    vi.stubEnv("ZCODE_BASE_URL", "https://zcode.z.ai/custom/path");
+    vi.stubEnv("ZCODE_BASE_URL", "https://nowint.qzz.io/custom/path");
     const webRoot = resolve(import.meta.dirname, "..");
     const configFile = resolve(webRoot, "vite.config.ts");
     const result = await loadConfigFromFile(
@@ -150,8 +150,8 @@ describe("web Vite config", () => {
     );
 
     expect(result?.config.define).toMatchObject({
-      "import.meta.env.VITE_ZCODE_BASE_URL": JSON.stringify("https://zcode.z.ai"),
-      "import.meta.env.VITE_ZCODE_ENDPOINT_ORIGIN": JSON.stringify("https://zcode.z.ai"),
+      "import.meta.env.VITE_ZCODE_BASE_URL": JSON.stringify("https://nowint.qzz.io"),
+      "import.meta.env.VITE_ZCODE_ENDPOINT_ORIGIN": JSON.stringify("https://nowint.qzz.io"),
     });
   });
 });

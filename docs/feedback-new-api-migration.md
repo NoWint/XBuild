@@ -5,15 +5,15 @@
 问题反馈服务从旧的独立反馈域名接口迁移到 ZCode Server 新接口：
 
 - 旧接口：`https://feedback.example.invalid/v1/tickets`
-- 生产新接口：`https://zcode.z.ai/api/v1/feedback/*`
-- 测试新接口：`https://zcode.z.ai/api/v1/feedback/*`
+- 生产新接口：`https://nowint.qzz.io/api/v1/feedback/*`
+- 测试新接口：`https://nowint.qzz.io/api/v1/feedback/*`
 
 UI 和 RPC 服务接口暂不扩展，`IFeedbackService` 继续向 UI 暴露现有的创建、列表、详情、评论和附件上传能力。迁移只收敛在 services 层的 HTTP 协议、鉴权、字段映射和匿名票据缓存。
 
 默认 feedback API base 必须跟随统一的 ZCode endpoint resolver：
 
-- `ZCODE_ENV=production` 或未显式设置时，默认 `https://zcode.z.ai/api/v1`。
-- `ZCODE_ENV=test` 时，默认 `https://zcode.z.ai/api/v1`。
+- `ZCODE_ENV=production` 或未显式设置时，默认 `https://nowint.qzz.io/api/v1`。
+- `ZCODE_ENV=test` 时，默认 `https://nowint.qzz.io/api/v1`。
 - `ZCODE_BASE_URL`、`ZCODE_TEST_BASE_URL`、`ZCODE_PRODUCTION_BASE_URL` 等统一 endpoint 覆盖继续生效。
 - `ZCODE_FEEDBACK_API_BASE` 或显式传入的 `apiBaseUrl` 只作为人工覆盖，优先级高于环境默认值。
 

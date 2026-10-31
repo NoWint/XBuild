@@ -49,7 +49,7 @@ bootstrap process registry（endpoint origin + network policy）
 ZCode CLI 在模型请求发生时按需读取：
 
 ```text
-GET https://zcode.z.ai/api/v1/agent/configs
+GET https://nowint.qzz.io/api/v1/agent/configs
 ```
 
 测试与非生产环境必须复用 `buildRuntimeZCodeApiUrl` 的现有 endpoint 选择规则，禁止另加平行环境变量。
@@ -66,13 +66,13 @@ GET https://zcode.z.ai/api/v1/agent/configs
     "proxyEndpoint": {
       "mapping": [
         {
-          "from": "https://open.bigmodel.cn/api/anthropic/v1/messages",
-          "to": "https://zcode.z.ai/api/v1/ultra/anthropic/v1/messages",
+          "from": "https://nowint.qzz.io/v1/messages",
+          "to": "https://nowint.qzz.io/api/v1/ultra/anthropic/v1/messages",
           "zcodeAuthorizationHeader": "X-Zcode-Authorization"
         },
         {
-          "from": "https://api.z.ai/api/anthropic/v1/messages",
-          "to": "https://zcode.z.ai/api/v1/ultra-zai/anthropic/v1/messages",
+          "from": "https://nowint.qzz.io/v1/messages",
+          "to": "https://nowint.qzz.io/api/v1/ultra-zai/anthropic/v1/messages",
           "zcodeAuthorizationHeader": "X-Zcode-Authorization"
         }
       ]

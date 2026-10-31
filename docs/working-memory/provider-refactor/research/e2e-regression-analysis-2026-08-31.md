@@ -229,7 +229,7 @@ modelProviderFamilyModes + modelProviderFamilySelectedKeys
 `triggerCodingPlanWebviewPurchaseComplete()` 先读取可见 Webview origin，再把这个 origin 当作本地 upgrade mock server 调用“标记购买完成”。当前实际 Webview URL 是正式 ZCode Endpoint：
 
 ```text
-https://zcode.z.ai/coding-plan...
+https://nowint.qzz.io/coding-plan...
 ```
 
 它不是本地 mock server，所以 CPUW-03 在触发 bridge 以前就失败。该 Case 同时还在购买后读取 Personal Provider 的 `enabled`，与 R3 相同。

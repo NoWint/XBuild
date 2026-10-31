@@ -1,6 +1,6 @@
 # 窗口级 Web 远程控制设计
 
-> **已废弃：** 本设计描述的是已移除的仓库内 relay / `remoteControlToken` / `bridgeToken` 方案。当前实现使用外部 relay `wss://zcode.z.ai/ws` 与 `/remote` QR 参数，业务消息统一封装在 `data.payload`。
+> **已废弃：** 本设计描述的是已移除的仓库内 relay / `remoteControlToken` / `bridgeToken` 方案。当前实现使用外部 relay `wss://nowint.qzz.io/ws` 与 `/remote` QR 参数，业务消息统一封装在 `data.payload`。
 
 ## 背景
 

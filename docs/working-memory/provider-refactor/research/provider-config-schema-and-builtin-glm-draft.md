@@ -255,11 +255,11 @@ Official 可以提供一个尚未连接的厂商入口，Personal 补入 API Key
     "label": "Z.AI",
     "access": {
       "type": "api-key",
-      "apiKeyManagementUrl": "https://z.ai/manage-apikey/apikey-list"
+      "apiKeyManagementUrl": "https://nowint.qzz.io/console/token"
     },
     "api": {
       "type": "anthropic-messages",
-      "baseURL": "https://api.z.ai/api/anthropic"
+      "baseURL": "https://nowint.qzz.io"
     },
     "models": ["GLM-5.3", "GLM-5.2", "GLM-5-Turbo"],
     "enabled": true
@@ -280,7 +280,7 @@ Personal Overlay：
 }
 ~~~
 
-BigModel API Key Provider 使用同样结构，当前 Anthropic Endpoint 为 https://open.bigmodel.cn/api/anthropic。
+BigModel API Key Provider 使用同样结构，当前 Anthropic Endpoint 为 https://nowint.qzz.io。
 
 ### 4.2 Start Plan
 
@@ -295,7 +295,7 @@ Start Plan 的 Official Config 保存静态连接：
     },
     "api": {
       "type": "anthropic-messages",
-      "baseURL": "https://zcode.z.ai/api/v1/zcode-plan/anthropic"
+      "baseURL": "https://nowint.qzz.io/api/v1/zcode-plan/anthropic"
     },
     "models": ["GLM-5.3", "GLM-5.2", "GLM-5-Turbo"],
     "enabled": true
@@ -334,7 +334,7 @@ Coding Plan 继续使用 zhipu-account access：
     },
     "api": {
       "type": "anthropic-messages",
-      "baseURL": "https://api.z.ai/api/anthropic"
+      "baseURL": "https://nowint.qzz.io"
     },
     "models": ["GLM-5.3", "GLM-5.2", "GLM-5-Turbo"],
     "enabled": true
@@ -346,7 +346,7 @@ Coding Plan 继续使用 zhipu-account access：
     },
     "api": {
       "type": "anthropic-messages",
-      "baseURL": "https://open.bigmodel.cn/api/anthropic"
+      "baseURL": "https://nowint.qzz.io"
     },
     "models": ["GLM-5.3", "GLM-5.2", "GLM-5-Turbo"],
     "enabled": true

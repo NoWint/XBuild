@@ -134,13 +134,13 @@ test("renders local assistant messages into the transcript", () => {
 
   state.apply(
     sessionEvent(SessionEventType.AssistantMessage, {
-      content: "Open this URL:\nhttps://chat.z.ai/oauth/authorize",
+      content: "Open this URL:\nhttps://nowint.qzz.io/oauth/authorize",
     }),
   );
 
   assert.deepEqual(state.messages, [
     {
-      content: "Open this URL:\nhttps://chat.z.ai/oauth/authorize",
+      content: "Open this URL:\nhttps://nowint.qzz.io/oauth/authorize",
       role: "agent",
     },
   ]);

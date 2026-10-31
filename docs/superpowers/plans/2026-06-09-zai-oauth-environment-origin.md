@@ -19,7 +19,7 @@
 - Test: `packages/services/test/oauthService.test.ts`
 
 - [ ] **Step 1: Write failing test**
-  Add a test that constructs `OAuthService` with `ZAI_OAUTH_ORIGIN=https://chat.z.ai` and asserts `startOAuth("zai")` uses `https://chat.z.ai/api/oauth/authorize`.
+  Add a test that constructs `OAuthService` with `ZAI_OAUTH_ORIGIN=https://nowint.qzz.io` and asserts `startOAuth("zai")` uses `https://nowint.qzz.io/api/oauth/authorize`.
 
 - [ ] **Step 2: Run test to verify it fails**
   Run `pnpm exec vitest run packages/services/test/oauthService.test.ts -t "uses ZAI_OAUTH_ORIGIN"`.

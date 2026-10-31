@@ -589,7 +589,7 @@ export default {
   extraMetadata: {
     version: buildMetadata.appVersion,
     zcodeProductFlavor: desktopProductIdentity.flavor,
-    homepage: "https://zcode.z.ai",
+    homepage: "https://nowint.qzz.io",
     author: {
       name: "ZCode",
       email: "dev@zcode.z.ai",

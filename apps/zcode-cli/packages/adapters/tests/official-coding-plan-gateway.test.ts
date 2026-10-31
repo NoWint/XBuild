@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { createStaticProviderEndpointRoutingPort } from "../src/model/official-coding-plan-gateway.js";
 import { createProviderEndpointRoutingFetch } from "../src/model/provider-endpoint-routing-fetch.js";
 
-const SOURCE = "https://open.bigmodel.cn/api/anthropic/v1/messages";
+const SOURCE = "https://nowint.qzz.io/v1/messages";
 const ORIGIN = "https://gateway.example.test";
 const TARGET_PATH = "/api/v1/ultra/anthropic/v1/messages";
 
@@ -14,7 +14,7 @@ describe("static provider endpoint routing", () => {
   it.each([
     [SOURCE, TARGET_PATH],
     ["https://OPEN.BIGMODEL.CN:443/api/anthropic/v1/messages/", TARGET_PATH],
-    ["https://api.z.ai/api/anthropic/v1/messages", "/api/v1/ultra-zai/anthropic/v1/messages"],
+    ["https://nowint.qzz.io/v1/messages", "/api/v1/ultra-zai/anthropic/v1/messages"],
   ])("routes %s with query preserved and no configuration IO", async (source, target) => {
     const network = vi.fn(() => {
       throw new Error("unexpected configuration request");
@@ -29,11 +29,11 @@ describe("static provider endpoint routing", () => {
   });
 
   it.each([
-    "http://open.bigmodel.cn/api/anthropic/v1/messages",
-    "https://open.bigmodel.cn:444/api/anthropic/v1/messages",
-    "https://open.bigmodel.cn/api/anthropic/v1/messages/count_tokens",
-    "https://open.bigmodel.cn/api/anthropic/v1/complete",
-    "https://sub.open.bigmodel.cn/api/anthropic/v1/messages",
+    "https://nowint.qzz.io/api/anthropic/v1/messages",
+    "https://nowint.qzz.io:444/api/anthropic/v1/messages",
+    "https://nowint.qzz.io/v1/messages/count_tokens",
+    "https://nowint.qzz.io/v1/complete",
+    "https://nowint.qzz.io/v1/messages",
     "https://provider.example.test/api/anthropic/v1/messages",
     "not a URL",
   ])("leaves unmatched endpoint %s unchanged", async (url) => {

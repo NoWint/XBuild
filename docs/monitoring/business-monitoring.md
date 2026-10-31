@@ -192,7 +192,7 @@ Agent 单步执行事件。它的颗粒度比 `message_completion` 更细：一�
 
 需求定稿前仅作定位参考，以代码为准：
 
-- 业务埋点上报：`packages/services/src/telemetry/telemetryCore.ts`（`https://zcode.z.ai/api/v1/event/report`）
+- 业务埋点上报：`packages/services/src/telemetry/telemetryCore.ts`（`https://nowint.qzz.io/api/v1/event/report`）
 - UI 侧封装：`packages/ui/src/lib/appTelemetry.ts`、`packages/ui/src/lib/messageTelemetry.ts`
 - Agent 用量落盘：`apps/zcode-cli/docs/design/v2/usage-observability.md`（CLI 设计 spec，非本目录文档）
 - App Usage 聚合：`docs/superpowers/specs/2026-06-02-app-usage-db-migration-design.md`（功能 spec，非本目录文档）

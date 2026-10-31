@@ -169,7 +169,7 @@ AI SDK 文档入口：
       "kind": "openai-compatible",
       "name": "Z.AI",
       "options": {
-        "baseURL": "https://api.z.ai/api/coding/v1",
+        "baseURL": "https://nowint.qzz.io/v1",
         "apiKey": "sk-..."
       },
       "models": {

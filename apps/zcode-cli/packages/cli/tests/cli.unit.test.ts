@@ -985,7 +985,7 @@ test("zcode login runs OAuth flow and prints the authorization URL", async () =>
     loginZCodeCli: async (options) => {
       sawNoBrowser = options?.noBrowser === true;
       await options?.onAuthorizeUrl?.({
-        authorize_url: "https://chat.z.ai/oauth/authorize?state=state",
+        authorize_url: "https://nowint.qzz.io/oauth/authorize?state=state",
         expires_at: 1735000000,
         flow_id: "flow-1",
         poll_interval_sec: 2,
@@ -1080,7 +1080,7 @@ test("command center handles login and logout locally", async () => {
       loginCalled = true;
       loginAbortSignal = options?.abortSignal;
       await options?.onAuthorizeUrl?.({
-        authorize_url: "https://chat.z.ai/oauth/authorize?state=state",
+        authorize_url: "https://nowint.qzz.io/oauth/authorize?state=state",
         expires_at: 1735000000,
         flow_id: "flow-1",
         poll_interval_sec: 2,

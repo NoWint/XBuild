@@ -10,7 +10,7 @@
 
 ## 2. 线上实测
 
-请求 `https://zcode.z.ai/api/v1/client/configs?app_version=3.12.0&platform=linux-x86_64`，HTTP 200、业务 code 0：
+请求 `https://nowint.qzz.io/api/v1/client/configs?app_version=3.12.0&platform=linux-x86_64`，HTTP 200、业务 code 0：
 
 ```json
 {

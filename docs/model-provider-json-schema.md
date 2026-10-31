@@ -321,7 +321,7 @@ interface FieldUnsetPatch {
       "id": "zai",
       "name": "Z.AI",
       "endpoints": {
-        "baseURL": "https://api.z.ai",
+        "baseURL": "https://nowint.qzz.io",
         "paths": {
           "anthropic": "/api/anthropic/v1/messages",
           "openai-compatible": "/api/coding/v1/chat/completions"

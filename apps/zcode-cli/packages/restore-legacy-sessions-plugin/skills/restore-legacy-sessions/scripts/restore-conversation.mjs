@@ -25,8 +25,8 @@ const { DatabaseSync } = await import("node:sqlite");
 process.emitWarning = originalEmitWarning;
 
 const ZCODE_PROVIDER = "glm";
-const defaultTaskIndexPath = join(homedir(), ".zcode", "v2", "tasks-index.sqlite");
-const defaultCliDbPath = join(homedir(), ".zcode", "cli", "db", "db.sqlite");
+const defaultTaskIndexPath = join(homedir(), ".xbuild", "v2", "tasks-index.sqlite");
+const defaultCliDbPath = join(homedir(), ".xbuild", "cli", "db", "db.sqlite");
 
 function parseArgs(argv) {
   const args = {

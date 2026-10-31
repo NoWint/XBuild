@@ -6,7 +6,7 @@ Z.AI 与 BigModel Desktop 登录不再把 `zcode://oauth/callback` 作为唯一�
 后端已有的短期 OAuth flow，在浏览器完成授权后轮询 flow 状态；deep link 仍保留为兼容路径。
 轮询接口的 `provider` 使用 `zai` 或 `bigmodel`，两者共享 flow 生命周期，但 `ready` 凭据字段按 provider 区分。
 BigModel 创建 flow 后，App 把授权地址中的回调改为官网旧中转页
-`https://zcode.z.ai/app/oauth/login`（测试环境使用对应测试站点），中转页继续把 `authCode/state`
+`https://nowint.qzz.io/app/oauth/login`（测试环境使用对应测试站点），中转页继续把 `authCode/state`
 透传到 `zcode://oauth/callback`；Host 中的 polling flow 同时保留。
 
 ## 时序

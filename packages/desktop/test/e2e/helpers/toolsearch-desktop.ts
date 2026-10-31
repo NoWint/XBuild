@@ -40,7 +40,7 @@ export async function setupToolSearchDesktop() {
         label: "ToolSearch Plain Anthropic",
         apiFormat: "anthropic-messages",
         apiKey: "e2e-toolsearch.test-secret",
-        baseURL: "https://open.bigmodel.cn/api/anthropic",
+        baseURL: "https://nowint.qzz.io",
         models: [{ id: TOOLSEARCH_MODEL }],
       });
     },

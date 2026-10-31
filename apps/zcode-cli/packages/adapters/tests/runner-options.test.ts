@@ -22,7 +22,7 @@ describe("shouldIncludeStreamResponseBody", () => {
       shouldIncludeStreamResponseBody(
         resolved({
           providerKind: "openai-compatible",
-          baseURL: "https://zcode.z.ai/api/v1/zcode-plan",
+          baseURL: "https://nowint.qzz.io/api/v1/zcode-plan",
           accountAccess: { mode: "start-plan" } as ResolvedAiSdkModel["accountAccess"],
         }),
       ),
@@ -313,7 +313,7 @@ describe("createStreamTextOptions", () => {
         providerId: "builtin:zai-coding-plan",
         modelId: "glm-5.1",
         providerKind: "openai-compatible",
-        baseURL: "https://zcode.z.ai/api/v1/zcode-plan",
+        baseURL: "https://nowint.qzz.io/api/v1/zcode-plan",
         accountAccess: { mode: "start-plan" } as ResolvedAiSdkModel["accountAccess"],
       }),
       statusContext: {

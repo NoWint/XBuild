@@ -1,8 +1,8 @@
 # Mobile Remote Access 最小跑通规划（历史方案）
 
 > **已废弃：** 本文描述的是已经移除的仓库内 relay 和远控专用 Host 方案，仅作为历史记录保留。
-> 当前实现按 endpoint 选择外部 relay：production 为 `wss://zcode.z.ai/ws`，标准 test 为
-> `wss://zcode.z.ai/ws`。默认二维码入口按 App 版本选择 `/remote/v3` 或 `/remote/v4`；
+> 当前实现按 endpoint 选择外部 relay：production 为 `wss://nowint.qzz.io/ws`，标准 test 为
+> `wss://nowint.qzz.io/ws`。默认二维码入口按 App 版本选择 `/remote/v3` 或 `/remote/v4`；
 > `3.4.0` 稳定版门槛及预发布版本规则见现行架构文档，显式 URL 覆盖优先。
 > 手机通过 shared-host attachment 连接目标桌面窗口唯一 Window Host 中的 local/remote workspace scope；
 > 不启动手机专用 Host/Agent。当前事实以 [Web Remote Control Architecture](./web-remote-control-architecture.md) 为准。

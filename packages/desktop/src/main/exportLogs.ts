@@ -33,7 +33,7 @@ function getZCodeDataDir() {
 }
 
 function getZCodeCliDir() {
-  return join(homedir(), ".zcode", "cli");
+  return join(homedir(), ".xbuild", "cli");
 }
 
 function getZCodeCliLogDir() {
@@ -46,7 +46,7 @@ function getZCodeCliLogDir() {
  * helperExitLogPathFor）。同目录下还有 `.tokens` broker 凭据，收集时必须按文件名白名单。
  */
 function getCuaHelperRunDir() {
-  return join(homedir(), ".zcode", "computer-use", "run");
+  return join(homedir(), ".xbuild", "computer-use", "run");
 }
 
 function isCuaHelperDiagnosticFileName(fileName: string): boolean {
@@ -1147,7 +1147,7 @@ export async function createFeedbackLogArchiveFromExportLogs(
       { directory: getZCodeCliLogDir(), archivePrefix: ".zcode/cli/log" },
       {
         directory: getZCodeCliDir(),
-        archivePrefix: ".zcode/cli",
+        archivePrefix: ".xbuild/cli",
         includeFileNames: ["config.json"],
         onlyCurrentDay: false,
         contentPolicy: "cli-config",

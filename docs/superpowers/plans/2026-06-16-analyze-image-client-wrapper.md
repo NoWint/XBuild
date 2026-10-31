@@ -81,9 +81,9 @@ describe("analyze-image contracts", () => {
   });
 
   it.each([
-    "https://open.bigmodel.cn/api/anthropic/v1",
-    "https://zcode.z.ai/api/v1/zcode-plan/anthropic",
-    "https://api.z.ai/anthropic",
+    "https://nowint.qzz.io/v1",
+    "https://nowint.qzz.io/api/v1/zcode-plan/anthropic",
+    "https://nowint.qzz.io/anthropic",
   ])("allows AnalyzeImage-capable host %s", (baseURL) => {
     expect(isAnalyzeImageCapableBaseURL(baseURL)).toBe(true);
   });
@@ -393,7 +393,7 @@ describe("AnalyzeImage client wrapper", () => {
           },
           resolveConnection() {
             return {
-              baseURL: "https://open.bigmodel.cn/api/anthropic/v1",
+              baseURL: "https://nowint.qzz.io/v1",
               model: modelRef,
               providerId: "builtin:bigmodel",
               providerKind: "anthropic",
@@ -443,7 +443,7 @@ Add to `apps/zcode-cli/packages/core/tests/analyze-image.test.ts`:
 ```ts
 it("exposes AnalyzeImage only for supported Anthropic-compatible hosts", () => {
   const supported = createRuntime("analyze-image-supported", {
-    baseURL: "https://open.bigmodel.cn/api/anthropic/v1",
+    baseURL: "https://nowint.qzz.io/v1",
     providerKind: "anthropic",
   });
   expect(supported.getTools().some((tool) => tool.name === "AnalyzeImage")).toBe(true);
@@ -971,7 +971,7 @@ it("keeps the public AnalyzeImage model-facing tool as AnalyzeImage", () => {
 
 it("maps internal AnalyzeImage to an analyze_image sentinel function tool", () => {
   const tools = toAiSdkTools([createInternalProviderNativeAnalyzeImageContract()], {
-    baseURL: "https://open.bigmodel.cn/api/anthropic/v1",
+    baseURL: "https://nowint.qzz.io/v1",
     providerKind: "anthropic",
   });
 
