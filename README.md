@@ -17,6 +17,18 @@
 
 ---
 
+## 界面预览
+
+<p align="center">
+  <img src="docs/screenshots/xbuild-home.jpg" alt="XBuild 首页：项目任务列表与输入框" width="880" />
+</p>
+<p align="center"><sub>首页：项目 / 任务列表、全透明毛玻璃侧栏与 Agent 输入框</sub></p>
+
+<p align="center">
+  <img src="docs/screenshots/xbuild-task.jpg" alt="XBuild 任务页：对话、改动统计与代码审阅" width="880" />
+</p>
+<p align="center"><sub>任务页：Agent 对话、Changes 统计与右侧代码审阅</sub></p>
+
 ## XBuild 是什么
 
 XBuild 是 [ZCode](https://github.com/zai-org/ZCode) 的深度定制版本，保留其桌面应用、
