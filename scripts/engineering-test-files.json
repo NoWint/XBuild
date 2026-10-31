@@ -155,5 +155,6 @@
   "packages/zcode-server-cli/test/packaging.test.ts",
   "packages/zcode-server-cli/test/stageRemoteAssetsCli.test.ts",
   "packages/zcode-server-cli/test/tsupConfig.test.ts",
-  "packages/zcode-server-cli/test/verifyRemoteSshTarget.test.ts"
+  "packages/zcode-server-cli/test/verifyRemoteSshTarget.test.ts",
+  "packages/services/src/customization/customizationService.test.ts"
 ]

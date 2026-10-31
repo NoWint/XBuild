@@ -295,6 +295,14 @@ export { createPluginManagementService } from "./plugins/pluginManagementService
 export { createSubagentsService } from "./subagents/subagentsService.js";
 export { createCommandsService } from "./commands/commandsService.js";
 export { createHooksService } from "./hooks/hooksService.js";
+// 自定义内核 overrides 读写（node-only：依赖 fs 与原子写，见 spec §4/§9）。
+export {
+  defaultOverrides,
+  loadUserOverrides,
+  loadWorkspaceOverrides,
+  saveOverrides,
+  type OverridesLoadResult,
+} from "./customization/customizationService.js";
 export { createMemoryService } from "./memory/memoryService.js";
 export { createOutputStyleService } from "./output-style/outputStyleService.js";
 export { createSettingsSyncService } from "./settings-sync/settingsSyncService.js";
