@@ -3,7 +3,13 @@ import { randomUUID } from "node:crypto";
 import { release as readPlatformRelease } from "node:os";
 import { app, BrowserWindow, Menu, MessageChannelMain, nativeImage } from "electron";
 import type { UtilityProcess as ElectronUtilityProcess } from "electron";
-import { HostMessageTypes, InternalChannels, PlatformChannels, type Locale } from "@zcode/shared";
+import {
+  HostMessageTypes,
+  InternalChannels,
+  PlatformChannels,
+  type DesktopWindowMaterial,
+  type Locale,
+} from "@zcode/shared";
 import { scheduleArmsBrowserPerfLoadNudge } from "./armsBrowserPerfLoadNudge.js";
 import { createBrowserWindow } from "./desktopWindowChrome.js";
 import type { HostInitMessage, WindowBootstrapOptions } from "./desktopHostProcess.js";
@@ -59,6 +65,8 @@ export function createWindow(options: {
   remoteAssets?: RemoteAssetDirs;
   initialDesktopZoomLevel?: number;
   initialWindowSize?: DesktopWindowSize;
+  /** Windows 背景材质（acrylic/blur）；创建首帧即应用，macOS/Linux 忽略。 */
+  initialWindowMaterial?: DesktopWindowMaterial;
   currentApplicationLocale?: () => Locale;
   persistWindowSize?: (state: DesktopWindowSize) => Promise<void>;
   /** Main 模块初始化期已开始的异步环境采集；通常在 renderer dom-ready 前完成。 */
@@ -93,6 +101,7 @@ export function createWindow(options: {
     deviceMid: options.deviceMid,
     initialDesktopZoomLevel: options.initialDesktopZoomLevel,
     initialWindowSize: options.initialWindowSize,
+    initialWindowMaterial: options.initialWindowMaterial,
     currentApplicationLocale: options.currentApplicationLocale,
     resolveBrowserViewOwner: options.resolveBrowserViewOwner,
   });

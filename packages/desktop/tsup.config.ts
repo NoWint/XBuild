@@ -224,6 +224,9 @@ function createMainDefines() {
 const desktopNodeRuntimeExternals = [
   "electron",
   "node-pty",
+  // koffi 的 .node 按平台分发，不能内联进 main bundle；桌面窗口背景材质
+  // （desktopWindowMaterial.ts）在 Windows 上动态 import 它。
+  "koffi",
   "ssh2",
   "undici",
   "@larksuiteoapi/node-sdk",

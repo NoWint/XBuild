@@ -53,6 +53,8 @@ const desktopWindowSizeSchema = z.object({
   height: z.number().int().min(640),
   maximized: z.boolean(),
 });
+/** Windows 窗口背景材质；未知取值按默认 acrylic 处理，避免旧版本写入的值把整份设置读坏。 */
+const desktopWindowMaterialSchema = z.enum(["acrylic", "blur"]).optional().catch(undefined);
 export const integratedTerminalShellSelectionSchema = z.discriminatedUnion("mode", [
   z.object({
     mode: z.literal("auto"),
@@ -532,6 +534,8 @@ const appSettingsObjectSchema = z.object({
   desktopZoomLevel: desktopZoomLevelSchema.optional(),
   desktopWindowSize: desktopWindowSizeSchema.optional(),
   desktopChromiumHardwareAccelerationEnabled: z.boolean().default(true),
+  // 默认亚克力；显式保留可选语义，旧设置文件里没有该键时由使用方按 acrylic 处理。
+  desktopWindowMaterial: desktopWindowMaterialSchema,
   messageStreamShowReasoning: z.boolean().default(true),
   messageStreamShowReasoningMigrationInitialized: z.boolean().default(true),
   messageStreamShowTodos: z.boolean().default(false),
@@ -628,6 +632,7 @@ export const appSettingsPatchSchema = z.object({
   desktopZoomLevel: desktopZoomLevelSchema.optional(),
   desktopWindowSize: desktopWindowSizeSchema.optional(),
   desktopChromiumHardwareAccelerationEnabled: z.boolean().optional(),
+  desktopWindowMaterial: z.enum(["acrylic", "blur"]).optional(),
   messageStreamShowReasoning: z.boolean().optional(),
   messageStreamShowReasoningMigrationInitialized: z.boolean().optional(),
   messageStreamShowTodos: z.boolean().optional(),

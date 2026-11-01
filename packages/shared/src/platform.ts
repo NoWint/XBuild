@@ -395,6 +395,14 @@ export interface ZCodeStdioTapDevState {
 
 export type DesktopTitleBarTheme = "light" | "dark" | "system";
 
+/**
+ * Windows 桌面窗口背景材质（SetWindowCompositionAttribute accent policy）。
+ * - acrylic：ACCENT_ENABLE_ACRYLICBLURBEHIND，亚克力，默认值
+ * - blur：ACCENT_ENABLE_BLURBEHIND，模糊
+ * macOS 使用原生 vibrancy，不受该设置影响；Web/Linux 忽略。
+ */
+export type DesktopWindowMaterial = "acrylic" | "blur";
+
 export interface WindowScreenshotResult {
   dataBase64: string;
   filename: string;

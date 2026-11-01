@@ -64,6 +64,11 @@ export function createDesktopNativePackagePrunePatterns(targetPlatformKey) {
     ...SHARP_VARIANT_PACKAGES.filter(
       (name) => !SHARP_VARIANTS_BY_PLATFORM[targetPlatformKey].includes(name),
     ).map((name) => `!node_modules/@img/${name}/**`),
+    // koffi（Windows 窗口背景材质）随包携带全平台 prebuild；只保留目标平台。
+    // 其余平台的 koffi.node 既无用，又会被 Windows 签名链路当成待签名 PE 处理。
+    ...SUPPORTED_DESKTOP_PLATFORM_KEYS.filter((key) => key !== targetPlatformKey).map(
+      (key) => `!node_modules/koffi/build/koffi/${key.replace("-", "_")}/**`,
+    ),
   ];
 }
 

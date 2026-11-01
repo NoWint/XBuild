@@ -7,6 +7,7 @@ import type { WorkspacePurpose } from "./workspacePurpose.js";
 import type { DynamicWorkflowMode } from "./dynamic-workflow-feature.js";
 import type { EmbeddedBrowserViewportPreference } from "./browser-use/command-metadata.js";
 import type { AppToolSearchMode } from "./app-runtime-preferences.js";
+import type { DesktopWindowMaterial } from "./platform.js";
 
 // ── Domain types ──
 
@@ -320,6 +321,11 @@ export interface AppSettings {
   };
   /** 桌面端 Chromium 硬件加速开关；只在下次启动 main 进程早期生效，Web/手机端忽略。 */
   desktopChromiumHardwareAccelerationEnabled?: boolean;
+  /**
+   * Windows 桌面窗口背景材质：acrylic（亚克力，默认）/ blur（模糊）。
+   * 由 main 进程通过 SetWindowCompositionAttribute 应用；macOS 走原生 vibrancy，Web/Linux 忽略。
+   */
+  desktopWindowMaterial?: DesktopWindowMaterial;
   /** 是否在消息流中展示模型思考过程 */
   messageStreamShowReasoning?: boolean;
   // TODO(settings-schema-version): 能证明所有受支持升级路径都已执行本次迁移后，改用统一 settings schema version，并一起删除此 marker、迁移函数和持久化判断。

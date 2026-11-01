@@ -1249,6 +1249,10 @@ exceptions:
     rule: unmanaged-new-file
     paths: [packages/desktop/src/host/remoteWorkspacePreparation.ts]
     reason: 已准入的远程项目目录 admission 只增加 30 秒截止时间和可重试的无响应错误码（3.16.2 远端回归 R8，docs/remote/project-first-remote-navigation-spec.md §2.4）；owner、调用方与模块边界不变，接管 desktop host 目录不在本次修复范围内。
+  - id: desktop-window-material-accent-new-file
+    rule: unmanaged-new-file
+    paths: [packages/desktop/src/main/desktopWindowMaterial.ts]
+    reason: Windows 窗口背景材质桥接（koffi → user32!SetWindowCompositionAttribute，亚克力/模糊两档）只是主窗口 chrome 的材质应用层，Electron 的 backgroundMaterial 不覆盖 Windows 10 且没有 blur-behind 档位；owner、调用方与模块边界不变，接管整个 desktop 包不在本次范围内。
   - id: gen-ui-existing-capability-check
     rule: unmanaged-new-file
     paths: [packages/services/src/zcode-agent/independentPlanSupport.ts]

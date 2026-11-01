@@ -25,7 +25,11 @@ export const DesktopWindowFrame = memo(function DesktopWindowFrameComponent({
   showHeader?: boolean;
 }) {
   const isLinuxDesktop = isDesktop && !isMacDesktop && !isWindowsDesktop;
-  const usesOpaqueRootSurface = !isDesktop || isWindowsDesktop || isLinuxDesktop;
+  // macOS 用原生 vibrancy，Windows 用 SetWindowCompositionAttribute 的 acrylic/blur
+  //（见 desktop 主进程 desktopWindowMaterial.ts），两边都有系统级模糊底层，
+  // 根面必须保持半透明让材质透出来；Web/Linux 没有底层材质，
+  // 继续走不透明底色，避免和浏览器或系统窗口底色混出异常灰块。
+  const usesOpaqueRootSurface = !isDesktop || isLinuxDesktop;
 
   return (
     <div
@@ -38,7 +42,7 @@ export const DesktopWindowFrame = memo(function DesktopWindowFrameComponent({
         // 可能短暂丢失 overflow 圆角，额外使用同半径 clip-path 固定合成裁切；最大化时两者一起归零。
         isLinuxDesktop &&
           "rounded-[16px] [clip-path:inset(0_round_16px)] platform-linux-window-maximized:rounded-none platform-linux-window-maximized:[clip-path:inset(0)]",
-        // Web/Windows/Linux 都没有 macOS vibrancy 作为透明底层兜底，
+        // Web/Linux 没有 macOS vibrancy 或 Windows acrylic 作为透明底层兜底，
         // 如果继续走半透明 alt 背景，会和浏览器或系统窗口底色混出异常灰块。
         usesOpaqueRootSurface ? "bg-background-win-alt" : "bg-background-alt",
       )}

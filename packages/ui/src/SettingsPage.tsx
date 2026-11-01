@@ -114,7 +114,7 @@ import { ControlHintTooltip } from "@/ControlHintTooltip.js";
 import { cn } from "@/components/lib/utils.js";
 import { useSelectDirectory } from "@/hooks/usePlatform.js";
 import { ServiceProvider, useServices } from "@/hooks/useServices.js";
-import type { AppToolSearchMode } from "@zcode/shared";
+import type { AppToolSearchMode, DesktopWindowMaterial } from "@zcode/shared";
 import { useSettings } from "@/hooks/useSettingService.js";
 import type { CreateTaskRequest, RemoteConnectionOpenPreference } from "@/app-shell/types.js";
 import { useBaseWorkspaceServices } from "@/hooks/useWorkspaceServices.js";
@@ -812,6 +812,8 @@ export function SettingsPage({
     desktopChromiumHardwareAccelerationEnabled,
     setDesktopChromiumHardwareAccelerationEnabled,
   ] = useState(true);
+  const [desktopWindowMaterial, setDesktopWindowMaterial] =
+    useState<DesktopWindowMaterial>("acrylic");
   const [receivePreviewUpdates, setReceivePreviewUpdates] = useState(false);
   const [autoDownloadAndInstallUpdates, setAutoDownloadAndInstallUpdates] = useState(false);
   const [messageStreamShowReasoning, setMessageStreamShowReasoning] = useState(true);
@@ -900,6 +902,9 @@ export function SettingsPage({
         setCloseToTrayOnWindows(settings.closeToTrayOnWindows ?? Boolean(isWindowsDesktop));
         setDesktopChromiumHardwareAccelerationEnabled(
           settings.desktopChromiumHardwareAccelerationEnabled ?? true,
+        );
+        setDesktopWindowMaterial(
+          settings.desktopWindowMaterial === "blur" ? "blur" : "acrylic",
         );
       })
       .catch(() => {});
@@ -1232,6 +1237,25 @@ export function SettingsPage({
       });
     },
     [updateSharedSettings],
+  );
+  const handleDesktopWindowMaterialChange = useCallback(
+    async (material: DesktopWindowMaterial) => {
+      await runSettingsActionAsync({
+        featureId: "settings.desktop",
+        action: "change_window_material",
+        trigger: "select",
+        operation: () =>
+          localHostServices.settingService.update({ desktopWindowMaterial: material }),
+        completed: {
+          resultSource: "setting_service",
+          valueAfter: material,
+        },
+      });
+      // main 进程用这条通道原地重放 accent policy（亚克力/模糊即时切换，无需重启）。
+      platform.syncAppSettings?.({ desktopWindowMaterial: material });
+      setDesktopWindowMaterial(material);
+    },
+    [localHostServices.settingService, platform],
   );
   const handleDesktopChromiumHardwareAccelerationChange = useCallback(
     async (enabled: boolean) => {
@@ -1813,6 +1837,7 @@ export function SettingsPage({
                               desktopChromiumHardwareAccelerationEnabled={
                                 desktopChromiumHardwareAccelerationEnabled
                               }
+                              desktopWindowMaterial={desktopWindowMaterial}
                               receivePreviewUpdates={receivePreviewUpdates}
                               autoDownloadAndInstallUpdates={autoDownloadAndInstallUpdates}
                               dataBaseDir={dataBaseDir}
@@ -1890,6 +1915,7 @@ export function SettingsPage({
                               onDesktopChromiumHardwareAccelerationChange={
                                 handleDesktopChromiumHardwareAccelerationChange
                               }
+                              onDesktopWindowMaterialChange={handleDesktopWindowMaterialChange}
                               onReceivePreviewUpdatesChange={handleReceivePreviewUpdatesChange}
                               onAutoDownloadAndInstallUpdatesChange={
                                 handleAutoDownloadAndInstallUpdatesChange

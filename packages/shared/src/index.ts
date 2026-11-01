@@ -227,6 +227,7 @@ export type {
   CuaOsSupport,
   DesktopWindowChromeState,
   DesktopTitleBarTheme,
+  DesktopWindowMaterial,
   DockerContainerInfo,
   EditorInfo,
   ApplicationIconInfo,

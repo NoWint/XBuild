@@ -3490,6 +3490,11 @@ const enUS: Record<string, string> = {
     "Your desktop environment has no system tray, so close-to-tray cannot be enabled.",
   "settings.closeToTrayGnomeHint":
     "On GNOME, install an AppIndicator extension and restart the app to enable this.",
+  "settings.desktopWindowMaterial": "Window background material",
+  "settings.desktopWindowMaterialDescription":
+    "Global blurred background for the Windows window. Acrylic is more translucent with a subtle noise texture; Blur is smoother with steadier performance. Changes apply instantly.",
+  "settings.desktopWindowMaterialAcrylic": "Acrylic",
+  "settings.desktopWindowMaterialBlur": "Blur",
   "settings.keepAwakeWhileRunning": "Keep computer running",
   "settings.keepAwakeWhileRunningDescription":
     "Prevent the system from sleeping due to idle. You can still sleep manually or by closing the lid. Desktop only.",

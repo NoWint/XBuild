@@ -1,6 +1,7 @@
 /* oxlint-disable eslint(max-lines) -- settings helper 聚合多个设置分组；终端、网络与自动归档多侧能力暂时超过行数限制。 */
 import type {
   AppToolSearchMode,
+  DesktopWindowMaterial,
   IntegratedTerminalShellOption,
   IntegratedTerminalShellSelection,
   LocalePreference,
@@ -136,6 +137,7 @@ export function GeneralSectionContent({
   closeToTrayOnWindows,
   keepAwakeWhileRunning = false,
   desktopChromiumHardwareAccelerationEnabled = true,
+  desktopWindowMaterial = "acrylic",
   receivePreviewUpdates,
   autoDownloadAndInstallUpdates,
   dataBaseDir,
@@ -178,6 +180,7 @@ export function GeneralSectionContent({
   onCloseToTrayOnWindowsChange,
   onKeepAwakeWhileRunningChange = async () => {},
   onDesktopChromiumHardwareAccelerationChange = async () => {},
+  onDesktopWindowMaterialChange = async () => {},
   onReceivePreviewUpdatesChange,
   onAutoDownloadAndInstallUpdatesChange,
   onMessageStreamShowReasoningChange,
@@ -198,6 +201,8 @@ export function GeneralSectionContent({
   closeToTrayOnWindows: boolean;
   keepAwakeWhileRunning?: boolean;
   desktopChromiumHardwareAccelerationEnabled?: boolean;
+  /** Windows 窗口背景材质；仅 isWindowsDesktop 时渲染设置项。 */
+  desktopWindowMaterial?: DesktopWindowMaterial;
   receivePreviewUpdates: boolean;
   autoDownloadAndInstallUpdates: boolean;
   dataBaseDir: string;
@@ -250,6 +255,7 @@ export function GeneralSectionContent({
   onCloseToTrayOnWindowsChange: (enabled: boolean) => Promise<void>;
   onKeepAwakeWhileRunningChange?: (enabled: boolean) => Promise<void>;
   onDesktopChromiumHardwareAccelerationChange?: (enabled: boolean) => Promise<void>;
+  onDesktopWindowMaterialChange?: (material: DesktopWindowMaterial) => Promise<void>;
   onReceivePreviewUpdatesChange: (enabled: boolean) => Promise<void>;
   onAutoDownloadAndInstallUpdatesChange: (enabled: boolean) => Promise<void>;
   onMessageStreamShowReasoningChange: (enabled: boolean) => Promise<void>;
@@ -704,6 +710,43 @@ export function GeneralSectionContent({
                 />
               }
             />
+            {/* Windows 独有：背景材质（亚克力/模糊），由 main 进程 SetWindowCompositionAttribute 应用。 */}
+            {isWindowsDesktop ? (
+              <SettingsRow
+                label={intl.formatMessage({
+                  id: "settings.desktopWindowMaterial",
+                })}
+                description={intl.formatMessage({
+                  id: "settings.desktopWindowMaterialDescription",
+                })}
+                control={
+                  <Select
+                    value={desktopWindowMaterial}
+                    onValueChange={(value) => {
+                      void onDesktopWindowMaterialChange(value as DesktopWindowMaterial);
+                    }}
+                  >
+                    <SelectTrigger
+                      size="lg"
+                      className="w-[220px] min-w-0 justify-between"
+                      aria-label={intl.formatMessage({
+                        id: "settings.desktopWindowMaterial",
+                      })}
+                    >
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="acrylic">
+                        {intl.formatMessage({ id: "settings.desktopWindowMaterialAcrylic" })}
+                      </SelectItem>
+                      <SelectItem value="blur">
+                        {intl.formatMessage({ id: "settings.desktopWindowMaterialBlur" })}
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                }
+              />
+            ) : null}
             <SettingsRow
               label={intl.formatMessage({ id: "settings.receivePreviewUpdates" })}
               description={intl.formatMessage({

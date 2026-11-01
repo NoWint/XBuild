@@ -10,7 +10,11 @@ import type {
   WebContents,
   WindowOpenHandlerResponse,
 } from "electron";
-import type { DesktopTitleBarTheme, Locale } from "@zcode/shared";
+import type { DesktopTitleBarTheme, DesktopWindowMaterial, Locale } from "@zcode/shared";
+import {
+  applyDesktopWindowMaterial,
+  normalizeDesktopWindowMaterial,
+} from "./desktopWindowMaterial.js";
 import {
   DEFAULT_LOCALE,
   desktopMenuMessageIds,
@@ -154,7 +158,10 @@ function buildDesktopWindowVisualOptions() {
       backgroundColor: "#00000000",
       // Windows 窗口操作由 renderer 绘制，禁用原生标题栏，避免出现两套按钮。
       frame: false,
-      backgroundMaterial: "acrylic" as const,
+      // 背景材质（acrylic/blur）由 SetWindowCompositionAttribute 提供（见 desktopWindowMaterial.ts）。
+      // DWM 只在页面透明区域绘制模糊层，因此窗口必须逐像素透明；
+      // 材质在窗口创建后立即应用，设置切换时原地重放。
+      transparent: true,
     };
   }
 
@@ -595,6 +602,8 @@ export function createBrowserWindow(options: {
   initialWindowSize?: DesktopWindowSize;
   /** 每次弹出原生菜单时读取，确保应用切换语言后无需重建窗口。 */
   currentApplicationLocale?: () => Locale;
+  /** Windows 背景材质（acrylic/blur）；窗口创建后立即应用，macOS/Linux 忽略。 */
+  initialWindowMaterial?: DesktopWindowMaterial;
   resolveBrowserViewOwner?: (webContentsId: number) =>
     | {
         workspaceKey: string;
@@ -612,6 +621,7 @@ export function createBrowserWindow(options: {
     options.initialWindowSize,
     screen.getPrimaryDisplay().workAreaSize,
   );
+  const initialWindowMaterial = normalizeDesktopWindowMaterial(options.initialWindowMaterial);
   const win = new BrowserWindow({
     width: initialWindowSize.width,
     height: initialWindowSize.height,
@@ -636,6 +646,10 @@ export function createBrowserWindow(options: {
       additionalArguments: [`--device-id=${options.deviceMid ?? ""}`],
     },
   });
+
+  // 背景材质越早应用越好：启动流程已预热 koffi 桥接时这里是同步调用，
+  // 首个合成帧就能带上 DWM 模糊层，不会先闪出未模糊的透明窗口。
+  applyDesktopWindowMaterial(win, initialWindowMaterial);
 
   // 文档渲染库曾直接 window.open 绕过 DOM 链接检查；主窗口不创建未经管控的原生子窗口。
   // 合法外链复用现有 Browser 路由，guest 仍由各自的策略管理。

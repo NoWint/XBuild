@@ -3263,6 +3263,11 @@ const zhCN: Record<string, string> = {
     "点击关闭按钮或关闭窗口快捷键时隐藏窗口，托盘中的退出仍会完全退出应用。Windows 默认开启；Linux 上取决于桌面环境是否提供系统托盘。",
   "settings.closeToTrayUnavailable": "当前桌面环境未提供系统托盘，无法启用关闭驻留。",
   "settings.closeToTrayGnomeHint": "GNOME 用户可安装 AppIndicator 类扩展后重启应用启用。",
+  "settings.desktopWindowMaterial": "窗口背景材质",
+  "settings.desktopWindowMaterialDescription":
+    "Windows 窗口的全局模糊背景。亚克力更通透、带轻微噪点；模糊更平滑、性能更稳。切换即时生效。",
+  "settings.desktopWindowMaterialAcrylic": "亚克力",
+  "settings.desktopWindowMaterialBlur": "模糊",
   "settings.keepAwakeWhileRunning": "保持电脑运行",
   "settings.keepAwakeWhileRunningDescription":
     "打开后阻止系统因空闲进入休眠（仍可手动睡眠/合盖休眠）。桌面端全局生效。",

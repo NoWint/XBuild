@@ -76,6 +76,7 @@ import {
   desktopMenuMessageIds,
   type Locale,
   type AppSettings,
+  type DesktopWindowMaterial,
   type appSettingsPatchSchema,
   PlatformChannels,
   ZCODE_ENV,
@@ -153,6 +154,10 @@ import {
   updateZCodeStdioTapDevMenuState,
 } from "./desktopApplicationMenu.js";
 import { applyAppIcon } from "./desktopWindowChrome.js";
+import {
+  prepareDesktopWindowMaterialBridge,
+  syncDesktopWindowMaterial,
+} from "./desktopWindowMaterial.js";
 import { resolveWindowsAppUserModelIdForFlavor } from "../../scripts/desktop-product-identity.mjs";
 import type { DesktopWindowSize } from "./desktopWindowSize.js";
 import { maybeWarnArchitectureMismatch } from "./desktopArchitectureGuard.js";
@@ -580,6 +585,8 @@ async function runBrowserCommandOnView(params: {
 }
 let currentDesktopZoomLevel = 0;
 let currentDesktopWindowSize: DesktopWindowSize | undefined;
+// Windows 背景材质：默认亚克力，设置页可切换为模糊；macOS/Linux 不读取该值。
+let currentDesktopWindowMaterial: DesktopWindowMaterial = "acrylic";
 const preloadPath = join(import.meta.dirname, "../preload/index.cjs");
 const settingsFile = join(homedir(), ".xbuild", "v2", "setting.json");
 let activeAppShutdownPolicy = resolveAppShutdownPolicy("normal", process.platform);
@@ -1173,6 +1180,13 @@ function syncCloseToTrayOnWindows(value: unknown) {
 
 function syncImmediateAppSettings(patch: ReturnType<typeof appSettingsPatchSchema.parse>) {
   syncCloseToTrayOnWindows(patch.closeToTrayOnWindows);
+
+  if (patch.desktopWindowMaterial !== undefined) {
+    // Windows 背景材质即时切换：主窗口已创建时原地重放 accent policy，
+    // 不需要重启；renderer 根面在两种材质下都是半透明，无需通知页面。
+    currentDesktopWindowMaterial = syncDesktopWindowMaterial(patch.desktopWindowMaterial);
+    logger.info(`[settings] desktopWindowMaterial=${currentDesktopWindowMaterial}`);
+  }
 
   if (typeof patch.keepAwakeWhileRunning === "boolean") {
     keepAwakeWhileRunning = patch.keepAwakeWhileRunning;
@@ -2056,6 +2070,7 @@ function createWindowInstance(startupBootstrap: StartupWindowBootstrap = {}) {
     runtimeProcessEnvFallbackPatch: runtimeProcessEnvPreparation.fallbackPatch,
     initialDesktopZoomLevel: currentDesktopZoomLevel,
     initialWindowSize: currentDesktopWindowSize,
+    initialWindowMaterial: currentDesktopWindowMaterial,
     currentApplicationLocale: () => currentApplicationLocale,
     resolveBrowserViewOwner: (webContentsId) =>
       browserGuestManager.getTabOwnerByWebContentsId(webContentsId) ?? undefined,
@@ -2202,11 +2217,19 @@ app.whenReady().then(async () => {
     keepAwakeWhileRunning = bootstrapSettings.keepAwakeWhileRunning ?? false;
     currentDesktopZoomLevel = clampDesktopZoomLevel(bootstrapSettings.desktopZoomLevel ?? 0);
     currentDesktopWindowSize = bootstrapSettings.desktopWindowSize;
+    currentDesktopWindowMaterial = syncDesktopWindowMaterial(
+      bootstrapSettings.desktopWindowMaterial,
+    );
     // 全局 keep-awake：启动时若设置已开，立刻持有 powerSaveBlocker，不必等设置变更事件。
     reconcileKeepAwakeBlocker();
   } catch {
     // 读取失败不影响启动，使用默认 homedir
   }
+
+  // Windows 背景材质走 koffi → user32!SetWindowCompositionAttribute；在首个窗口创建前预热，
+  // 让 createBrowserWindow 里能同步落地材质，避免先露出未模糊的透明窗口。
+  // 非 Windows 直接返回 null；失败也只降级为 Electron 原生 backdrop，不阻断启动。
+  await prepareDesktopWindowMaterialBridge();
 
   // scheduler 也会打开 tasks-index；等 Host 完成统一准备，避免在启动页出现前抢先迁移。
   configureDatabaseStartupQuit(() => {

@@ -635,6 +635,9 @@ export default {
     // node-pty 的 target prebuild 还包含 spawn-helper / winpty-agent.exe 等辅助可执行文件，
     // 整个目标目录必须 unpack；其他平台目录已由 files 规则裁剪。
     `node_modules/node-pty/prebuilds/${targetPlatform.key}/**`,
+    // koffi 的 .node 无法从 asar 内 dlopen，目标平台目录必须 unpack；
+    // 其他平台目录已由 files 规则裁剪（createDesktopNativePackagePrunePatterns）。
+    `node_modules/koffi/build/koffi/${targetPlatform.key.replace("-", "_")}/**`,
   ],
   beforePack: async (context) => {
     runTimedSync("beforePack:restoreTargetNodePtyPrebuild", () =>
