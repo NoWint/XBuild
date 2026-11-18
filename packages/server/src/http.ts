@@ -23,6 +23,7 @@ import { TOPIC_RESOURCE_RELAY_CHANNEL } from "@zcode/shared";
 import {
   ServiceCollection,
   IZCodeAgentService,
+  IDshPluginService,
   createZCodeAgentConnectionScope,
   IBotsService,
   IProviderProvisioningTargetService,
@@ -41,6 +42,8 @@ import {
 } from "@zcode/shared";
 import {
   SourceServerWorkspaceIdentityChannelServer,
+  createDshPluginConnectionScope,
+  scopeDshAgentService,
   type SourceServerWorkspaceIdentityMapper,
 } from "@zcode/services/node";
 import { createHostCapabilityStore } from "./hostCapability.js";
@@ -116,9 +119,23 @@ function setupChannelServer(
       })
     : undefined;
   const overrides = new Map<string, unknown>();
+  const dshService = services.getOptional(IDshPluginService);
+  const dshConnectionScope = dshService
+    ? createDshPluginConnectionScope(dshService, {
+        connectionId: `server-dsh-ws-${randomUUID()}`,
+        clientMode,
+        role: clientMode === "desktop-continuous" ? "trusted-host-relay" : "terminal-client",
+      })
+    : undefined;
   if (connectionScope) {
-    overrides.set(IZCodeAgentService.channelName, connectionScope.service);
+    overrides.set(
+      IZCodeAgentService.channelName,
+      dshConnectionScope
+        ? scopeDshAgentService(connectionScope.service, dshConnectionScope)
+        : connectionScope.service,
+    );
   }
+  if (dshConnectionScope) overrides.set(IDshPluginService.channelName, dshConnectionScope.service);
   // Provisioning 携带跨 Environment 凭据，只允许 Desktop trusted host 使用；普通 Web
   // remote/replayable 客户端即使知道频道名，也不能获得 target 写入接口。
   if (
@@ -136,6 +153,7 @@ function setupChannelServer(
     peer?.dispose();
     reverseClient?.dispose();
     void connectionScope?.dispose();
+    void dshConnectionScope?.dispose();
     rawServer.dispose();
   });
 }

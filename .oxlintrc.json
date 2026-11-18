@@ -28,6 +28,8 @@
         "**/apps/zcode-cli/packages/bootstrap/src/zcode-protocol-v4/product-projection.ts",
         "**/apps/zcode-cli/packages/bootstrap/src/zcode-protocol-v4/transcript-hydration.ts",
         "**/apps/zcode-cli/packages/bootstrap/src/zcode-protocol/server.ts",
+        // CLI 包以自身 cwd 上报 src/...；完整仓库路径规则不会匹配，须保留同一已批准 server 的相对路径入口。
+        "src/zcode-protocol/server.ts",
         "**/apps/zcode-cli/packages/bootstrap/src/zcode-protocol/session-mapper.ts",
         "**/apps/zcode-cli/packages/bootstrap/src/zcode-protocol/v4-bridge.ts",
         "**/apps/zcode-cli/packages/contracts/src/interfaces/session-store.port.ts",
@@ -99,6 +101,9 @@
   "globals": {},
   "ignorePatterns": [
     "dist-release",
+    "out",
+    "**/out/**",
+    "packages/desktop/vendor/open-claude-desktop",
     "packages/ui/src/components/ui",
     "packages/ui/src/components/ai-elements",
     ".claude/skills",

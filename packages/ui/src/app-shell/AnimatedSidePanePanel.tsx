@@ -1053,7 +1053,7 @@ export function AnimatedSidePanePanel({
                 <TabsList
                   style={mobileOverlay ? undefined : captionControlsStyle}
                   className={cn(
-                    "flex justify-start w-full rounded-none p-0 border-0 border-b border-border/50 bg-transparent shadow-none !h-12 overflow-hidden",
+                    "xb-workspace-header flex justify-start w-full rounded-none p-0 border-0 border-b border-border/50 bg-transparent shadow-none !h-desktop-header overflow-hidden",
                     fullView?.leadingInsetClassName,
                     // 独立面板将标签栏移至窗口顶部，需补充窗口拖拽区域；标签和按钮仍处理自身交互。
                     isDesktop &&
@@ -1063,7 +1063,7 @@ export function AnimatedSidePanePanel({
                 >
                   <div className="flex items-center justify-start flex-1 min-w-0">
                     {/* 与 WorkspaceHeader 的 p-2 对齐，避免切换面板后左右操作区跳动。 */}
-                    <div className="flex h-full shrink-0 items-center p-2">
+                    <div className="flex h-full shrink-0 items-center px-2 py-1">
                       {sidePaneTabOverview}
                     </div>
                     {fullView ? (
@@ -1085,7 +1085,7 @@ export function AnimatedSidePanePanel({
                         ref={tabsScrollViewportRef}
                         data-side-pane-tabs-viewport=""
                         className={cn(
-                          "min-w-0 flex-1 overflow-x-auto !scrollbar-hide h-12 items-center",
+                          "min-w-0 flex-1 overflow-x-auto !scrollbar-hide h-desktop-header items-center",
                           tabsScrollMaskEdges.left &&
                             tabsScrollMaskEdges.right &&
                             "[mask-image:linear-gradient(to_right,transparent_0%,black_16px,black_calc(100%-16px),transparent_100%)] [-webkit-mask-image:linear-gradient(to_right,transparent_0%,black_16px,black_calc(100%-16px),transparent_100%)]",
@@ -1102,7 +1102,7 @@ export function AnimatedSidePanePanel({
                         <div
                           ref={tabsScrollContentRef}
                           data-side-pane-tabs-content=""
-                          className="flex w-full gap-1 py-2.5"
+                          className="flex w-full gap-1 py-1"
                         >
                           <SortableContext
                             items={visibleTabs.map((tab) => tab.id)}
@@ -1521,7 +1521,7 @@ export function AnimatedSidePanePanel({
           ref={panelElementRef}
           aria-hidden={!isVisible}
           className={cn(
-            "h-full w-full min-w-0 border-l border-border bg-background transition-opacity duration-200 ease-out",
+            "xb-animated-pane h-full w-full min-w-0 border-l border-border bg-background transition-opacity",
             isVisible || isScreenshotSurfaceActive
               ? "opacity-100"
               : "pointer-events-none opacity-0",
@@ -1540,7 +1540,8 @@ export function AnimatedSidePanePanel({
           data-workspace-side-pane-resize-handle="true"
           className={cn(
             WORKSPACE_VERTICAL_RESIZE_HANDLE_CLASS_NAME,
-            "aria-[orientation=vertical]:w-[3px] after:left-px",
+            // 侧栏分隔热区统一走共享 4px role；本地 3px 覆写会让间距和 2px 指示线错位。
+            "after:left-px",
             mobileStacked && "max-md:hidden",
           )}
         />
@@ -1560,7 +1561,7 @@ export function AnimatedSidePanePanel({
         // 收起后禁用面板 resize target，避免用户绕过显式开关从右侧边缘拖出面板。
         disabled={isResizeDisabled}
         className={cn(
-          "!overflow-hidden transition-opacity duration-200 ease-out",
+          "xb-animated-pane !overflow-hidden transition-opacity",
           mobileOverlay &&
             "max-md:!h-full max-md:!w-full max-md:!min-w-0 max-md:!max-w-none max-md:!flex-1 max-md:!basis-auto max-md:border-l",
           mobileStacked &&

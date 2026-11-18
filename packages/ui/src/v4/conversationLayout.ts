@@ -1,10 +1,11 @@
 import type { ChatViewSummaryPanelVariant } from "@/v4/legacyChatViewTypes.js";
 
-export const CONVERSATION_DRAFT_CONTENT_WIDTH_CLASS_NAME = "max-w-2xl";
+// 消息、空态和同一编辑器 dock 共用阅读轨道，避免打开侧面板时各自改变最大宽度。
+export const CONVERSATION_DRAFT_CONTENT_WIDTH_CLASS_NAME = "xb-reading-rail xb-draft-reading-rail";
 export const CONVERSATION_CONTENT_WITH_STATUS_PANEL_WIDTH_CLASS_NAME =
-  "w-full @min-[864px]/conversation:w-[calc(100%_-_6rem)] @min-[864px]/conversation:max-w-4xl @min-[1280px]/conversation:w-[calc(100%_-_24rem)] @min-[1280px]/conversation:max-w-6xl";
+  "xb-reading-rail w-full";
 export const CONVERSATION_CONTENT_WITHOUT_STATUS_PANEL_WIDTH_CLASS_NAME =
-  "w-full @min-[864px]/conversation:w-[calc(100%_-_6rem)] @min-[864px]/conversation:max-w-4xl @min-[1280px]/conversation:w-[calc(100%_-_24rem)] @min-[1280px]/conversation:max-w-6xl";
+  "xb-reading-rail w-full";
 
 export const CONVERSATION_STATUS_PANEL_INLINE_OFFSET_CLASS_NAME = "-translate-x-42";
 export const CONVERSATION_STATUS_PANEL_INLINE_OFFSET_PX = 168;

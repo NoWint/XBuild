@@ -300,6 +300,7 @@ export {
 export { IPluginsService } from "./plugins/plugins.js";
 // 设置页插件管理薄服务（UI 平台能力面不再直触 zcodeAgentService）
 export { IPluginManagementService, withPluginTelemetry } from "./plugins/pluginManagement.js";
+export { IDshPluginService } from "./dsh-plugins/contract.js";
 
 // Subagents service — ISubagentsService is both a type (interface) and value (descriptor)
 export { ISubagentsService } from "./subagents/subagents.js";

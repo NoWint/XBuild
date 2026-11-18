@@ -36,12 +36,15 @@ import type { V4InteractionRegistry } from "../zcode-protocol-v4/interaction-reg
 import type { ConversationV4Gateway } from "../zcode-protocol-v4/v4-gateway.js";
 import type { SessionResidentPool, SessionResidentPoolOptions } from "./session-resident-pool.js";
 import type { DynamicWorkflowMode } from "@zcode/shared";
+import type { DshController } from "../dsh-controller/index.js";
 
 export interface ParamsSchema<T> {
   parse(input: unknown): T;
 }
 
 export interface ZCodeProtocolAgentDependencies {
+  /** CLI launcher-owned lazy factory; ordinary ZCode traffic does not materialize DSH. */
+  createDshController?(): DshController | Promise<DshController>;
   createZCodeApp(options?: Omit<ZCodeAppOptions, "providerRegistry">): ZCodeApp | Promise<ZCodeApp>;
   /**
    * 每个 session record 的内存 event store 工厂。

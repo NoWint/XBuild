@@ -106,6 +106,13 @@ const BASE_SETTINGS_SECTIONS: SettingsSectionDefinition[] = [
     groupId: "agentCapabilities",
   },
   {
+    // DSH 插件与 ZCode 插件并列：来源、授权、启停与诊断各自独立，避免混进 ZCode manifest 语义。
+    id: "dshPlugins",
+    icon: Package,
+    titleId: "settings.plugins.dsh.title",
+    groupId: "agentCapabilities",
+  },
+  {
     id: "mcp",
     icon: Cable,
     titleId: "settings.mcpTitle",

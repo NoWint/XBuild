@@ -48,6 +48,7 @@ import {
   IPluginSyncService,
   IPluginsService,
   IPluginManagementService,
+  IDshPluginService,
   ISubagentsService,
   ICommandsService,
   IHooksService,
@@ -125,6 +126,7 @@ export class RemoteServiceAccess implements IServiceAccessor {
   readonly userConfigSyncService: IUserConfigSyncService;
   readonly pluginsService: IPluginsService;
   readonly pluginManagementService: IPluginManagementService;
+  readonly dshPluginService: IDshPluginService;
   readonly subagentsService: ISubagentsService;
   readonly commandsService: ICommandsService;
   readonly hooksService: IHooksService;
@@ -316,6 +318,9 @@ export class RemoteServiceAccess implements IServiceAccessor {
     );
     this.pluginManagementService = ProxyChannel.toService<IPluginManagementService>(
       channelClient.getChannel(IPluginManagementService.channelName),
+    );
+    this.dshPluginService = ProxyChannel.toService<IDshPluginService>(
+      channelClient.getChannel(IDshPluginService.channelName),
     );
     this.subagentsService = ProxyChannel.toService<ISubagentsService>(
       channelClient.getChannel(ISubagentsService.channelName),

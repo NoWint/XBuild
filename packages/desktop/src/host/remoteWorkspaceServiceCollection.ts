@@ -33,6 +33,7 @@ import {
   IUserConfigSyncService,
   IPluginsService,
   IPluginManagementService,
+  IDshPluginService,
   ISubagentsService,
   ICommandsService,
   IHooksService,
@@ -97,6 +98,7 @@ export const REMOTE_WORKSPACE_RPC_REGISTRATIONS = [
   ["userConfigSyncService", IUserConfigSyncService],
   ["pluginsService", IPluginsService],
   ["pluginManagementService", IPluginManagementService],
+  ["dshPluginService", IDshPluginService],
   ["subagentsService", ISubagentsService],
   ["commandsService", ICommandsService],
   ["hooksService", IHooksService],
@@ -238,6 +240,7 @@ export function createServerRemoteWorkspaceServiceCollection(params: {
     .register(IUserConfigSyncService, params.connectionServices.userConfigSyncService)
     .register(IPluginsService, params.connectionServices.pluginsService)
     .register(IPluginManagementService, params.connectionServices.pluginManagementService)
+    .register(IDshPluginService, params.connectionServices.dshPluginService)
     .register(ISubagentsService, params.connectionServices.subagentsService)
     .register(ICommandsService, params.connectionServices.commandsService)
     .register(IHooksService, params.connectionServices.hooksService)

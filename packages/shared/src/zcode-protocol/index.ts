@@ -1,5 +1,6 @@
 import { requestVerificationReasons } from "../request-security-edition/verification-policy.js";
 import { zcodeProtocolTraceSchema } from "./trace.js";
+export * from "../dsh-compat/index.js";
 // Bot 反向回复的名字解析/待澄清结果与 App、CLI 使用同一严格 schema。
 export { channelReplyRequestSchema, channelReplyResultSchema } from "../channel-mention.js";
 export { zcodeProtocolTraceSchema, type ZCodeProtocolTrace } from "./trace.js";
@@ -4325,6 +4326,8 @@ export const zcodeProtocolMethods = {
   mcpUiClaimAppToolCall: "mcp/uiClaimAppToolCall",
   mcpUiResolveAppToolCall: "mcp/uiResolveAppToolCall",
   pluginsList: "plugins/list",
+  pluginsDshDispatch: "plugins/dsh/dispatch",
+  pluginsDshEvent: "plugins/dsh/event",
   pluginsReferenceCatalog: "plugins/referenceCatalog",
   pluginsListUiSurfaces: "plugins/listUiSurfaces",
   pluginsReferenceCatalogWithCategory: "plugins/referenceCatalogWithCategory",

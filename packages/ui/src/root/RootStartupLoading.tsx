@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { cn } from "@/components/lib/utils.js";
+import { ZCodeAboutLogo } from "@/components/ui/ZCodeAboutLogo.js";
 
 interface RootStartupLoadingProps {
   label: string;
@@ -36,16 +37,12 @@ export function ZCodeStartupLogoBadge({
     <div
       data-desktop-logo-badge={size === "titlebar" ? "true" : undefined}
       className={cn(
-        "relative flex items-center justify-center bg-[linear-gradient(180deg,#000000_0%,#151718_100%)] text-[#ffffff] before:pointer-events-none before:absolute before:inset-0 before:rounded-[inherit] before:border before:border-[rgba(255,255,255,0.1)] before:content-['']",
-        size === "titlebar"
-          ? "size-5 rounded shadow-sm/20 before:border-white/20"
-          : "size-24 rounded-3xl shadow-xl/20",
+        "relative flex items-center justify-center text-foreground",
+        size === "titlebar" ? "size-5" : "size-24",
       )}
     >
-      {/* Button 会给 SVG 默认尺寸；紧凑 Logo 显式恢复自动高度，保持标志原始比例。 */}
-      <ZCodeStartupLogo
-        className={size === "titlebar" ? "size-auto w-3.25" : "h-auto w-14"}
-        animated={animated}
+      <ZCodeAboutLogo
+        className={size === "titlebar" ? "size-4" : "xb-brand-entrance size-14"}
       />
     </div>
   );
@@ -53,42 +50,10 @@ export function ZCodeStartupLogoBadge({
 
 export function ZCodeStartupLogo({
   className,
-  animated = true,
 }: {
   className?: string;
+  /** 保留原入口；启动动画统一由 reduced-motion 感知的 CSS role 负责。 */
   animated?: boolean;
 }) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 21 21"
-      fill="none"
-      className={cn("shrink-0 text-current", className)}
-      aria-hidden="true"
-      focusable="false"
-    >
-      {animated ? (
-        <animate
-          attributeName="opacity"
-          begin="3s"
-          dur="1.8s"
-          repeatCount="indefinite"
-          values="1;0.4;1"
-        />
-      ) : null}
-      <defs>
-        <linearGradient id="xbuild-startup-sheen" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="currentColor" />
-          <stop offset="0.5" stopColor="#6f6f6f" />
-          <stop offset="1" stopColor="currentColor" />
-        </linearGradient>
-      </defs>
-      <path
-        fillRule="evenodd"
-        clipRule="evenodd"
-        fill="url(#xbuild-startup-sheen)"
-        d="M6 0 H15 A6 6 0 0 1 21 6 V15 A6 6 0 0 1 15 21 H6 A6 6 0 0 1 0 15 V6 A6 6 0 0 1 6 0 Z M7.5 5.5 H13.5 A2 2 0 0 1 15.5 7.5 V13.5 A2 2 0 0 1 13.5 15.5 H7.5 A2 2 0 0 1 5.5 13.5 V7.5 A2 2 0 0 1 7.5 5.5 Z"
-      />
-    </svg>
-  );
+  return <ZCodeAboutLogo className={className} />;
 }

@@ -1,0 +1,87 @@
+/* Session notices above the composer (source-session-notices.jsx): the composer banner's geometry
+   (.inline-error.composer-error) in the warning tones, one row per notice. */
+.ssn-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: calc(100% - 64px);
+  max-width: 768px;
+  align-self: center;
+  margin: 6px 0;
+}
+.ssn-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 12px;
+  line-height: 1.5;
+  border: 1px solid var(--cds-border-warning);
+  background: var(--cds-bg-warning);
+  color: var(--cds-text-primary);
+  border-radius: var(--cds-radius);
+  padding: 8px 10px 8px 12px;
+}
+/* Informational notices (level 'info': recap, usage info, upsell, headline, buffering) are neutral, never warning-toned. */
+.ssn-notice[data-level="info"] {
+  border-color: var(--cds-border);
+  background: var(--cds-surface-1);
+}
+.ssn-icon { flex-shrink: 0; color: var(--cds-text-warning); margin-top: 1px; }
+.ssn-notice[data-level="info"] .ssn-icon { color: var(--cds-text-secondary); }
+.ssn-body { flex: 1; min-width: 0; }
+.ssn-summary, .ssn-details { margin: 0; overflow-wrap: anywhere; white-space: pre-wrap; }
+.ssn-details { color: var(--cds-text-secondary); }
+/* A code span in a notice (Codex's `model` / `config.key` / `path`): the reply's inline code chip. */
+.ssn-code {
+  font-family: var(--cds-font-mono);
+  font-size: 0.92em;
+  line-height: 1.4;
+  padding: 1px 3px;
+  border-radius: 4px;
+  background: var(--cds-alpha-1);
+  color: var(--code-chip-ink, var(--cds-text-primary));
+  overflow-wrap: anywhere;
+}
+/* Markdown details (a /recap answer): reply typography in a bounded scroller so a long catch-up never hides the transcript. */
+.ssn-markdown {
+  max-height: min(240px, 35vh);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  margin-top: 4px;
+  padding-inline-end: 4px;
+  white-space: normal;
+  color: var(--cds-text-primary);
+  font-size: var(--cds-font-size-body, 14px);
+  line-height: var(--cds-leading-body, 20px);
+  border-radius: 4px;
+}
+.ssn-markdown:focus-visible { outline: none; box-shadow: var(--cds-focus-shadow); }
+.ssn-path { font-family: var(--cds-font-code, anthropic-mono), monospace; font-size: 11px; }
+.ssn-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 4px; }
+.ssn-action {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--cds-text-accent, var(--cds-text-primary));
+  font: inherit;
+  font-weight: 500;
+}
+.ssn-action:disabled, .ssn-action[aria-disabled="true"] { opacity: .5; }
+.ssn-action:focus-visible, .ssn-dismiss:focus-visible { outline: none; box-shadow: var(--cds-focus-shadow); border-radius: 4px; }
+.ssn-dismiss {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--cds-text-secondary);
+}
+.ssn-dismiss:hover { background: var(--cds-alpha-1, rgba(0, 0, 0, .05)); color: var(--cds-text-primary); }
+@media (prefers-reduced-motion: no-preference) {
+  .ssn-dismiss { transition: background-color 120ms ease; }
+}

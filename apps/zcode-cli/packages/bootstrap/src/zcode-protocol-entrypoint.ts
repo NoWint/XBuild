@@ -58,6 +58,7 @@ import { startProtocolResourceSampler } from "./zcode-protocol/resource-sampler.
 import { acquireProtocolStartupResource } from "./zcode-protocol/startup-resource.js";
 import { prepareZCodeTelemetryEnv, shutdownZCodeTelemetry } from "./telemetry-bootstrap.js";
 import type { ZCodeProcessResourceSampler } from "./process-resource-sampler.js";
+import { createDefaultDshController } from "./dsh-controller/index.js";
 
 export function applyProtocolPresentationSurface(
   options: Omit<ZCodeAppOptions, "providerRegistry">,
@@ -302,6 +303,7 @@ export async function runZCodeProtocolAgent(
     );
     options.lifecycle?.signal.throwIfAborted();
     const server = (serverForCleanup = new ZCodeProtocolAgentServer({
+      createDshController: () => createDefaultDshController({ cliStorageRoot: protocolCliStorageRoot }),
       createZCodeApp: (appOptions = {}) =>
         createZCodeApp({
           ...applyProtocolProviderRegistry(

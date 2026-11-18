@@ -122,7 +122,14 @@ const WEB_REMOTE_CONTROL_COLLAPSE_ONCE_SESSION_KEY =
   "zcode:web-remote-control:collapse-navigation-once";
 const WEB_REMOTE_CONTROL_VIEWPORT_HEIGHT_FALLBACK_PX = 800;
 const WEB_REMOTE_CONTROL_DRAG_CLICK_THRESHOLD_PX = 4;
-const WORKSPACE_SIDEBAR_DEFAULT_WIDTH_PX = 264;
+function readDefaultWorkspaceSidebarWidthPx(): number {
+  // 默认比例由共享 CSS 拥有；既有用户宽度和最小宽度合同不随主题重建。
+  if (typeof document === "undefined") return WORKSPACE_SIDEBAR_MIN_WIDTH_PX;
+  const value = Number.parseFloat(
+    getComputedStyle(document.documentElement).getPropertyValue("--desktop-sidebar-width"),
+  );
+  return Number.isFinite(value) && value > 0 ? value : WORKSPACE_SIDEBAR_MIN_WIDTH_PX;
+}
 const WORKSPACE_SIDEBAR_MIN_WIDTH_PX = 264;
 const WORKSPACE_SIDEBAR_MAX_WIDTH_RATIO = 0.5;
 const WORKSPACE_SIDEBAR_WIDTH_STORAGE_KEY = "zcode:workspace-shell:sidebar-width-px";
@@ -735,7 +742,7 @@ const WorkspaceShellLayoutContent = memo(function WorkspaceShellLayoutComponent(
   const conversationAutoCollapseResizeTimerRef = useRef<number | null>(null);
   const workspaceSidebarResizeSessionRef = useRef<WorkspaceSidebarResizeSession | null>(null);
   const [workspaceSidebarPanelWidthPx, setWorkspaceSidebarPanelWidthPx] = useState(
-    () => readStoredWorkspaceSidebarWidthPx() ?? WORKSPACE_SIDEBAR_DEFAULT_WIDTH_PX,
+    () => readStoredWorkspaceSidebarWidthPx() ?? readDefaultWorkspaceSidebarWidthPx(),
   );
   const workspaceSidebarPanelWidthPxRef = useRef(workspaceSidebarPanelWidthPx);
   const openWorkspaceKeys = useMemo(
@@ -2450,7 +2457,7 @@ const WorkspaceShellLayoutContent = memo(function WorkspaceShellLayoutComponent(
         data-workspace-shell="true"
         style={workspaceShellSplitStyle}
         className={cn(
-          "relative flex h-full min-h-0 w-full overflow-hidden [anchor-scope:--sidebar-task-list-divider]",
+          "xb-desktop-frame relative flex h-full min-h-0 w-full overflow-hidden [anchor-scope:--sidebar-task-list-divider]",
           // 修复原因：窗口原生 resize 时，外层 react-resizable-panels 会把每一帧
           // 都写进 layout store，连带侧栏 tooltip/menu 子树反复 commit。这里改成
           // CSS 变量驱动的专用 split，普通窗口 resize 只走浏览器布局，不触发 React 状态。
@@ -2463,7 +2470,7 @@ const WorkspaceShellLayoutContent = memo(function WorkspaceShellLayoutComponent(
           data-workspace-sidebar-panel="true"
           id="sidebar"
           className={cn(
-            "w-[var(--workspace-sidebar-panel-width)] max-w-[50%] flex-none overflow-hidden duration-200 ease-out transition-[width,opacity] data-[workspace-sidebar-resizing=true]:transition-opacity",
+            "xb-sidebar-surface w-[var(--workspace-sidebar-panel-width)] max-w-[50%] flex-none overflow-hidden duration-200 ease-out transition-[width,opacity] data-[workspace-sidebar-resizing=true]:transition-opacity",
             // 修复原因：拖动侧栏宽度时如果继续过渡 width，会让指针移动和实际宽度之间产生滞后。
             // 拖拽 active 通过 DOM 标记切 transition，避免 pointerdown/up 为了切 class 重渲染整棵 workspace。
             isWebRemoteControlShell &&
@@ -2549,6 +2556,11 @@ const WorkspaceShellLayoutContent = memo(function WorkspaceShellLayoutComponent(
           id="content"
           className={cn(
             "flex min-w-[320px] flex-1 flex-col",
+            // 修复原因：桌面窗口下限是 480px，侧栏 max-w-[50%] 仍需 240px；
+            // 内容列如果继续保留 320px 下限，整个 shell 会超出视口
+            // （实测 480px 窗口下 composer 右边界为 524.5px）。
+            // 窄屏放开该下限，交给内部既有 min-w-0 链路收缩，避免横向溢出。
+            "max-md:min-w-0",
             hasDesktopPanelInset ? (isWindowsDesktop ? "pr-1.5 pb-1.5" : "pr-1 pb-1") : "p-0",
             isWebRemoteControlShell &&
               "max-md:!w-full max-md:!min-w-0 max-md:!flex-1 max-md:!basis-0",

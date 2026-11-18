@@ -389,7 +389,7 @@ export function OpenSplitButton({
   const button = (
     <DropdownMenu onOpenChange={(open) => open && void loadEditors()}>
       <div
-        className="flex h-7 shrink-0 items-center overflow-hidden rounded-lg border border-border bg-input transition-all hover:border-border-hover"
+        className="xb-open-split flex h-7 shrink-0 items-center overflow-hidden border border-border bg-input transition-all hover:border-border-hover"
         onClick={stopEventPropagation}
         onPointerDown={stopEventPropagation}
       >
@@ -420,12 +420,12 @@ export function OpenSplitButton({
               type="button"
               variant="ghost"
               size="icon-md"
-              className="!w-5 rounded-none border-0 text-foreground-subtlest"
+              className="w-6 shrink-0 rounded-none border-0 text-foreground-subtle"
               aria-label={intl.formatMessage({ id: "appHeader.selectOpenApp" })}
               title={intl.formatMessage({ id: "appHeader.selectOpenApp" })}
               onClick={stopEventPropagation}
             >
-              <ChevronDownIcon className="size-3.5" />
+              <ChevronDownIcon className="size-4" />
             </Button>
           </DropdownMenuTrigger>
         )}

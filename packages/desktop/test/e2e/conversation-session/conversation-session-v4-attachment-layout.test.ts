@@ -58,6 +58,7 @@ describe("AL01-AL20：附件界面改版", () => {
     expect(composer.hasSeparateContextRow).toBe(true);
 
     await assertComposerRemoveVisibility();
+    await assertContextRemoveVisibility();
     await assertContextHoverAlignment("composer");
     await assertThemeSurfaces();
     await assertNarrowComposerWrap();
@@ -300,6 +301,30 @@ async function assertComposerRemoveVisibility() {
     { timeout: 5_000, timeoutMsg: "renderer 没有进入 touch/hover:none 模式" },
   );
   expect(Number(await first.getCSSProperty("opacity").then((value) => value.value))).toBe(1);
+  await sendRendererEmulationCommand("Emulation.setTouchEmulationEnabled", { enabled: false });
+}
+
+async function assertContextRemoveVisibility() {
+  const pill = await $("[data-composer-context-attachments-row] > [role='button']");
+  const remove = await pill.$("button");
+  await remove.waitForExist({ timeout: 15_000 });
+  await browser.action("pointer").move({ x: 4, y: 4 }).perform();
+  await browser.execute((element) => (element as HTMLElement).focus(), pill);
+  await browser.waitUntil(
+    async () => Number(await remove.getCSSProperty("opacity").then((value) => value.value)) === 1,
+    { timeout: 5_000, timeoutMsg: "键盘聚焦上下文 pill 后关闭入口仍隐藏" },
+  );
+  await sendRendererEmulationCommand("Emulation.setTouchEmulationEnabled", {
+    enabled: true,
+    maxTouchPoints: 1,
+  });
+  await browser.execute(() => (document.activeElement as HTMLElement)?.blur());
+  await browser.waitUntil(
+    async () =>
+      (await browser.execute(() => window.matchMedia("(hover: none)").matches)) &&
+      Number(await remove.getCSSProperty("opacity").then((value) => value.value)) === 1,
+    { timeout: 5_000, timeoutMsg: "touch 上下文关闭入口不可发现" },
+  );
   await sendRendererEmulationCommand("Emulation.setTouchEmulationEnabled", { enabled: false });
 }
 

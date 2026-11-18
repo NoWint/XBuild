@@ -5563,7 +5563,6 @@ export function SessionPane({
       telemetryDraftConfig={telemetryDraftConfig}
       // 完整视图浮窗默认是一条输入框：草稿项目栏不进入浮窗，切到对话 tab 再选择项目。
       contextHeader={isDraft && !isFloatingPresentation ? draftComposerHeader : undefined}
-      centered={isDraft}
       layout={isFloatingPresentation ? "inline" : "stacked"}
       workingDurationMs={
         floatingTurnRunning ? floatingLatestTurnSummary?.workDurationMs : undefined
@@ -5775,8 +5774,10 @@ export function SessionPane({
       !isFloatingPresentation &&
       (!isOfficeMode || sharedSettings?.proactiveSuggestionsEnabled === true) ? (
         <ConversationDraftSuggestedPromptsContainer
-          className={isOfficeMode ? "mt-4" : "mt-6"}
+          className={isOfficeMode ? "mt-2" : "mt-3"}
           proactive={isOfficeMode}
+          // 草稿页推荐使用与问候、composer 相同的 672px 轨道；会话内 chip 布局不变。
+          layout="list"
           onOpenAutomations={
             onOpenAutomationsMain && !compactForRemoteControl
               ? (automationTab) => onOpenAutomationsMain(undefined, automationTab)

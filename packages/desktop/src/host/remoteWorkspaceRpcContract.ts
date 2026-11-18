@@ -34,6 +34,7 @@ export const REMOTE_WORKSPACE_RPC_CHANNELS = [
   "userConfigSyncService",
   "pluginsService",
   "pluginManagementService",
+  "dshPluginService",
   "subagentsService",
   "commandsService",
   "hooksService",

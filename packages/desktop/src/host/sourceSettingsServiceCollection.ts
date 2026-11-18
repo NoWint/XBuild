@@ -13,6 +13,7 @@ import {
   IUserConfigSyncService,
   IPluginsService,
   IPluginManagementService,
+  IDshPluginService,
   ICommandsService,
   IHooksService,
   ISubagentsService,
@@ -91,6 +92,10 @@ export function createSourceSettingsServiceCollection(
     .register(
       IPluginManagementService,
       read(IPluginManagementService, (accessor) => accessor.pluginManagementService),
+    )
+    .register(
+      IDshPluginService,
+      read(IDshPluginService, (accessor) => accessor.dshPluginService),
     )
     .register(
       ICommandsService,

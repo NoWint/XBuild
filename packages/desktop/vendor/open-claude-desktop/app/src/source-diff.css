@@ -1,0 +1,180 @@
+/* Current c219730b0 file header → cdf69fdd3 subheader. Shared diff renderer
+   ca7ba268c Gi/Ki supplies CDS code tokens and a minimum 3ch number column. */
+.sdiff-view.source-diff {
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+  overflow: visible;
+  white-space: normal;
+  font: var(--cds-font-size-code, 12px)/var(--cds-leading-code, 17px) var(--cds-font-mono, monospace);
+  color: var(--cds-text-primary);
+  user-select: text;
+}
+.sdiff-view:not([data-placement=changes]) .sdiff-header span { display: inline-flex; min-width: 0; padding: 0; white-space: normal; }
+.sdiff-file { min-width: 0; }
+.sdiff-header { display: flex; align-items: center; position: sticky; top: 0; z-index: 4; height: 32px; background: var(--cds-surface-1); }
+.sdiff-file-toggle {
+  display: flex; flex: 1; align-items: center; gap: 4px; min-width: 0; width: 100%; height: 32px;
+  border: 0; padding: 0 calc(var(--cds-pad-md, 8px) + 24px) 0 var(--cds-pad-md, 8px);
+  background: var(--cds-alpha-1); color: var(--cds-text-secondary); text-align: left; user-select: none;
+  font: var(--cds-font-size-body, 13px)/var(--cds-leading-body, 19px) var(--cds-font-sans, sans-serif);
+}
+.sdiff-file-toggle:hover { background: var(--cds-alpha-2); }
+.sdiff-file-toggle:focus-visible { outline: none; box-shadow: var(--cds-focus-shadow); }
+.sdiff-caret, .sdiff-file-icon { flex-shrink: 0; color: var(--cds-text-muted); }
+.sdiff-caret { transition: transform var(--cds-dur-fast, 120ms); }
+.sdiff-caret.is-collapsed { transform: rotate(-90deg); }
+.sdiff-view:not([data-placement=changes]) .sdiff-path { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sdiff-meta { min-width: 0; flex-shrink: 9999; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--cds-text-muted); }
+.sdiff-view:not([data-placement=changes]) .sdiff-counts { display: flex; gap: 2px; flex-shrink: 0; font-variant-numeric: tabular-nums; }
+.sdiff-counts b { font-weight: 400; }
+.sdiff-count-added { color: var(--cds-text-git-added, #1e9e3c); }
+.sdiff-count-removed { color: var(--cds-text-git-removed, #cd2054); }
+.sdiff-copy { position: absolute; right: var(--cds-pad-md, 8px); display: inline-flex; align-items: center; justify-content: center;
+  width: 20px; height: 20px; padding: 0; border-radius: var(--cds-radius, 6px); color: var(--cds-text-muted); opacity: 0; }
+.sdiff-header:hover .sdiff-copy, .sdiff-header:focus-within .sdiff-copy { opacity: 1; }
+.sdiff-copy:hover { color: var(--cds-text-primary); background: var(--cds-fill-ghost-hover); }
+.sdiff-copy:focus-visible { outline: none; box-shadow: var(--cds-focus-shadow); opacity: 1; }
+.sdiff-copy-status { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); }
+/* Changes placement (c219730b0 We/Ze, aa trigger "group/diff-file relative"):
+   the markup carries the source utility classes, which live in the layered
+   c6a992d55 copy; the unlayered message-style `.diff span {display:block;
+   white-space:pre-wrap}` would beat them, so these spans revert to the layer.
+   The toggle keeps its cdf69fdd3 subheader metrics (px-md, gap 4px, 32px) and
+   drops the old 24px right reserve: We's w-control spacer reserves Ze now. */
+.sdiff-view[data-placement=changes] .sdiff-file-toggle span, .sdiff-view[data-placement=changes] .sdiff-open-file { display: revert-layer; white-space: revert-layer; }
+/* B34 La 'View image' overlay (flex items-center gap-xs, its pointer-events-auto flex slot and the w-control spacer)
+   and the disabled-reason trigger around the button: the same `.diff span` override, undone. */
+.sdiff-view[data-placement=changes] .sdiff-view-image, .sdiff-view[data-placement=changes] .sdiff-view-image > span { display: revert-layer; white-space: revert-layer; }
+.sdiff-view[data-placement=changes] .sdiff-view-image .source-tooltip-disabled-trigger { display: inline-flex; white-space: normal; }
+.sdiff-view[data-placement=changes] .sdiff-file-toggle { padding-right: var(--cds-pad-md, 8px); }
+.sdiff-path-directory[data-clipped] { opacity: 0; }
+/* Ze reveal: group-hover/group-focus-within on the trigger, always on a coarse
+   pointer (pointer-coarse:opacity-100 is absent from the loaded utility copy). */
+.sdiff-view[data-placement=changes] .sdiff-open-file { opacity: 0; }
+.sdiff-view[data-placement=changes] .sdiff-header:is(:hover, :focus-within) .sdiff-open-file { opacity: 1; }
+@media (pointer: coarse) { .sdiff-view[data-placement=changes] .sdiff-open-file { opacity: 1; } }
+.sdiff-file-body { min-width:0;padding-block:var(--cds-pad-xs,4px);background:light-dark(var(--code-theme-light-bg,transparent),var(--code-theme-dark-bg,transparent)); }
+.sdiff-hunk { min-width:0; }
+.sdiff-note { min-height: var(--cds-leading-code, 17px); padding: 0 var(--cds-pad-md, 8px); white-space: pre; color: var(--cds-text-muted); }
+/* ca7ba268c Jn/Ut and final CDS Gi/Qi injection (:8463–8582).
+   Gi overrides the library separator background to transparent. */
+.sdiff-hunk-separator { height:32px; margin-block:8px; padding-inline:8px; user-select:none;
+  --sdiff-separator-bg:light-dark(var(--code-theme-light-bg,#fff),var(--code-theme-dark-bg,#000));
+  --sdiff-separator-fg:light-dark(var(--code-theme-light-fg,#000),var(--code-theme-dark-fg,#fff)); }
+.sdiff-hunk-separator[data-separator-first] { margin-top:0; }
+.sdiff-separator-content { display:flex; align-items:center; height:100%; min-width:0; padding-inline:1ch; border-radius:6px;
+  background:transparent;
+  color:color-mix(in lab,var(--sdiff-separator-fg) 65%,var(--sdiff-separator-bg)); }
+.sdiff-separator-content { padding-inline:0; }
+.sdiff-hunk-separator[data-separator-last] { margin-bottom:0; }
+.sdiff-separator-wrapper { display:grid;grid-template-columns:16px minmax(0,1fr);gap:4px;height:100%;min-width:0; }
+.sdiff-separator-wrapper[data-multi-button] { grid-template-columns:16px 16px minmax(0,1fr); }
+.sdiff-context-gap button { border:0;background:transparent;font:inherit;padding:0;min-height:0;height:auto;text-align:left; }
+.sdiff-context-gap .sdiff-separator-content { grid-column-start:-2;border-top-left-radius:0;border-bottom-left-radius:0; }
+.sdiff-context-gap .sdiff-separator-content:hover { text-decoration:underline; }
+.sdiff-expand { display:flex;align-items:center;justify-content:center;min-width:16px;color:var(--cds-text-muted); }
+.sdiff-expand svg { flex:none; }
+.sdiff-expand [data-expand-direction=down] { transform:scaleY(-1); }
+.sdiff-separator-wrapper:hover :is(.sdiff-expand,.sdiff-separator-content) { color:var(--cds-text-secondary); }
+.sdiff-context-gap button:focus-visible,.sdiff-file-body:focus-visible { outline:none;box-shadow:var(--cds-focus-shadow); }
+@media (pointer:fine) {
+  .sdiff-separator-wrapper[data-multi-button] { grid-template-rows:50% 50%; }
+  .sdiff-separator-wrapper[data-multi-button] .sdiff-expand { grid-column:1; }
+  .sdiff-separator-wrapper[data-multi-button] .sdiff-separator-content { grid-area:1 / 2 / -1;grid-column-start:-2; }
+}
+.sdiff-separator-content>span { overflow:hidden; white-space:nowrap; text-overflow:ellipsis; min-width:0; }
+.sdiff-hunk-separator[data-separator=metadata] { margin-block:0; }
+.sdiff-row { display: grid; grid-template-columns: max-content minmax(0, 1fr);
+  column-gap:0;padding-inline:0; min-height: var(--cds-leading-code, 17px); white-space: pre;
+  font: var(--cds-font-size-code, 12px)/var(--cds-leading-code, 17px) var(--cds-font-mono, monospace); }
+.sdiff-line-number { text-align: right; color: var(--cds-text-muted); user-select: none; font-variant-numeric: tabular-nums; }
+.sdiff-marker { user-select: none; }
+.sdiff-line-content { display: block; min-width: 0; font: inherit; tab-size: 4; }
+.sdiff-view.diff .sdiff-row.added, .sdiff-view.diff .sdiff-raw-code > .added { color: var(--cds-text-git-added, #1e9e3c); background: var(--cds-bg-git-added); }
+.sdiff-view.diff .sdiff-row.removed, .sdiff-view.diff .sdiff-raw-code > .removed { color: var(--cds-text-git-removed, #cd2054); background: var(--cds-bg-git-removed); }
+.sdiff-row.added .sdiff-line-number, .sdiff-row.removed .sdiff-line-number { color: inherit; }
+.sdiff-notice, .sdiff-metadata-only { padding: var(--cds-pad-xs, 4px) var(--cds-pad-md, 8px); color: var(--cds-text-muted); font: var(--cds-font-size-body, 13px)/var(--cds-leading-body, 19px) var(--cds-font-sans, sans-serif); }
+.sdiff-raw-code { overflow: auto; margin: 0; padding: 4px 0; white-space: pre; font: inherit; }
+.sdiff-raw-code > code { display: block; min-width: max-content; padding-inline: 8px; white-space: pre; font: inherit; }
+.sdiff-note code { font: inherit; }
+/* [data-no-newline] (c49d7f557): the preceding line's background; the words in the muted code colour. */
+.sdiff-no-newline .sdiff-no-newline-text, .sdiff-note[data-no-newline] { color: var(--cds-text-muted); }
+@media (pointer: coarse) { .sdiff-copy { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .sdiff-caret { transition: none; } }
+html[data-reduce-motion="true"] .sdiff-caret { transition: none; }
+
+/* ca7ba268c unified classic: one displayed number, old/new facts retained on
+   the row; content wraps at available pane width without losing whitespace. */
+.sdiff-view .sdiff-row { white-space:pre-wrap;overflow-wrap:anywhere;font-feature-settings:"liga","clig","calt";letter-spacing:calc(round(up,1ch,1px / 64) - 1ch); }
+.sdiff-view .sdiff-line-number { box-sizing:content-box;min-width:var(--sdiff-number-width,3ch);padding-left:calc(2ch + 5px);padding-right:1ch; }
+.sdiff-code-cell { min-width:0;position:relative;padding-inline:2ch 1ch; }
+.sdiff-code-cell>.sdiff-marker { display:block;padding:0;min-width:0;position:absolute;inset-inline-start:0;top:0;width:1ch;height:1lh; }
+.sdiff-view .sdiff-line-content { white-space:pre-wrap;overflow-wrap:anywhere;color:light-dark(var(--code-theme-light-fg,var(--cds-text-primary)),var(--code-theme-dark-fg,var(--cds-text-primary))); }
+.sdiff-view .sdiff-note { white-space:pre-wrap;overflow-wrap:anywhere; }
+
+.sdiff-split-row { display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:stretch; }
+.sdiff-split-side { min-width:0; }
+.sdiff-split-side+.sdiff-split-side { border-inline-start:1px solid var(--cds-border); }
+.sdiff-split-side .sdiff-note { padding-inline:0; }
+.sdiff-view[data-word-wrap=false] .sdiff-hunk { min-width:max-content; }
+.sdiff-view[data-word-wrap=false] .sdiff-row,.sdiff-view[data-word-wrap=false] .sdiff-line-content { white-space:pre;overflow-wrap:normal; }
+.sdiff-view[data-layout=split][data-word-wrap=false] .sdiff-hunk { display:grid;grid-template-columns:repeat(2,minmax(max-content,1fr)); }
+.sdiff-view[data-layout=split][data-word-wrap=false] .sdiff-hunk-separator { grid-column:1 / -1; }
+.sdiff-view[data-layout=split][data-word-wrap=false] .sdiff-split-row { grid-column:1 / -1;grid-template-columns:subgrid; }
+
+/* R10 Changes body with the "Changed files" column (panes-diff-view-current.js
+   :5530-5590): a flex row [column | edge handle | main], the main column holds
+   the large-diff banner above the .source-changes scroller (source-session.css). */
+.sdiff-changes-layout { position:relative; display:flex; flex:1; min-height:0; min-width:0; }
+.sdiff-changes-main { display:flex; flex-direction:column; flex:1; min-width:0; min-height:0; }
+.sdiff-changes-main > .source-changes { flex:1; min-height:0; }
+/* R3-files FT-07: the column's edge is the official border-e (c44d00c7f, colour from the c6a992d55 base layer) and the
+   Changed files rows carry the 2.42304.0 ca7840910 row classes; with D26's layered button reset nothing here restates
+   them (an unlayered background would also hide the rows' --file-tree-kept-guides / --file-tree-guides images). */
+/* c44d00c7f Jr's path tooltips ask for max-w-[min(480px,var(--available-width))] (c0fbbe82d mn); the host tooltip
+   (SourceTooltip) keeps 240px on its positioner and popup unlayered and has no Floating UI size middleware, so the cap is
+   restated here for those popups, with the viewport less SourceTooltip's 5px collision padding on each side standing in
+   for --available-width. */
+.source-tooltip-positioner:has(> .source-tooltip-popup[class~="max-w-[min(480px,var(--available-width))]"]),
+.source-tooltip-popup[class~="max-w-[min(480px,var(--available-width))]"] { max-width: min(480px, 100vw - 10px); }
+/* B15 Commits section (c44d00c7f Zr/Kr/Wr): the same `button` reset beats the rows' layered px-xs py-[6px],
+   text-body, text-primary/secondary and the ce9ca5630 a/c fills, so they are restated unlayered too.
+   scroll-mt-(--cds-pad-md) (Kr) is in the 2.31226.0 c6a992d55 copy but not in the loaded one. */
+.sdiff-commit-row, .sdiff-commit-scope { padding:6px var(--cds-pad-xs); background:var(--cds-alpha-0); color:var(--cds-text-primary);
+  font-size:var(--cds-font-size-body); line-height:var(--cds-leading-body); }
+.sdiff-commit-scope { scroll-margin-top:var(--cds-pad-md); }
+.sdiff-commit-row:hover, .sdiff-commit-row[data-pressed], .sdiff-commit-scope:hover { background:var(--cds-fill-ghost-hover); }
+.sdiff-commit-row[aria-pressed="true"], .sdiff-commit-row[aria-pressed="true"]:hover,
+.sdiff-commit-scope[aria-pressed="true"], .sdiff-commit-scope[aria-pressed="true"]:hover { background:var(--cds-fill-control); }
+.sdiff-commit-row:focus-visible, .sdiff-commit-scope:focus-visible, .sdiff-commits-trigger:focus-visible { outline:none; box-shadow:var(--cds-focus-shadow); }
+.sdiff-commits-trigger { padding-right:var(--cds-pad-md); color:var(--cds-text-secondary); font-size:var(--cds-font-size-body); line-height:var(--cds-leading-body); }
+@media (prefers-reduced-motion: reduce) { .sdiff-tree-caret { transition:none; } }
+html[data-reduce-motion="true"] .sdiff-tree-caret { transition:none; }
+/* cn shield: while a handle drags, the whole pane keeps the col-resize cursor
+   and text selection is off (as the Files tree's data-tree-resizing rules). */
+.sdiff-changes-layout[data-resizing] { user-select:none; }
+.sdiff-changes-layout[data-resizing] * { cursor:col-resize !important; }
+.sdiff-changes-layout[data-resizing] :is(.sdiff-file-list-divider, .sdiff-file-list-edge) > span { opacity:1; background:var(--cds-fill-primary); }
+/* Yn (c44d00c7f): the hidden list's edge is Jn with "start-0 end-auto w-[3px] [&>*]:pointer-events-none", so it leaves
+   the gutter's line-comment '+' (Ca, -left-0.5) clickable. */
+.source-tree-edge.sdiff-file-list-edge { width:3px; }
+.source-tree-edge.sdiff-file-list-edge > * { pointer-events:none; }
+/* Line comments: Ca (c44d00c7f 2925-2943) in the @pierre/diffs gutter utility slot (absolute,
+   top/bottom 0, my-auto, -left-0.5): cda9b4504 "flex size-4 items-center justify-center rounded bg-fill-accent
+   text-on-accent hover:bg-fill-accent-hover", shown on the hovered line (or while it has keyboard focus). */
+.sdiff-row[data-commentable] { position: relative; }
+.sdiff-gutter-add { position: absolute; top: 0; bottom: 0; left: -2px; z-index: 1; display: flex; align-items: center; justify-content: center;
+  width: 1rem; height: 1rem; margin-block: auto; padding: 0; border: 0; border-radius: var(--cds-radius); white-space: normal; touch-action: none;
+  background: var(--cds-fill-accent); color: var(--cds-on-accent, #fff); opacity: 0; pointer-events: none; }
+.sdiff-gutter-add:hover { background: var(--cds-fill-accent-hover, var(--cds-fill-accent)); }
+.sdiff-row[data-commentable]:hover > .sdiff-gutter-add, .sdiff-gutter-add:focus-visible { opacity: 1; pointer-events: auto; }
+.sdiff-gutter-add:focus-visible { outline: none; box-shadow: var(--cds-focus-shadow); }
+.sdiff-row[data-commentable] > .sdiff-line-number { grid-column: 1; }
+.sdiff-row[data-commentable] > .sdiff-code-cell { grid-column: 2; }
+/* B14: c44d00c7f ha/ga comment cards sit in the row's annotation slot (full width, sans text, selectable), and the
+   @pierre/diffs line-number drag tints the picked rows. */
+.sdiff-comment-row { min-width: 0; letter-spacing: normal; font-feature-settings: normal; }
+.sdiff-row[data-commentable] > .sdiff-line-number { cursor: var(--cds-cursor-interactive, pointer); }
+.sdiff-view.diff .sdiff-row:is([data-line-selected], [data-comment-range]) { background: color-mix(in srgb, var(--cds-fill-accent) 14%, transparent); }
+.sdiff-view.diff .sdiff-row:is(.added, .removed):is([data-line-selected], [data-comment-range]) { box-shadow: inset 0 0 0 999px color-mix(in srgb, var(--cds-fill-accent) 14%, transparent); }

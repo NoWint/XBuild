@@ -7,6 +7,7 @@
 @import "./highspeed/highspeed-activation.css";
 @import "./highspeed/highspeed-share.css";
 @import "./nativeMediaControls.css";
+@import "./desktop-design-system.css";
 @source "../../../node_modules/streamdown/dist/*.js"; /* 感觉这行也是不好使呢*/
 
 @plugin "@tailwindcss/typography";
@@ -143,6 +144,24 @@ html[data-document-hidden] *::after {
 /* === 主题变量 === */
 
 @theme {
+  /* 独立实现使用平台合法字体，不复制参考客户端的专有 Anthropic 字体。 */
+  --font-sans:
+    ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, "PingFang SC",
+    "Microsoft YaHei UI", "Noto Sans CJK SC", sans-serif;
+  --font-voice: Georgia, "Times New Roman", "Songti SC", "Noto Serif CJK SC", serif;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 580;
+  --font-weight-bold: 600;
+  --text-ui-prose: calc(var(--ui-font-size) + 1px);
+  --text-ui-prose--line-height: 1.4;
+  --text-ui-welcome: calc(var(--ui-font-size) + 18px);
+  --text-ui-welcome--line-height: 1.2;
+  --text-ui-welcome-compact: calc(var(--ui-font-size) + 8px);
+  --text-ui-welcome-compact--line-height: 1.25;
+  --spacing-desktop-header: var(--desktop-header-height);
+  --spacing-desktop-sidebar-row: var(--desktop-sidebar-row-height);
+  --spacing-desktop-reading: var(--desktop-reading-width);
   /* 修复原因：Windows 的 Consolas 不含中文字形，Tailwind 默认栈最终会让中文落到宋体。
    * 保留各平台西文等宽字体，并在通用 monospace 前显式加入各平台 CJK 无衬线字体。 */
   --font-mono:
@@ -2296,9 +2315,11 @@ html[data-document-hidden] *::after {
     border-radius: 24px;
   }
 
+  /* 只改角形，半径仍由 --desktop-composer-radius 单一所有者决定；
+     原先硬编码 32px 会覆盖共享 token，让 composer 与消息轨道圆角分层不一致。 */
   [data-composer-layout] {
     corner-shape: squircle;
-    border-radius: 32px;
+    border-radius: var(--desktop-composer-radius, 12px);
   }
 }
 
@@ -2424,9 +2445,131 @@ html[data-document-hidden] *::after {
   --zcode-scrollbar-thumb: color-mix(in oklab, var(--color-foreground) 45%, transparent);
 }
 
-/* Xbuild：所有 bg-popover 浮层统一毛玻璃——半透明 token + backdrop-blur，
- * 浮在内容之上仍可读，同时透出窗口 vibrancy 的底层质感。 */
-.bg-popover {
-  backdrop-filter: blur(28px) saturate(160%);
-  -webkit-backdrop-filter: blur(28px) saturate(160%);
+/* XBuild Desktop presentation：只在本文件维护颜色、几何与运动数值。
+ * CDR 浏览器基线确认普通 panel 为透明，颜色依赖壁纸而无法跨平台稳定比较；
+ * 现在内容层使用确定表面，窗口外沿仍沿原平台材质 owner，不改 theme/broadcast 状态。 */
+:root,
+.theme-zai-light {
+  --desktop-page: #f9f9f7;
+  --desktop-panel: #fcfcfb;
+  --desktop-elevated: #ffffff;
+  --desktop-popover: #ffffff;
+  --desktop-sidebar: #f9f9f7;
+  --desktop-surface: #f0efec;
+  --desktop-text-primary: #0b0b0b;
+  --desktop-text-secondary: #52514e;
+  --desktop-text-muted: #898781;
+  --desktop-hover: rgb(0 0 0 / 4%);
+  --desktop-selected: rgb(0 0 0 / 7%);
+  --desktop-border: rgb(0 0 0 / 8%);
+  --desktop-border-hover: rgb(0 0 0 / 16%);
+  --desktop-primary: #191919;
+  --desktop-primary-foreground: #ffffff;
+  --desktop-shadow-composer: 0 1px 2px rgb(0 0 0 / 5%), 0 4px 12px rgb(0 0 0 / 3%);
+  --desktop-shadow-popover:
+    0 0 0 0.5px rgb(0 0 0 / 6%), 0 8px 24px rgb(0 0 0 / 12%), 0 2px 6px rgb(0 0 0 / 8%);
+}
+
+.dark,
+.theme-zai-dark {
+  /* 实测基准（2026-11-18 真实 Claude 窗口截图）：页面 #191919、侧栏 #1f1f1f、
+     分隔描边 #303030、强调橙 #cc7c5e。先前值来自静态样式声明，非运行态实测。 */
+  --desktop-page: #191919;
+  --desktop-panel: #1f1f1f;
+  --desktop-elevated: #242423;
+  --desktop-popover: #262625;
+  --desktop-sidebar: #1f1f1f;
+  --desktop-surface: #262625;
+  --desktop-text-primary: #f0efec;
+  --desktop-text-secondary: #c3c2b7;
+  --desktop-text-muted: #898781;
+  --desktop-hover: rgb(255 255 255 / 5%);
+  --desktop-selected: rgb(255 255 255 / 8%);
+  --desktop-border: #303030;
+  --desktop-border-hover: rgb(255 255 255 / 18%);
+  --desktop-primary: #efefef;
+  --desktop-primary-foreground: #191919;
+  --desktop-brand-accent: #8f4a32;
+  /* 实测：XBuild 尖星沿用参考界面的低饱和暖橙，仅用于品牌 mark，不替换状态色。 */
+  --desktop-brand-accent: #cc7c5e;
+  --desktop-shadow-composer: 0 1px 2px rgb(0 0 0 / 18%), 0 4px 12px rgb(0 0 0 / 12%);
+  --desktop-shadow-popover:
+    0 0 0 0.5px rgb(255 255 255 / 8%), 0 8px 24px rgb(0 0 0 / 32%), 0 2px 6px rgb(0 0 0 / 20%);
+}
+
+:root {
+  --desktop-sidebar-width: 288px;
+  --desktop-header-height: 36px;
+  --desktop-reading-width: 768px;
+  --desktop-reading-width-wide: 960px;
+  /* 实测：真实 Claude 空态 composer 在 1582px 窗口下宽 671.5px（672px）。 */
+  --desktop-draft-reading-width: 672px;
+  --desktop-reading-gutter: 24px;
+  --desktop-reading-gutter-compact: 16px;
+  --desktop-sidebar-row-height: 26px;
+  --desktop-touch-row-height: 44px;
+  --desktop-frame-radius: 8px;
+  --desktop-composer-radius: 12px;
+  --desktop-composer-radius-comfortable: 14px;
+  --desktop-control-radius: 6px;
+  --desktop-menu-radius: 8px;
+  --desktop-dialog-radius: 16px;
+  --desktop-duration-fast: 60ms;
+  --desktop-duration-snap: 120ms;
+  --desktop-duration-base: 200ms;
+  --desktop-duration-layout: 300ms;
+  --desktop-duration-reveal: 560ms;
+  --desktop-stagger-step: 55ms;
+  --desktop-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --desktop-overlay-blur: 8px;
+}
+
+:root,
+.dark,
+.theme-zai-light,
+.theme-zai-dark {
+  --color-background: var(--desktop-page);
+  --color-background-win-alt: var(--desktop-page);
+  --color-background-alt: color-mix(in srgb, var(--desktop-page) 90%, transparent);
+  --color-header: var(--desktop-panel);
+  --color-panel: var(--desktop-elevated);
+  --color-sidebar: var(--desktop-sidebar);
+  --color-surface: var(--desktop-surface);
+  --color-surface-hover: color-mix(in srgb, var(--desktop-text-primary) 5%, var(--desktop-surface));
+  --color-user-message-bubble: var(--desktop-surface);
+  --color-card: var(--desktop-elevated);
+  --color-card-selected: var(--desktop-selected);
+  --color-card-border: var(--desktop-border);
+  --color-popover: var(--desktop-popover);
+  --color-popover-header: var(--desktop-popover);
+  --color-popover-border: var(--desktop-border);
+  --color-popover-foreground: var(--desktop-text-primary);
+  --color-menu: var(--desktop-popover);
+  --color-menu-hover: var(--desktop-hover);
+  --color-input: var(--desktop-elevated);
+  --color-input-focused: var(--desktop-elevated);
+  --color-input-border: var(--desktop-border-hover);
+  --color-input-border-hover: var(--desktop-text-muted);
+  --color-input-border-focused: var(--desktop-text-secondary);
+  --color-border: var(--desktop-border);
+  --color-border-hover: var(--desktop-border-hover);
+  --color-foreground: var(--desktop-text-primary);
+  --color-foreground-subtle: var(--desktop-text-secondary);
+  --color-foreground-subtlest: var(--desktop-text-muted);
+  --color-brand: var(--desktop-text-primary);
+  --color-primary: var(--desktop-primary);
+  --color-primary-foreground: var(--desktop-primary-foreground);
+  --color-secondary: var(--desktop-surface);
+  --color-hover: var(--desktop-hover);
+  --color-selected: var(--desktop-selected);
+  --color-tab: var(--desktop-panel);
+  --color-tab-active: var(--desktop-selected);
+  --color-tab-border: var(--desktop-border);
+  --color-tooltip: var(--desktop-popover);
+  --color-tooltip-foreground: var(--desktop-text-primary);
+  --color-tooltip-tag: var(--desktop-surface);
+  --color-tooltip-tag-foreground: var(--desktop-text-secondary);
+  --color-toast: var(--desktop-popover);
+  --color-tag: var(--desktop-surface);
+  --shadow-composer-soft: var(--desktop-shadow-composer);
 }

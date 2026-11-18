@@ -23,9 +23,9 @@ export function resolveE2EHomeDir({
 }
 
 export function resolveE2EStorageRoot(e2eHomeDir = resolveE2EHomeDir()): string {
-  // Bug 根因：回滚 storage profile 时删除了仍被 E2E 用例依赖的路径 helper。
-  // E2E 继续隔离 HOME，但 CLI 根固定使用历史目录 .zcode，不再区分 dev/stable profile。
-  return join(e2eHomeDir, ".zcode");
+  // 根因：E2E 仍向 .zcode 播种，而当前 Host/Main 从 .xbuild 读取，隔离配置因此缺席。
+  // base 仅负责 HOME 隔离；统一保留生产 suffix，launcher/helper 复用此入口。
+  return join(e2eHomeDir, ".xbuild");
 }
 
 export function resolveE2ERuntimeRoot(e2eHomeDir = resolveE2EHomeDir()): string {

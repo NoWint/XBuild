@@ -15,6 +15,7 @@ export type SettingsSectionId =
   | "mcp"
   | "skill"
   | "plugins"
+  | "dshPlugins"
   | "projects"
   | "archives"
   | "usage"

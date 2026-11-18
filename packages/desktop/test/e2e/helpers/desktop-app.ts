@@ -1,7 +1,7 @@
 /* eslint-disable max-lines -- 测试相关的代码，忽略 */
 import { execFileSync } from "node:child_process";
 import { access, mkdir, readFile, rm, writeFile } from "node:fs/promises";
-import { basename, dirname, join, resolve } from "node:path";
+import { basename, dirname, join } from "node:path";
 import {
   isApiKeyAccess,
   type ModelConfig,
@@ -27,18 +27,11 @@ import {
 import { dismissOccupationOnboarding } from "./occupation-onboarding.js";
 import { sel } from "./selectors.js";
 import { projectSectionSelector } from "./project-sidebar.js";
+import { resolveE2EHomeDir, resolveE2EStorageRoot } from "./e2e-runtime-paths.js";
 
-const DEFAULT_E2E_HOME_DIR = resolve(process.cwd(), ".e2e-home");
-const E2E_HOME_DIR =
-  process.env.ZCODE_E2E_HOME_DIR?.trim() ||
-  process.env.ZCODE_DATA_BASE_DIR?.trim() ||
-  process.env.ZCODE_DESKTOP_HOME_DIR?.trim() ||
-  // 修复原因：WDIO worker 环境不稳定时，helper 曾回落到真实 HOME，
-  // 导致 provider 诊断和清理读写开发者本机配置，而不是当前 e2e sandbox。
-  DEFAULT_E2E_HOME_DIR;
-// Bug 根因：storage profile 回滚删除了该共享根字段，但多个 E2E 仍需定位 CLI 数据。
-// 隔离由测试 HOME 保证，目录名保持生产历史语义 .zcode。
-const E2E_STORAGE_ROOT = join(E2E_HOME_DIR, ".zcode");
+// 根因：helper 独立推导旧根，诊断与清理没有命中 launcher 播种的当前配置。
+const E2E_HOME_DIR = resolveE2EHomeDir();
+const E2E_STORAGE_ROOT = resolveE2EStorageRoot(E2E_HOME_DIR);
 const E2E_APP_DATA_DIR = join(E2E_STORAGE_ROOT, "v2");
 export const DEFAULT_WORKSPACE = join(E2E_HOME_DIR, "ZCodeProject");
 export const DEFAULT_CONVERSATION_WORKSPACE = join(E2E_STORAGE_ROOT, "workspace", "default");

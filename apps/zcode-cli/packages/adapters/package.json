@@ -66,6 +66,10 @@
       "types": "./dist/plugins/index.d.ts",
       "import": "./dist/plugins/index.js"
     },
+    "./dsh-plugins": {
+      "types": "./dist/dsh-plugins/index.d.ts",
+      "import": "./dist/dsh-plugins/index.js"
+    },
     "./auth": {
       "types": "./dist/auth/index.d.ts",
       "import": "./dist/auth/index.js"

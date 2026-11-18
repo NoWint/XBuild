@@ -64,7 +64,11 @@ export function ProjectSidebarNavigation({
   const disabledPanels = new Set(props.panelsUi?.disabled ?? []);
   const navPanels: { id: string; node: ReactNode }[] = [];
   // 远控主视图会把自动化和插件市场重置为聊天；入口必须一同隐藏，避免点击无效。
-  if (!props.isWebRemoteControl && props.onOpenAutomations && !disabledPanels.has("panel.automations")) {
+  if (
+    !props.isWebRemoteControl &&
+    props.onOpenAutomations &&
+    !disabledPanels.has("panel.automations")
+  ) {
     navPanels.push({
       id: "panel.automations",
       node: (
@@ -111,15 +115,19 @@ export function ProjectSidebarNavigation({
   return (
     <div
       data-testid="sidebar-primary-navigation"
-      className={`flex flex-col gap-1 px-2 py-3 ${props.isWebRemoteControl && !deviceNavigation ? "max-md:pt-11" : ""}`}
+      className={`xb-sidebar-navigation flex flex-col gap-1 px-2 py-3 ${props.isWebRemoteControl && !deviceNavigation ? "xb-sidebar-mobile-controls-inset" : ""}`}
     >
       {/* Relay V2 远控：当前电脑是项目与任务的上一级，放在导航首行；手机端占用原顶部留白。 */}
       {deviceNavigation ? <WebRemoteControlDeviceHeader navigation={deviceNavigation} /> : null}
       {/* Xbuild：桌面端在新建任务上方常驻品牌标题（与下方按钮的图标列对齐）。 */}
       {!props.isWebRemoteControl ? (
-        <div className="flex items-center gap-2 pb-1 pl-2.5 pr-2.5 pt-0.5" aria-label="XBuild">
+        <div
+          className="xb-sidebar-wordmark flex items-center gap-2 pb-1 pl-2.5 pr-2.5 pt-0.5"
+          aria-label="XBuild"
+        >
           <ZCodeAboutLogo className="size-4 shrink-0 text-foreground" />
-          <span className="text-ui-lg font-semibold tracking-tight text-foreground">XBuild</span>
+          {/* 子节点显式 tracking 会覆盖字标的零字距；沿用父级 role，避免文字被压紧。 */}
+          <span className="font-voice text-ui-xl font-medium text-foreground">XBuild</span>
         </div>
       ) : null}
       <NewTaskButtonGroup onCreateTask={onCreate} />

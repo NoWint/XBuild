@@ -1551,7 +1551,7 @@ export function PreviewPane({
   const header = (
     <div
       className={cn(
-        "flex h-10 min-w-0 shrink-0 items-center gap-2",
+        "xb-preview-header flex min-w-0 shrink-0 items-center gap-2",
         !headerContainer && "bg-surface/30",
         !headerContainer && showDocumentHeaderDivider && "border-b border-border",
       )}
@@ -1571,20 +1571,22 @@ export function PreviewPane({
             <span className="shrink-0 text-foreground-subtle">{breadcrumb.rootLabel}</span>
           ) : null}
           {breadcrumb?.rootLabel ? (
-            <ChevronRightIcon className="size-3.5 shrink-0 text-foreground-subtlest" />
+            <ChevronRightIcon className="size-4 shrink-0 text-foreground-subtlest" />
           ) : null}
           {breadcrumb?.parentSegments.map((segment, index) => (
             <Fragment key={`${segment}-${index}`}>
               <span className="shrink-0">{segment}</span>
-              <ChevronRightIcon className="size-3.5 shrink-0 text-foreground-subtlest" />
+              <ChevronRightIcon className="size-4 shrink-0 text-foreground-subtlest" />
             </Fragment>
           ))}
 
           <span className="inline-flex min-w-0 items-center gap-1 text-foreground">
             {breadcrumb?.fileIconSrc ? (
-              <FileDisplayIcon src={breadcrumb.fileIconSrc} size={14} className="shrink-0" />
+              <FileDisplayIcon src={breadcrumb.fileIconSrc} size={16} className="shrink-0" />
             ) : null}
-            <span className="truncate">{breadcrumb?.fileLabel ?? source.title}</span>
+            <span className="truncate" title={source.path ?? source.title}>
+              {breadcrumb?.fileLabel ?? source.title}
+            </span>
           </span>
         </div>
       </div>
@@ -1605,7 +1607,7 @@ export function PreviewPane({
               id: "codeViewer.openSourcePreview",
             })}
           >
-            <FileCode2Icon className="size-3.5" data-icon="inline-start" />
+            <FileCode2Icon className="size-4" data-icon="inline-start" />
             <span>
               {intl.formatMessage({
                 id: "codeViewer.openSourcePreview",
@@ -1625,7 +1627,7 @@ export function PreviewPane({
                 aria-label={intl.formatMessage({ id: "common.more" })}
                 title={intl.formatMessage({ id: "common.more" })}
               >
-                <Ellipsis className="size-3.5" />
+                <Ellipsis className="size-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-64 max-w-[calc(100vw-1rem)]">
@@ -1655,7 +1657,7 @@ export function PreviewPane({
   return (
     <aside
       data-testid={TID_PREVIEW_PANE}
-      className="flex h-full flex-col overflow-hidden bg-background"
+      className="flex h-full min-w-0 flex-col overflow-hidden bg-background"
     >
       {headerContainer ? createPortal(header, headerContainer) : header}
       <div className="min-h-0 flex-1">

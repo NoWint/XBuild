@@ -444,8 +444,6 @@ export interface ConversationComposerProps {
    * 仅草稿态由宿主下发；会话建立后为空。
    */
   contextHeader?: ReactNode;
-  /** 居中草稿布局（旧 shouldUseCenteredDraftChatLayout）：收窄 max-w-2xl、去 sticky。 */
-  centered?: boolean;
   /** 输入框布局，见 ChatPromptEditor；inline 是 Side Pane 完整视图浮窗的单行形态。 */
   layout?: "stacked" | "inline";
   /**
@@ -588,7 +586,6 @@ function ConversationComposerImpl({
   createSubmissionFromComposer,
   telemetryDraftConfig,
   contextHeader,
-  centered = false,
   layout = "stacked",
   workingDurationMs,
   blockingRequestId = null,
@@ -2197,7 +2194,7 @@ function ConversationComposerImpl({
                   data-upload-status={attachment.uploadStatus}
                   className={
                     isMediaAttachment
-                      ? "relative size-12 overflow-hidden rounded-lg bg-surface after:pointer-events-none after:absolute after:inset-0 after:rounded-lg after:border after:border-border after:content-['']"
+                      ? "relative size-12 shrink-0 overflow-hidden rounded-lg bg-surface after:pointer-events-none after:absolute after:inset-0 after:rounded-lg after:border after:border-border after:content-['']"
                       : "h-12 w-fit max-w-full min-w-0 gap-2 rounded-lg border border-border bg-surface p-1.5 pr-6 [--attachment-bg:var(--color-surface)] hover:bg-surface-hover"
                   }
                   data={{
@@ -2286,7 +2283,8 @@ function ConversationComposerImpl({
                         data-testid={testId(TID_V4_ATTACHMENT_UPLOAD_PROGRESS, attachment.id)}
                         role={attachment.uploadStatus === "failed" ? "alert" : "status"}
                         aria-label={uploadStatusLabel}
-                        className="absolute inset-0 grid place-items-center rounded-lg bg-background/85 text-[7px] font-semibold text-foreground"
+                        // 原因：7px 上传百分比在固定 48px 媒体上不可读；只接入现有字号角色，不改变上传 gate 或附件尺寸。
+                        className="absolute inset-0 grid place-items-center rounded-lg bg-background/85 text-ui-xs font-semibold text-foreground"
                       >
                         <svg
                           aria-hidden="true"
@@ -2389,7 +2387,7 @@ function ConversationComposerImpl({
                     aria-label={intl.formatMessage({
                       id: "chat.attachments.remove",
                     })}
-                    className="absolute right-0.5 top-0.5 z-20 size-3.5 rounded-full bg-primary p-0 text-primary-foreground opacity-0 transition-opacity hover:bg-primary/80 hover:text-primary-foreground group-hover:opacity-100 focus-visible:opacity-100 [@media(hover:none)]:opacity-100"
+                    className="absolute right-0.5 top-0.5 z-20 size-5 rounded-full bg-primary p-0 text-primary-foreground opacity-0 transition-opacity hover:bg-primary/80 hover:text-primary-foreground group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100 [@media(hover:none)]:opacity-100"
                     onPointerDown={(event) => event.stopPropagation()}
                     onClick={(event) => {
                       event.preventDefault();
@@ -2397,7 +2395,7 @@ function ConversationComposerImpl({
                       attachmentsApi.removeAttachment(attachment.id);
                     }}
                   >
-                    <XIcon className="size-2.5" />
+                    <XIcon className="size-3" />
                   </Button>
                 </Attachment>
               );
@@ -2501,7 +2499,7 @@ function ConversationComposerImpl({
   );
   const submitControlNode = useMemo(
     () => (
-      <div className="flex min-w-0 items-center gap-1">
+      <div className="xb-composer-toolbar flex min-w-0 items-center gap-1">
         {!remoteAvailable ? (
           <span
             data-testid="remote-send-unavailable"
@@ -2709,12 +2707,10 @@ function ConversationComposerImpl({
   // 只在视觉和可访问树中隐藏，避免权限/问答卡片出现时丢失草稿和编辑器内部状态。
   return (
     // 外层 bottom dock 负责 sticky 与横向主列宽度；composer 自身组织错误提示与输入壳。
-    // centered（居中草稿布局，m5）：收窄 max-w-2xl（旧
-    // getChatViewComposerWidthClassName 的 draft 档），由宿主的居中容器摆位。
-    // 有 contextHeader（草稿态）时，内层输入 surface 套旧 ChatViewComposer 同款卡：
-    // rounded-2xl bg-surface shadow-xl/5；会话态回落不透明页面底色。
-    // 错误横幅虽然排在 contextHeader 前面，但不能与输入区共用同一个圆角 surface，
-    // 视觉上会被误认为输入卡标题栏；将 surface 边界收窄到工作区头和编辑器后，桌面与手机
+    // 草稿态使用 Timeline 的 672px draft rail，会话态使用 768px reading rail。
+    // 不在 composer 内另设限宽，避免出现双所有者和中心偏移。
+    // 草稿的项目行与输入壳分开排布，避免旧的双重卡片外框。
+    // 视觉上会被误认为输入卡标题栏；输入与项目行的表面边界分离，桌面与手机
     // Web 仍共享同一 DOM 顺序，同时恢复错误提示与输入卡之间的独立层级。
     <div
       data-testid={TID_V4_COMPOSER}
@@ -2722,8 +2718,7 @@ function ConversationComposerImpl({
       aria-hidden={isBlockedByInteraction ? true : undefined}
       style={isBlockedByInteraction ? { display: "none" } : undefined}
       className={cn(
-        "chat-composer-region z-20 w-full shrink-0 @container/composer",
-        centered && "max-w-2xl",
+        "chat-composer-region z-20 flex w-full shrink-0 flex-col @container/composer",
       )}
     >
       {/* 旧 ChatViewComposer 同款隐藏 file input（web/无 native picker 平台回退）。 */}
@@ -2788,12 +2783,22 @@ function ConversationComposerImpl({
           ) : null}
         </div>
       ) : null}
+      {contextHeader ? (
+        <div
+          data-v4-draft-context="true"
+          className="relative z-10 order-2 flex min-w-0 flex-wrap items-center gap-0 px-3 pb-2 pt-1"
+        >
+          <ComposerSubmissionPendingContext.Provider value={updateTargetSelectionPending}>
+            {contextHeader}
+          </ComposerSubmissionPendingContext.Provider>
+        </div>
+      ) : null}
       <div
         data-highspeed-composer={highspeedCard ? "true" : undefined}
         data-highspeed-entrance={highspeedCard ? highspeedEntrance : undefined}
         className={cn(
-          "chat-composer-input-surface relative w-full",
-          contextHeader && "rounded-2xl bg-surface shadow-xl/5",
+          "chat-composer-input-surface relative order-1 w-full",
+          contextHeader && "rounded-2xl",
           highspeedCard && "highspeed-composer-surface",
           highspeedPresented && "highspeed-placeholder-presented",
         )}
@@ -2804,14 +2809,6 @@ function ConversationComposerImpl({
             animated={highspeedEntranceAnimated}
             onModelTransitionStart={handleHighspeedModelTransitionStart}
           />
-        ) : null}
-        {contextHeader ? (
-          // 旧 ChatViewComposer contextHeaderContent 同款包装（workspace 菜单 + Git 分支）。
-          <div className="relative z-10 p-1.5 flex min-w-0 flex-wrap items-center gap-0">
-            <ComposerSubmissionPendingContext.Provider value={updateTargetSelectionPending}>
-              {contextHeader}
-            </ComposerSubmissionPendingContext.Provider>
-          </div>
         ) : null}
         {conversationSelectionLimitReason ? (
           <div
@@ -2875,11 +2872,12 @@ function ConversationComposerImpl({
           submitControl={submitControlNode}
           layout={layout}
           className="p-0"
-          shellClassName={
+          shellClassName={cn(
+            contextHeader && "xb-draft-composer-shell",
             highspeedCard
               ? "relative z-10 !rounded-none !border-0 !bg-transparent !transition-none hover:!border-transparent focus-within:!border-transparent focus-within:!bg-transparent"
-              : undefined
-          }
+              : undefined,
+          )}
           onChange={handleEditorChange}
           onUserInputClear={handleUserInputClear}
           onUserInputPresenceChange={handleUserInputPresenceChange}

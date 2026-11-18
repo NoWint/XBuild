@@ -578,12 +578,12 @@ export const ModelConfigSelect = memo(function ModelConfigSelectComponent({
       ) : null}
       {triggerBadge}
       {pending ? (
-        <LoaderIcon className="pointer-events-none size-3.5 animate-spin text-foreground" />
+        <LoaderIcon className="pointer-events-none size-4 shrink-0 animate-spin text-foreground" />
       ) : null}
       {!pending && (
         <ChevronDownIcon
           className={cn(
-            "pointer-events-none size-3.5 text-foreground-subtle",
+            "pointer-events-none size-4 shrink-0 text-foreground-subtle",
             indicatorClassName,
             composerOptions && "group-data-[composer-compact=true]/combined:hidden",
           )}
@@ -618,7 +618,8 @@ export const ModelConfigSelect = memo(function ModelConfigSelectComponent({
         data-composer-collapse-priority={composerOptions ? "3" : undefined}
         onClick={guideTooltipOpen ? onGuideTooltipDismiss : undefined}
         className={cn(
-          "w-fit justify-between gap-1 rounded-lg pl-2 pr-1.5 text-ui-base whitespace-nowrap",
+          // 原因：长模型名称的固有宽度会把触发器推到 rail 外；限制按钮而保留原滚动标签与选择链路。
+          "w-fit min-w-0 max-w-full justify-between gap-1 rounded-lg pl-2 pr-1.5 text-ui-base whitespace-nowrap",
           triggerClassName,
           composerOptions && "group/combined relative",
           showSelectionLabel &&

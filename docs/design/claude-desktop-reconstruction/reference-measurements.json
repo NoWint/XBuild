@@ -1,0 +1,119 @@
+{
+  "schemaVersion": 1,
+  "observedAt": "2026-11-14",
+  "product": "Claude Desktop",
+  "version": "5.11492.5",
+  "provenance": {
+    "kind": "installed-public-client-style-measurements",
+    "bundle": "/Applications/Claude.app",
+    "archives": ["Contents/Resources/ion-dist.asar", "Contents/Resources/app.asar"],
+    "redistributedClientCode": false,
+    "redistributedBrandAssets": false,
+    "privateProfileAccessed": false,
+    "runtimeStyleBranchConfirmed": false,
+    "note": "数值来自可读取的静态样式声明，不表示所有声明同时激活；保留原生、Web 与 density 分支差异。"
+  },
+  "nativeFrame": {
+    "sidebarWidthPx": 288,
+    "sidebarInsetPx": 8,
+    "chromeHeightPx": 36,
+    "contentGutterPx": 8,
+    "rowHeightPx": 26,
+    "rowControlPx": 20,
+    "rowFontPx": 13,
+    "groupFontPx": 12,
+    "iconPx": 16,
+    "rowStackGapPx": 2,
+    "rowGapPx": 4,
+    "cardRadiusPx": 8,
+    "rowRadiusPx": 6,
+    "popoverFastMs": 120,
+    "layoutSlowMs": 300,
+    "easeOut": [0.32, 0.72, 0, 1]
+  },
+  "webFrame": {
+    "rowHeightPx": 32,
+    "rowControlPx": 24,
+    "rowFontPx": 14,
+    "groupFontPx": 13,
+    "iconPx": 20,
+    "leadingSlotPx": 28,
+    "rowGapPx": 8,
+    "rowRadiusPx": 8,
+    "sidebarInsetPx": 0,
+    "touchRowHeightPx": 44,
+    "touchRowControlPx": 36
+  },
+  "cdsFoundation": {
+    "light": {
+      "page": "#f9f9f7",
+      "surface": "#fcfcfb",
+      "panel": "#ffffff",
+      "popover": "#ffffff",
+      "textPrimary": "#0b0b0b",
+      "textSecondary": "#52514e",
+      "textMuted": "#898781"
+    },
+    "dark": {
+      "page": "#0b0b0b",
+      "surface": "#151515",
+      "panel": "#1a1a19",
+      "popover": "#20201f",
+      "textPrimary": "#f0efec",
+      "textSecondary": "#c3c2b7",
+      "textMuted": "#898781"
+    },
+    "regularWeight": 400,
+    "mediumWeight": 500,
+    "semiboldWeight": 580,
+    "boldWeight": 600,
+    "fastMs": 60,
+    "snapMs": 120,
+    "baseMs": 200,
+    "composerRadiusPx": 12,
+    "comfortableComposerRadiusPx": 14,
+    "inputMobileFontFloorPx": 16,
+    "proseDefaultPx": 15,
+    "proseDefaultLineHeightPx": 21,
+    "chatGutterPx": 32,
+    "narrowChatGutterPx": 16
+  },
+  "fizzyLakeBranch": {
+    "activationConfirmed": false,
+    "light": {
+      "surface": "#ffffff",
+      "sidebar": "#fafafa",
+      "popover": "#ffffff",
+      "textPrimary": "#000000e6",
+      "textSecondary": "#00000099",
+      "textMuted": "#00000077"
+    },
+    "dark": {
+      "surface": "#191919",
+      "panel": "#1f1f1f",
+      "sidebar": "#1f1f1f",
+      "popover": "#303030",
+      "textPrimary": "#ffffffed",
+      "textSecondary": "#ffffff91",
+      "textMuted": "#ffffff66"
+    },
+    "lightComposerRing": "#0000001f",
+    "darkComposerRing": "#ffffff14"
+  },
+  "fontReferences": {
+    "interface": "Anthropic Sans",
+    "voice": "Anthropic Serif",
+    "mono": ["SFMono-Regular", "Menlo", "Monaco", "Consolas", "Liberation Mono"],
+    "bundledProprietaryFontsCopied": false,
+    "xbuildPolicy": "使用操作系统合法提供的 sans/serif/mono 字体；专有字形差异明确保留为验收限制。"
+  },
+  "referenceCapture": {
+    "state": "blocked",
+    "debugging": "官方应用明确拒绝 debugging/network-override switches；未绕过。",
+    "screenCapturePermission": false,
+    "cleanInstanceLaunchSucceeded": true,
+    "cleanInitialWindowPx": {"width": 600, "height": 600},
+    "authenticatedPagesObserved": false,
+    "pixelParityCertified": false
+  }
+}

@@ -172,6 +172,8 @@ export const ServiceChannels = {
   Plugins: "plugins",
   /** 设置页插件管理服务（UI 平台能力面收敛，不再直触 zcodeAgentService） */
   PluginManagement: "plugin-management",
+  /** DSH 原生依赖域的受作用域控制面及原始载荷通道。 */
+  DshPlugins: "dsh-plugins",
   /** 插件 UI 沙箱桥：host 读取 ui:// 资源并向 main 登记、代理 UI 发起的工具调用 */
   PluginUiBridge: "plugin-ui-bridge",
   PluginUiSampling: "plugin-ui-sampling",

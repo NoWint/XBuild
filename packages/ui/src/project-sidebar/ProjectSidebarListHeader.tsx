@@ -28,12 +28,12 @@ export function ProjectSidebarListHeader({
   const { intl } = useZCodeIntl();
   return (
     <div
-      className="flex min-w-0 shrink-0 items-center gap-1 px-2 pb-2"
+      className="xb-sidebar-list-header flex min-w-0 shrink-0 items-center gap-1 px-2 pb-2"
       data-testid="sidebar-search-toolbar"
     >
       <span
         data-testid="sidebar-list-title"
-        className="min-w-0 flex-1 truncate px-2.5 text-ui-base font-medium text-foreground-subtle"
+        className="min-w-0 flex-1 truncate px-2.5 text-ui-sm font-medium text-foreground-subtle"
       >
         {intl.formatMessage({ id: "taskList.title" })}
       </span>

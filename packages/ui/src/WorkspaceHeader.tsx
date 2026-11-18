@@ -160,7 +160,7 @@ export function WorkspaceHeader({
       data-testid={TID_WORKSPACE_HEADER}
       data-workspace-header-variant={variant}
       className={cn(
-        "@container/workspace-header relative flex w-full shrink-0 h-12 border-b",
+        "xb-workspace-header @container/workspace-header relative flex w-full shrink-0 h-desktop-header border-b",
         variant === "draft" ? "border-transparent" : "border-border/50",
       )}
     >
@@ -177,7 +177,7 @@ export function WorkspaceHeader({
         className={cn(
           // 大会话 resize trace 显示 titlebar padding 动画层会触发 scrollbar-color 非合成动画；
           // 明确限定 transition-property 为 padding，避免 duration-300 退回默认 all。
-          "flex h-12 flex-1 min-w-0 items-center justify-between gap-2 overflow-hidden p-2 [app-region:drag] transition-[padding] duration-300",
+          "flex h-desktop-header flex-1 min-w-0 items-center justify-between gap-2 overflow-hidden px-2 py-1 [app-region:drag] transition-[padding] duration-300",
           // 旧 caption 菜单移除后不能继续清零右边距，否则终端按钮会贴住面板边框。
           headerWindowControlsPaddingClass,
         )}

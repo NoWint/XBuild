@@ -14,11 +14,12 @@
     "dev": "node ../../scripts/dev-desktop-env.mjs production",
     "pre-dev:local-cli": "pnpm --dir ../.. exec node scripts/build-desktop-agent-cli.mjs && node -e \"require('node:fs').rmSync('./out',{recursive:true,force:true})\"",
     "dev:local-cli": "pnpm pre-dev:local-cli && concurrently -k -n tsup,vite,electron \"tsup --watch src --watch ../services/src --watch ../server/src --watch ../shared/src --watch ../rpc/src --watch ../client/src --watch ../provider/src --watch ../provider-node/src --ignore-watch 'mock-cdn/**' --ignore-watch 'bundled-agents/**' --ignore-watch '.e2e-cache/**' --ignore-watch '.e2e-artifacts/**' --ignore-watch '.e2e-home-*/**' --ignore-watch 'dist-cua-helper/**'\" \"vite dev\" \"node scripts/dev.mjs\"",
-    "dev:runtime": "concurrently -k -n tsup,vite,electron \"tsup --watch src --watch ../services/src --watch ../server/src --watch ../shared/src --watch ../rpc/src --watch ../client/src --watch ../provider/src --watch ../provider-node/src --ignore-watch 'mock-cdn/**' --ignore-watch 'bundled-agents/**' --ignore-watch '.e2e-cache/**' --ignore-watch '.e2e-artifacts/**' --ignore-watch '.e2e-home-*/**' --ignore-watch 'dist-cua-helper/**'\" \"vite dev\" \"node scripts/dev.mjs\"",
+    "dev:runtime": "node scripts/prepare-open-shell-renderer.mjs && concurrently -k -n tsup,vite,electron \"tsup --watch src --watch ../services/src --watch ../server/src --watch ../shared/src --watch ../rpc/src --watch ../client/src --watch ../provider/src --watch ../provider-node/src --ignore-watch 'mock-cdn/**' --ignore-watch 'bundled-agents/**' --ignore-watch '.e2e-cache/**' --ignore-watch '.e2e-artifacts/**' --ignore-watch '.e2e-home-*/**' --ignore-watch 'dist-cua-helper/**'\" \"node ../../node_modules/vite/bin/vite.js vendor/open-claude-desktop/app --config vite.open-shell.config.ts\" \"node scripts/dev.mjs\"",
     "prepare:build-meta": "node scripts/build-metadata.mjs",
     "prepare:runtime-assets": "node scripts/prepare-runtime-assets.mjs",
     "prepare:glm": "node ../../scripts/download-glm.mjs",
     "prepare:agent-bundle": "node scripts/prepare-agent-node-bundle.mjs",
+    "prepare:open-shell-runtime": "node scripts/prepare-open-shell-runtime.mjs",
     "prepare:windows-cua-helper": "node scripts/prepare-windows-cua-helper.mjs",
     "prepare:native-search": "node ../../scripts/prepare-native-search-tools.mjs",
     "prepare:browser-import-helper": "node scripts/build-windows-browser-import-helper.mjs",
@@ -94,7 +95,8 @@
     "ws": "^8.20.0",
     "yaml": "^2.9.0",
     "yauzl": "^3.3.0",
-    "yazl": "^3.3.1"
+    "yazl": "^3.3.1",
+    "zod": "4.6.5"
   },
   "devDependencies": {
     "@electron/asar": "^3.4.1",

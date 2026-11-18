@@ -115,7 +115,8 @@ export function AnimatedTerminalPanel({
         // 禁用隐藏终端面板的 resize target，避免用户从边缘把 terminal 拖出来。
         disabled={isResizeDisabled}
         className={cn(
-          "transition-opacity duration-200 ease-out",
+          // 真实 terminal 容器接入共享 motion role，reduced-motion 下才真正静止。
+          "xb-animated-pane transition-opacity",
           isVisible ? "opacity-100" : "pointer-events-none opacity-0",
         )}
       >

@@ -295,7 +295,7 @@ function AssistantPreviewCardRow({
     <OpenSplitButton
       renderCard={(button, { handlePreview, canPreview }) => (
         <div
-          className="relative flex w-full items-center gap-3 rounded-xl border border-card-border bg-card p-3 pr-4 text-foreground"
+          className="xb-artifact-card relative flex w-full min-w-0 items-center gap-3 border border-card-border bg-card p-3 pr-4 text-foreground"
           data-preview-card-title={card.title}
           data-zcode-stream-animate="true"
           style={
@@ -309,7 +309,7 @@ function AssistantPreviewCardRow({
               一次点击只会命中其中一个目标，不会触发两次预览。 */}
           <button
             type="button"
-            className="absolute inset-0 cursor-pointer rounded-xl disabled:pointer-events-none disabled:cursor-default"
+            className="absolute inset-0 cursor-pointer rounded-lg disabled:pointer-events-none disabled:cursor-default"
             aria-label={intl.formatMessage(
               { id: "chat.previewCards.openCard" },
               { title: card.title },
@@ -319,18 +319,18 @@ function AssistantPreviewCardRow({
           />
           <div className="flex size-11 shrink-0 items-center justify-center rounded-md bg-background text-foreground-subtle">
             {!renderAsFile && card.type === "website" ? (
-              <GlobeIcon className="size-6" />
+              <GlobeIcon className="size-4" />
             ) : descriptor ? (
-              <FileDisplayIcon src={descriptor.fileIconSrc} size={24} />
+              <FileDisplayIcon src={descriptor.fileIconSrc} size={16} />
             ) : (
-              <FileTextIcon className="size-6" />
+              <FileTextIcon className="size-4" />
             )}
           </div>
           <div className="min-w-0 flex flex-1 flex-col gap-1">
-            <div className="truncate text-ui-base font-medium leading-5">{card.title}</div>
-            <div className="truncate text-ui-base leading-5 text-foreground-subtlest">
-              {subtitle}
+            <div className="truncate text-ui-base font-medium leading-5" title={card.title}>
+              {card.title}
             </div>
+            <div className="truncate text-ui-sm leading-5 text-foreground-subtle">{subtitle}</div>
           </div>
           <div className="relative z-10 shrink-0">{button}</div>
         </div>

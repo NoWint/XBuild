@@ -40,6 +40,26 @@ E2E 落地回答“怎么稳定测”：
 
 ## 共享初始化合同
 
+### 当前隔离数据根与登录表面（2026-11-15）
+
+E2E 的 `resolveE2EStorageRoot(home)` 是测试路径的唯一派生入口。当前生产数据根使用
+`<base>/.xbuild`，launcher、Desktop helper、settings/provider/credentials/project
+seeds 必须从该测试入口派生同一 `.xbuild` 根和 `v2` 配置目录。`ZCODE_E2E_HOME_DIR`
+继续由 runner/child 持有，并作为 HOME、USERPROFILE、ZCODE_DATA_BASE_DIR 与
+ZCODE_DESKTOP_HOME_DIR 的隔离 base；它不改变生产根的 suffix。
+禁止复制一份 seed 到旧 `.zcode`、修改生产 paths 或新增第二条 provider/config 写入路径
+来补偿测试路径漂移。工作区内 `.zcode-e2e` fixture 子目录是既有测试名称，不随数据根改名。
+
+当前 WelcomeScreen 直接显示 API-key form，不再提供原 chooser。共享准备 helper 须识别
+实际 API-key form、职业引导或 workspace/settings 就绪；已由隔离回放 provider seed
+满足的 shell 不应调用登录。需要 API-key UI 准备时，操作实际可见的 input/Continue，
+不无条件点击不存在的 chooser、不等一次超时后再猜页面、不伪造账户或 store 状态。
+普通未注册 case（包括 CDR pending）仍保持匿名 credentials `{}`，不能为了通过验收
+把账号 fixture 政策扩大到所有用例。
+
+工程回归覆盖隔离 HOME 优先级、真实配置路径派生、当前 direct form、已就绪 shell 不登录，
+以及初始化空草稿的幂等复用；原生 CDR 与 runtime 回放的运行证据另行记录。
+
 ChromeDriver 必须自己以 `--port=0` 绑定端口，启动器从该子进程的就绪消息取得实际端口后再连接。
 不要先探测并释放空闲端口，再交给另一个进程绑定；2026-10-19 连续回放已出现驱动绑定失败、
 随后 WDIO 仍报启动成功的现场。每个 worker 持有自己的驱动，冷重启 Electron 时复用，

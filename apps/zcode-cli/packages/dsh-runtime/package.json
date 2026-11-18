@@ -1,0 +1,43 @@
+{
+  "name": "@zcode/dsh-runtime",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" },
+    "./contract": { "types": "./dist/contract.d.ts", "import": "./dist/contract.js" },
+    "./worker": { "types": "./dist/worker.d.ts", "import": "./dist/worker.js" },
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run tests",
+    "lint": "oxlint src tests --config ../../../../.oxlintrc.json --no-ignore",
+    "clean": "node ../../scripts/clean-dist.mjs"
+  },
+  "dependencies": {
+    "@deepseek-ai/cordis": "4.1.0",
+    "@deepseek-ai/dsh": "0.2.2-rc.3",
+    "@deepseek-ai/dsh-agent": "0.2.2-rc.3",
+    "@deepseek-ai/dsh-api-gateway": "0.2.2-rc.3",
+    "@deepseek-ai/dsh-app-boot": "0.2.2-rc.3",
+    "@deepseek-ai/dsh-client-connection": "0.2.2-rc.3",
+    "@deepseek-ai/dsh-client-modules": "0.2.2-rc.3",
+    "@deepseek-ai/dsh-llm": "0.2.2-rc.3",
+    "@deepseek-ai/dsh-launch-environment": "0.2.2-rc.3",
+    "@deepseek-ai/dsh-http-proxy": "0.2.2-rc.3",
+    "@deepseek-ai/dsh-official-bundles": "0.2.2-rc.3",
+    "@deepseek-ai/dsh-sdk-jsonrpc-server": "0.2.2-rc.3",
+    "@deepseek-ai/dsh-sdk-protocol": "0.2.2-rc.3",
+    "@deepseek-ai/dsh-session": "0.2.2-rc.3",
+    "@deepseek-ai/dsh-typert-protocol": "0.2.2-rc.3",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "vitest": "^4.1.5"
+  }
+}

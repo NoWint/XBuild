@@ -137,5 +137,5 @@
       "@extend-ai/react-xlsx@0.16.0": "patches/@extend-ai__react-xlsx@0.16.0.patch"
     }
   },
-  "license": "Apache-2.0"
+  "license": "AGPL-3.0-only"
 }

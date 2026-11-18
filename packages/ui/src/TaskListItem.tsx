@@ -256,6 +256,7 @@ export const MemoTaskItem = memo(function TaskListItem({
         id: taskAttention.kind === "userInput" ? "taskList.userInputTag" : "taskList.permissionTag",
       })
     : null;
+  // 原因：实时 attention 与 pendingInteraction 都表示等待确认，两个布局统一使用确认色而非成功色。
   const taskAttentionDisplay =
     taskAttention && taskAttentionLabel && taskAttention.count > 1
       ? intl.formatMessage(
@@ -423,7 +424,7 @@ export const MemoTaskItem = memo(function TaskListItem({
   ) : null;
   const changeSummaryNode =
     !hasPendingInteraction && taskChangeSummary ? (
-      <span className="shrink-0 text-ui-base">
+      <span className="shrink-0 text-ui-caption">
         {taskChangeSummary.added > 0 ? (
           <span className="text-diff-added">+{taskChangeSummary.added}</span>
         ) : null}
@@ -471,9 +472,9 @@ export const MemoTaskItem = memo(function TaskListItem({
           {isRemoteTask ? (
             // 本地和远端 task 混排时，统一 archive 图标无法提示操作会落在哪个 sqlite。
             // 远端任务使用 cloud 语义图标，避免用户误把远端归档当成本地归档。
-            <CloudUpload className="h-3.5 w-3.5" />
+            <CloudUpload className="size-4" />
           ) : (
-            <Archive className="h-3.5 w-3.5" />
+            <Archive className="size-4" />
           )}
         </TaskRowActionButton>
       )}
@@ -503,7 +504,7 @@ export const MemoTaskItem = memo(function TaskListItem({
           });
         }}
       >
-        <ListTree className="size-3.5" />
+        <ListTree className="size-4" />
       </TaskRowActionButton>
     ) : null;
   const taskActionGroupNode =
@@ -524,7 +525,7 @@ export const MemoTaskItem = memo(function TaskListItem({
         event.stopPropagation();
       }}
       onClick={handleTogglePin}
-      className="inline-flex size-4 min-w-0 rounded-sm p-0 text-foreground-subtle !bg-transparent hover:text-foreground"
+      className="inline-flex size-5 min-w-0 rounded-sm p-0 text-foreground-subtle !bg-transparent hover:text-foreground"
       aria-label={intl.formatMessage({
         id: isPinned ? "taskList.unpin" : "taskList.pin",
       })}
@@ -567,13 +568,13 @@ export const MemoTaskItem = memo(function TaskListItem({
         }
       }}
       className={cn(
-        "group/task-item flex cursor-pointer gap-2 rounded-lg pl-2.5 pr-1 py-1 transition-[background-color,border-color,box-shadow]",
-        // 默认行 32px 时前置槽整行居中；长出工作流运行行后行体是两行的纵向列，槽改为对齐首行。
+        "xb-sidebar-row group/task-item flex cursor-pointer gap-2 pl-2.5 pr-1 focus-visible:bg-selected",
+        // 原因：旧 py-1 与标题 h-6 把 compact 行撑至 32px；首行改用共享最小高度，多行仍由内容撑高。
         variant === "timeline"
           ? "items-start py-1.5"
           : hasWorkflowRunLines
-            ? "items-start"
-            : "items-center",
+            ? "items-start py-0"
+            : "items-center py-0",
         isActive ? "bg-selected" : hoverEnabled && "hover:bg-surface-hover",
       )}
     >
@@ -584,8 +585,12 @@ export const MemoTaskItem = memo(function TaskListItem({
       <div
         className={cn(
           "relative flex size-4 shrink-0 items-center justify-center",
-          // 行体是纵向列（标题行 + 运行行）时前置槽对齐首行而不是整行：默认 24px 首行居中 = 上留 4px。
-          variant === "timeline" ? "mt-0.5" : hasWorkflowRunLines ? "mt-1" : undefined,
+          // 多行内容的状态槽保持对齐标题通道，不随运行行整体下移。
+          variant === "timeline"
+            ? "mt-0.5"
+            : hasWorkflowRunLines
+              ? "mt-1 max-md:mt-3.5"
+              : undefined,
         )}
       >
         <span
@@ -646,7 +651,7 @@ export const MemoTaskItem = memo(function TaskListItem({
             ) : null}
             {remoteConnectionBadge}
             <TaskTitleOverflowText
-              className="text-ui-base text-foreground"
+              className="text-ui-caption text-foreground max-md:text-ui-base"
               title={taskTitleWithChanges}
             >
               {/* Bugfix: task 标题之前使用 truncate，会在长标题末尾显示省略号；
@@ -660,12 +665,12 @@ export const MemoTaskItem = memo(function TaskListItem({
                 onSnoozeCountdown={snoozeInteractionAutoResolution}
               />
             ) : taskAttentionDisplay ? (
-              <Badge className="h-5 shrink-0 border-transparent bg-success/14 px-2 text-ui-base font-medium text-success dark:bg-success/18">
+              <Badge className="h-5 shrink-0 border-transparent bg-interaction-confirmation-surface px-2 text-ui-sm font-medium text-interaction-confirmation-foreground">
                 {taskAttentionDisplay}
               </Badge>
             ) : null}
           </div>
-          <div className="flex min-w-0 items-center justify-between gap-2 text-ui-base text-foreground-subtle h-6">
+          <div className="flex min-w-0 items-center justify-between gap-2 text-ui-sm text-foreground-subtle h-6">
             <div className="flex min-w-0 items-center gap-1.5">
               <span className="truncate" data-task-workspace-label="true">
                 {workspaceLabel}
@@ -726,7 +731,7 @@ export const MemoTaskItem = memo(function TaskListItem({
       ) : (
         <div className="flex min-w-0 flex-1 flex-col">
           <div className="flex min-w-0 items-center gap-2">
-            <div className="relative min-w-0 flex h-6 flex-1 flex-wrap items-center gap-1.5">
+            <div className="relative flex min-h-desktop-sidebar-row min-w-0 flex-1 flex-wrap items-center gap-1.5 max-md:min-h-[var(--desktop-touch-row-height)]">
               {isMobileActive && !shouldSuppressWorkspaceTaskMetadata ? (
                 <ControlHintTooltip
                   title={intl.formatMessage({ id: "taskList.mobileActive" })}
@@ -752,7 +757,7 @@ export const MemoTaskItem = memo(function TaskListItem({
               {/* 默认行与 timeline 共用远程断连投影，工作流多行布局不改变连接状态。 */}
               {remoteConnectionBadge}
               <TaskTitleOverflowText
-                className="text-ui-base text-foreground"
+                className="text-ui-caption text-foreground max-md:text-ui-base"
                 title={taskTitleWithChanges}
               >
                 {/* Bugfix: 默认 workspace task item 和 timeline item 共享标题溢出规则；
@@ -777,7 +782,7 @@ export const MemoTaskItem = memo(function TaskListItem({
                   onSnoozeCountdown={snoozeInteractionAutoResolution}
                 />
               ) : taskAttentionDisplay ? (
-                <Badge className="h-5 shrink-0 border-transparent bg-success/14 px-2 text-ui-sm font-medium text-success dark:bg-success/18">
+                <Badge className="h-5 shrink-0 border-transparent bg-interaction-confirmation-surface px-2 text-ui-sm font-medium text-interaction-confirmation-foreground">
                   {taskAttentionDisplay}
                 </Badge>
               ) : null}

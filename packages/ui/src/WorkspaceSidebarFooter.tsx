@@ -179,7 +179,7 @@ export const WorkspaceSidebarFooter = memo(function WorkspaceSidebarFooterCompon
       </Avatar>
       <div className="min-w-0 flex-1 overflow-hidden text-left">
         <div className="flex min-w-0 items-center gap-1.5">
-          <span className="min-w-0 truncate text-ui-base font-semibold text-foreground">
+          <span className="min-w-0 truncate text-ui-caption font-medium text-foreground max-md:text-ui-base">
             {profileBadge}
           </span>
         </div>
@@ -242,12 +242,11 @@ export const WorkspaceSidebarFooter = memo(function WorkspaceSidebarFooterCompon
               type="button"
               variant="ghost"
               size={"lg"}
-              className="min-w-0 flex-1 justify-start gap-2 overflow-hidden rounded-tl-2xl rounded-bl-2xl border-0 pl-0"
+              className="xb-profile-trigger min-w-0 flex-1 justify-start gap-2 overflow-hidden pl-0"
               data-testid={TID_LOGIN_TRIGGER}
               aria-label={profileBadge}
             >
-              {/* Bugfix: Button 默认 shrink-0 且带 whitespace-nowrap，超长用户名会把 footer 撑出 sidebar。
-                这里让触发按钮和文本列都允许收缩，并只在用户名自身做单行截断。 */}
+              {/* 原因：保留超长名称的收缩/截断；移除 border-0 让共享焦点边框真实绘制。 */}
               {profileContent}
             </Button>
           </DropdownMenuTrigger>

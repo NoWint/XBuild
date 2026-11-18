@@ -1,0 +1,29 @@
+/* XBuild redistribution boundary: retain the original family names without shipping proprietary font files. */
+@font-face {
+  font-family: anthropic-sans;
+  src: local("Arial"), local("Helvetica Neue"), local("PingFang SC");
+  font-weight: 300 800;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: anthropic-sans;
+  src: local("Arial Italic"), local("Helvetica Neue Italic"), local("PingFang SC");
+  font-weight: 300 800;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: anthropic-mono;
+  src: local("SFMono-Regular"), local("Menlo"), local("Consolas"), local("Liberation Mono");
+  font-weight: 300 800;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: anthropic-mono;
+  src: local("SFMono-Regular"), local("Menlo Italic"), local("Consolas Italic"), local("Liberation Mono Italic");
+  font-weight: 300 800;
+  font-style: italic;
+  font-display: swap;
+}

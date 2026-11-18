@@ -1,0 +1,123 @@
+.source-transcript-frame {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+}
+.source-transcript-frame > .transcript {
+  /* Keep source fade strips at scrollport width; the column owns its gutters. */
+  padding: 0;
+  overflow-anchor: none;
+  scroll-behavior: auto;
+}
+.source-transcript-content {
+  /* Match the source typography scope so inherited turn-gap uses the actual
+     14px transcript body, not the application chrome body fallback (13px). */
+  --chat-body: 14px;
+  --chat-leading: 1.42857;
+  --chat-turn-gap: calc(var(--chat-body) * var(--chat-leading) * .75);
+  --chat-item-gap: calc(var(--chat-body) * var(--chat-leading) * .5);
+  position: relative;
+  display: flow-root;
+  min-width: 0;
+  padding: 0 max(32px, calc((100% - 768px) / 2));
+}
+/* Current Code host omits compact; both transcript engines default it false.
+   V9 has ordinary 48px top/bottom reserve. No local history-page extra room
+   or composer overlay is added: our composer already occupies flex height. */
+.source-transcript-content[data-transcript-spacing="regular"] {
+  padding-block: 48px;
+}
+.source-transcript-content[data-transcript-spacing="regular"] > .source-message:first-child {
+  margin-top: 0;
+}
+/* Preserve the existing local narrow-window rule. Official tile-container
+   gutters are a separate layout difference, outside this fade change. */
+@media (max-width: 780px) {
+  .source-transcript-content {
+    padding-inline: 20px;
+  }
+}
+.source-transcript-end {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  pointer-events: none;
+}
+/* Classic chip (c360a9e1c-GPs-MV9u.js:3944-3978 od, the non-chatChrome branch;
+   scroll-shared-current.js:121-161 W/G): inline-flex h-[24px] px-xs rounded
+   bg-surface-panel text-secondary shadow-field, a fill-secondary-hover
+   gradient on hover, gap-xs, opacity over 150ms, absolute -top-[32px] above the
+   composer dock, i.e. 8px above this frame's bottom edge. The wrapper is
+   'contents' so it only forwards wheel events. */
+.source-transcript-jump-wrap { display: contents; }
+.source-transcript-jump {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--cds-gap-xs);
+  height: 24px;
+  padding: 0 var(--cds-pad-xs);
+  border: 0;
+  border-radius: var(--cds-radius);
+  color: var(--cds-text-secondary);
+  background: var(--cds-surface-panel);
+  box-shadow:
+    inset 0 0 0 1px var(--cds-fill-secondary-ring),
+    0 1px 2px #0000000d;
+  font-size: 12px;
+  line-height: 16px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 150ms;
+  -webkit-app-region: no-drag;
+}
+.source-transcript-jump[data-visible="true"] {
+  opacity: 1;
+  pointer-events: auto;
+}
+.source-transcript-jump:hover {
+  background-image: linear-gradient(
+    var(--cds-fill-secondary-hover),
+    var(--cds-fill-secondary-hover)
+  );
+}
+.source-transcript-jump:focus-visible {
+  outline: none;
+  box-shadow: var(--cds-focus-shadow);
+}
+.source-transcript-input-dot {
+  flex-shrink: 0;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--cds-fill-accent);
+}
+@media (prefers-reduced-motion: reduce) {
+  .source-transcript-jump {
+    transition: none;
+  }
+}
+html[data-reduce-motion="true"] .source-transcript-jump { transition: none; }
+
+/* BY/w5 puts the completed-turn action toolbar 8px below its body. Keep all
+   existing item anchors and intra-turn gaps; the footer is a sibling, not an item. */
+.source-transcript-content > .source-message:has(+ .stf-footer) { margin-bottom: 0; }
+.source-transcript-content > .stf-footer { margin-top: 8px; margin-bottom: 10px; }
+.source-transcript-content > .stf-footer + .source-message { margin-top: 10px; }
+.source-transcript-content > .stf-footer + .source-message:is(.source-user-message,[data-turn-start]) { margin-top: 15px; }
+
+/* Current ceb49ada3 split selection toolbar; cd5a31703 Eot positions its first line. */
+.source-selection-toolbar { position:fixed;left:0;top:0;z-index:455;display:flex;width:max-content;max-width:calc(100vw - 24px);isolation:isolate;will-change:transform;pointer-events:auto;-webkit-app-region:no-drag;border-radius:4px;background:var(--cds-surface-3);box-shadow:var(--cds-shadow-popover);color:var(--cds-text-primary); }
+.source-selection-divider { width:1px;flex-shrink:0;margin:7px 0;background:var(--cds-alpha-2);transition:opacity .15s; }
+.source-selection-toolbar:hover .source-selection-divider,.source-selection-toolbar:focus-within .source-selection-divider { opacity:0; }
+@media (prefers-reduced-motion:reduce) { .source-selection-divider { transition:none; } }

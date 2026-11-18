@@ -1,4 +1,4 @@
-import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -57,10 +57,50 @@ describe("Desktop E2E runtime paths", () => {
     ).toBe(resolve("root", "explicit-home"));
   });
 
-  it("keeps the E2E CLI storage under the legacy .zcode directory", () => {
+  it("seeds the current .xbuild config below the isolated base rather than the legacy root", async () => {
+    const homeDir = await mkdtemp(join(tmpdir(), "e2e-storage-root-"));
+    const currentConfigPath = join(homeDir, ".xbuild", "v2", "setting.json");
+    try {
+      const configDir = join(resolveE2EStorageRoot(homeDir), "v2");
+      await mkdir(configDir, { recursive: true });
+      await writeFile(join(configDir, "setting.json"), "{}");
+
+      expect(await readFile(currentConfigPath, "utf8")).toBe("{}");
+    } finally {
+      await rm(homeDir, { recursive: true, force: true });
+    }
+  });
+
+  it("keeps the production storage suffix when only the E2E data base is overridden", () => {
     const homeDir = resolve("root", "isolated-e2e-home");
 
-    expect(resolveE2EStorageRoot(homeDir)).toBe(join(homeDir, ".zcode"));
+    expect(resolveE2EStorageRoot(homeDir)).toBe(join(homeDir, ".xbuild"));
+  });
+
+  it.each([
+    { env: {}, home: ".e2e-home" },
+    { env: { ZCODE_DESKTOP_HOME_DIR: "desktop-home" }, home: "desktop-home" },
+    {
+      env: {
+        ZCODE_DATA_BASE_DIR: " data-base ",
+        ZCODE_DESKTOP_HOME_DIR: "desktop-home",
+      },
+      home: "data-base",
+    },
+    {
+      env: {
+        ZCODE_E2E_HOME_DIR: " explicit-home ",
+        ZCODE_DATA_BASE_DIR: "data-base",
+        ZCODE_DESKTOP_HOME_DIR: "desktop-home",
+      },
+      home: "explicit-home",
+    },
+  ])("resolves relative isolated bases from the launcher cwd: $home", ({ env, home }) => {
+    const cwd = resolve("root", "desktop");
+    const homeDir = resolveE2EHomeDir({ cwd, env });
+
+    expect(homeDir).toBe(resolve(cwd, home));
+    expect(resolveE2EStorageRoot(homeDir)).toBe(resolve(cwd, home, ".xbuild"));
   });
 });
 

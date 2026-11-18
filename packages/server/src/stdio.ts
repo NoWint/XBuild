@@ -9,9 +9,11 @@ import {
 } from "@zcode/rpc";
 import {
   IZCodeAgentService,
+  IDshPluginService,
   createZCodeAgentConnectionScope,
   type ServiceCollection,
 } from "@zcode/services";
+import { createDshPluginConnectionScope, scopeDshAgentService } from "@zcode/services/node";
 
 /**
  * Wrap process.stdin/stdout as an ISocket for RPC communication.
@@ -77,12 +79,24 @@ export function createStdioServer(
         role: "trusted-host-relay",
       })
     : undefined;
-  services.exposeOnChannelServer(
-    channelServer,
-    connectionScope
-      ? new Map([[IZCodeAgentService.channelName, connectionScope.service]])
-      : new Map(),
-  );
+  const dshService = services.getOptional(IDshPluginService);
+  const dshConnectionScope = dshService
+    ? createDshPluginConnectionScope(dshService, {
+        connectionId: `server-dsh-stdio-${randomUUID()}`,
+        clientMode: "desktop-continuous",
+        role: "trusted-host-relay",
+      })
+    : undefined;
+  const overrides = new Map<string, unknown>();
+  if (connectionScope)
+    overrides.set(
+      IZCodeAgentService.channelName,
+      dshConnectionScope
+        ? scopeDshAgentService(connectionScope.service, dshConnectionScope)
+        : connectionScope.service,
+    );
+  if (dshConnectionScope) overrides.set(IDshPluginService.channelName, dshConnectionScope.service);
+  services.exposeOnChannelServer(channelServer, overrides);
   let stopPromise: Promise<void> | undefined;
   const stop = (): Promise<void> => {
     if (stopPromise) {
@@ -96,6 +110,7 @@ export function createStdioServer(
     stopPromise = (async () => {
       try {
         await connectionScope?.dispose();
+        await dshConnectionScope?.dispose();
       } finally {
         socket.dispose();
       }

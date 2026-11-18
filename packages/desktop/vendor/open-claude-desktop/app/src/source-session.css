@@ -1,0 +1,1027 @@
+/* Official source: code-transcript / code-turn-status / cds-messages /
+   code-approval / code-pane-header / code-pane-tile. See the analysis ledger. */
+.source-message.source-message {
+  --chat-item-gap: 10px;
+  --chat-turn-gap: 15px;
+  margin: 0;
+  min-width: 0;
+  font-family: var(--cds-font-sans, anthropic-sans), sans-serif;
+  font-size: 14px;
+  line-height: 1.42857;
+  color: var(--cds-text-primary);
+}
+.source-message + .source-message {
+  margin-top: var(--chat-item-gap);
+}
+.source-message.source-user-message,
+.source-message[data-turn-start] {
+  margin-top: var(--chat-turn-gap);
+}
+.source-message.source-user-message + .source-message {
+  margin-top: var(--chat-turn-gap);
+}
+.transcript > .source-message:first-child,
+.source-transcript-content > .source-message:first-child {
+  margin-top: 24px;
+}
+.source-message:last-of-type {
+  margin-bottom: 10px;
+}
+/* Host rows inside the original tool group (renderHostRow) are cells of the group, not transcript items: the
+   transcript's item spacing stays off them, as .stg-row and .sag-entries already do. */
+[data-tool-group] .source-message.source-message { margin: 0; }
+/* Outer user turn: source gap-sm (8px) between the bubble group and the
+   persistent actions row. The legacy .user-message > div rule is neutralized
+   for the structural children below. */
+.source-message.source-user-message {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--cds-gap-sm, 8px);
+}
+.source-user-message > .source-user-group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px; /* already verified bubble-group spacing; compact gap-xs token is 6px */
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  border-radius: 0;
+  background: none;
+  white-space: normal;
+}
+.source-user-message > .sua-row {
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  border-radius: 0;
+  background: none;
+  white-space: normal;
+}
+/* A prompt the agent's scheduler fired (MiMo cron / loop): a muted clock row above its bubble. */
+.source-user-group > .source-user-scheduled {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--cds-text-muted);
+  font-size: var(--cds-font-size-footnote, 12px);
+}
+.source-user-group > .source-user-bubble {
+  max-width: 85%;
+  padding: var(--cds-pad-md, 8px) var(--cds-pad-lg, 12px);
+  /* f1 rounded-card (scroll-messages-current.js:38646-38647; c6a992d55 .rounded-card). */
+  border-radius: calc(var(--cds-radius) + calc(.25rem * var(--cds-rem-scale,1)));
+  background: var(--cds-bg-user-message, var(--cds-alpha-1));
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  line-height: 1.42857;
+  user-select: text;
+}
+/* gp (scroll-shared-10:1900-1934): data-cds=MessageAttachments is a full-width
+   wrapping flex row, justify-end with gap-xs (6px compact). data-fit/items-end
+   depend on the naturalImageTiles frame setting behind an unverified flag;
+   every local tile is a fixed 7.5rem square, so alignment cannot differ. The
+   4px group gap between the row and the bubble stays as previously verified. */
+.source-user-group > .source-user-attachments {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--cds-gap-xs, 6px);
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  border-radius: 0;
+  background: none;
+  white-space: normal;
+}
+.source-user-attachments .sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; border: 0;
+  overflow: hidden; clip-path: inset(50%); white-space: nowrap;
+}
+/* Card (shared-7 Nl/Cl): rounded-card = radius + .25rem*scale, a hairline
+   border-strong ring, surface-1 fill and the field drop shadow. */
+.source-user-attachment-card {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  border-radius: inherit;
+  border: var(--cds-ring-hairline, 0.5px) solid var(--cds-border-strong);
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  overflow: hidden;
+}
+.source-user-attachment-fill {
+  position: absolute; inset: 0; z-index: -1; margin: 0; border-radius: inherit;
+  background: var(--cds-surface-1); pointer-events: none;
+}
+/* $f non-natural branch (Of): 7.5rem*scale square, shrink-0, rounded-card;
+   Card size-full; img absolute inset-0 size-full rounded-card object-contain,
+   opacity 0 -> 1 over dur-base once loaded (Jf). */
+.source-user-attachment-image {
+  position: relative;
+  isolation: isolate;
+  flex: none;
+  width: calc(7.5rem * var(--cds-rem-scale, 1));
+  height: calc(7.5rem * var(--cds-rem-scale, 1));
+  /* rounded-card: --cds-radius (6px compact) + .25rem * rem-scale (desktop 1). */
+  border-radius: calc(var(--cds-radius, 0.375rem) + 0.25rem * var(--cds-rem-scale, 1));
+  outline: none;
+}
+.source-user-attachment-image:focus-visible { box-shadow: var(--cds-focus-shadow); }
+.source-user-attachment-image > .source-user-attachment-card {
+  align-items: center;
+  justify-content: center;
+}
+.source-user-attachment-picture {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  object-fit: contain;
+  opacity: 0;
+  transition: opacity var(--cds-dur-base, 120ms);
+}
+.source-user-attachment-picture[data-loaded] { opacity: 1; }
+[data-state="failed"] > .source-user-attachment-card > .source-user-attachment-glyph { opacity: 0.5; }
+@media (prefers-reduced-motion: reduce) {
+  .source-user-attachment-picture { transition: none; }
+}
+html[data-reduce-motion="true"] .source-user-attachment-picture { transition: none; }
+.source-user-attachment-glyph {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  color: var(--cds-text-muted); pointer-events: none;
+}
+/* lp/sp file card: 7.5rem*scale square (shared-2 Yf), uppercase badge. R2-topbar TT-07: the name is the 2.42304.0
+   Np (source-user-file-card.jsx) and carries only its official utilities (text-footnote font-normal text-primary,
+   line-clamp-N / max-h-[Nlh], [overflow-wrap:anywhere], the before:content-['…'] tail); no local rule targets it. */
+.source-user-attachment-file {
+  position: relative;
+  flex: none;
+  width: calc(7.5rem * var(--cds-rem-scale, 1));
+  height: calc(7.5rem * var(--cds-rem-scale, 1));
+  border-radius: calc(var(--cds-radius, 0.375rem) + 0.25rem * var(--cds-rem-scale, 1));
+  align-self: flex-end;
+  outline: none;
+}
+/* jp content column: "flex min-h-0 min-w-0 flex-1 flex-col justify-between gap-xs" (the name at the top, the badge
+   at the bottom), inside the card's padding. */
+.source-user-attachment-file-body {
+  position: relative;
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--cds-gap-xs, 6px);
+  padding: var(--cds-pad-lg, 12px);
+}
+.source-user-attachment-badge {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  height: var(--cds-h-control-nested, 18px);
+  padding: 0 var(--cds-pad-sm, 6px);
+  /* rounded-chip (approval-shared-current.js:6843; c6a992d55 .rounded-chip). */
+  border-radius: calc(var(--cds-h-control-nested) / 4);
+  background: var(--cds-alpha-2);
+  font-size: var(--cds-font-size-caption, 11px);
+  font-weight: 500;
+  line-height: 1;
+  color: var(--cds-text-secondary);
+  white-space: nowrap;
+}
+/* f1: the bubble itself is a flex column with gap-1.25 (5px) so a collapsed
+   body and its Show more toggle stack like the source. */
+.source-user-group > .source-user-bubble {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacing, .25rem) * 1.25);
+}
+.source-assistant-message {
+  position: relative;
+}
+/* Response typography, c19e90103-B6esh4pG.css:1. File-preview prose uses
+   different heading sizes; the response inherits the user's chat body size. */
+.source-markdown {
+  display:flex; flex-direction:column; gap:var(--chat-item-gap,10px);
+  font:var(--cds-font-weight-regular,400) var(--chat-body,14px)/var(--chat-leading,1.42857) var(--cds-font-sans);
+  font-variation-settings:var(--cds-font-wght-regular,normal);
+  color:var(--cds-text-primary); overflow-wrap:break-word; user-select:text;
+}
+.source-markdown :is(p,ul,ol,blockquote,pre,table,h1,h2,h3,h4,h5,h6) { margin:0; }
+.source-markdown :is(h1,h2,h3) { font-family:inherit; font-weight:var(--cds-font-weight-semibold,600); font-variation-settings:var(--cds-font-wght-semibold,normal); letter-spacing:-.01em; }
+.source-markdown h1 { font-size:1.14286em; line-height:1.25; margin-block:12px -4px; }
+.source-markdown h2 { font-size:1.07143em; line-height:1.33333; margin-block:10px -4px; }
+.source-markdown h3 { font-size:1em; line-height:inherit; margin-block:7px -4px; }
+.source-markdown :is(h4,h5,h6) { font:inherit; font-weight:var(--cds-font-weight-medium,500); font-variation-settings:var(--cds-font-wght-medium,normal); }
+.source-markdown>:first-child { margin-top:0; }
+.source-markdown>:last-child { margin-bottom:0; }
+.source-markdown strong { font-weight:var(--cds-font-weight-medium,500); }
+[data-mode=dark] .source-markdown :is(strong a,b a,a strong,a b) { font-weight:var(--cds-font-weight-regular,400); }
+.source-markdown em { font-style:italic; }
+.source-markdown :is(ul,ol) { display:flex; flex-direction:column; gap:var(--cds-pad-sm,6px); padding-left:20px; }
+.source-markdown ul { list-style:disc outside; }
+.source-markdown ol { list-style:decimal outside; }
+.source-markdown ul.contains-task-list { list-style:none; padding-left:0; }
+.source-markdown li { margin:0; }
+/* markdown-current:4181–4215 Dc/Oc; task completion is reported, not editable. */
+.smd-task-item { display:flex;align-items:flex-start;gap:4px;text-decoration-thickness:1px; }
+.smd-task-item:has(>.smd-task-marker[data-done]) { text-decoration-line:line-through;color:var(--cds-text-muted); }
+.smd-task-marker { display:flex;flex-shrink:0;align-items:center;justify-content:center;width:calc(1rem * var(--cds-rem-scale,1));height:calc(1rem * var(--cds-rem-scale,1));margin-top:1px; }
+.smd-task-marker[data-done] { color:var(--cds-text-primary); }
+.smd-task-circle { display:block;width:calc(.75rem * var(--cds-rem-scale,1));height:calc(.75rem * var(--cds-rem-scale,1));border:1px solid var(--cds-alpha-3);border-radius:50%; }
+.smd-task-content { flex:1;min-width:0; }
+.source-markdown :is(li,td,th)>:not([data-wf=""])~:is(p,ul,ol,blockquote) { margin-top:var(--cds-pad-sm,6px); }
+.source-markdown a,.source-markdown .smd-file-link { color:var(--cds-text-accent); text-decoration:none; text-underline-offset:1px; border-radius:3px; }
+.source-markdown a:hover,.source-markdown .smd-file-link:hover { text-decoration:underline; }
+.source-markdown a:focus-visible,.source-markdown .smd-file-link:focus-visible { outline:none; box-shadow:var(--cds-focus-shadow); }
+.source-markdown .smd-file-link { display:inline-block;cursor:var(--cds-cursor-interactive,default); }
+/* markdown-current.js:3713-3786 rc: hide-focus-ring inline rounded-sm bg-accent-muted box-decoration-clone
+   px-1.5 text-accent hover:bg-accent focus-visible:shadow-focus focus-visible:outline-hidden (no underline). */
+.source-markdown a.smd-forge-ref { display:inline; border-radius:var(--radius-sm,.25rem); background-color:var(--cds-bg-accent-muted);
+  -webkit-box-decoration-break:clone; box-decoration-break:clone; padding-inline:calc(var(--spacing,.25rem) * 1.5); color:var(--cds-text-accent); text-decoration:none; }
+.source-markdown a.smd-forge-ref:hover { background-color:var(--cds-bg-accent); text-decoration:none; }
+.source-markdown a.smd-forge-ref:focus-visible { outline:2px solid transparent; outline-offset:2px; box-shadow:var(--cds-focus-shadow); }
+.source-markdown blockquote { display:flex; flex-direction:column; gap:var(--chat-item-gap,10px); border-left:2px solid var(--cds-alpha-2); padding-left:var(--cds-pad-md,8px); color:var(--cds-text-secondary); }
+.source-markdown :not(pre)>code { font-family:var(--cds-font-mono);font-size:calc(var(--chat-body,var(--cds-font-size-body)) - 1px);line-height:1.4; padding:1px 2px; border-radius:4px; background:var(--cds-alpha-1); color:var(--code-chip-ink,var(--cds-text-primary)); }
+.source-markdown :is(a,button,[role=button])>code { color:var(--cds-text-accent); background:none; font:inherit; }
+.source-markdown :is(a,button,[role=button]):hover>code { background:color-mix(in srgb,var(--cds-fill-accent) 10%,transparent); }
+.source-markdown code code { font-size:inherit; background:none; padding:0; }
+.source-markdown pre { overflow:auto; font:var(--cds-font-size-code,12px)/var(--cds-leading-code,17px) var(--cds-font-mono); }
+.source-markdown pre code { font:inherit; white-space:pre; padding:0; background:none; }
+.source-markdown kbd { font-family:var(--cds-font-mono);font-size:calc(var(--chat-body,var(--cds-font-size-body)) - 2px);line-height:1; border:1px solid var(--cds-border); border-bottom-width:2px; border-radius:4px; background:var(--cds-alpha-1); padding:2px 4px; }
+.source-markdown sup { color:var(--cds-text-secondary); }
+.source-markdown .footnote-def { font-size:calc(var(--chat-body,var(--cds-font-size-body)) - 1px);color:var(--cds-text-secondary); }
+.source-markdown table { display:table; border-collapse:separate; border-spacing:2px; width:100%; font:inherit; }
+.source-markdown :is(td,th) { min-width:96px; padding:var(--cds-pad-sm,6px); border:0; border-radius:3px; text-align:left; vertical-align:top; overflow-wrap:break-word; }
+.source-markdown th { background:var(--cds-alpha-2); font-weight:var(--cds-font-weight-medium,500); font-variation-settings:var(--cds-font-wght-medium,normal); }
+.source-markdown td { background:var(--cds-alpha-1); }
+.source-markdown thead:not(:has(th:not(:empty))) { display:none; }
+.source-markdown table :not(pre)>code { background:none; }
+.source-markdown hr { border:0; border-top:.5px solid var(--cds-alpha-3); margin-block:var(--chat-item-gap,10px); }
+.source-table-scroll { overflow-x:auto; min-width:0; scrollbar-width:auto; scrollbar-color:auto; }
+.source-table-scroll::-webkit-scrollbar { background:transparent; width:8px; height:8px; }
+.source-table-scroll::-webkit-scrollbar-thumb { background:var(--cds-alpha-3); background-clip:padding-box; border:2px solid transparent; border-radius:9999px; }
+.source-table-scroll::-webkit-scrollbar-thumb:hover { background-color:var(--cds-alpha-4); }
+/* The response flow already supplies the inter-block gap. */
+.source-markdown>.scb-flow { margin-block:4px; }
+.source-markdown>.scb-flow:first-child { margin-top:0; }
+.source-markdown>.scb-flow:last-child { margin-bottom:0; }
+.source-markdown :is(li,td,th)>.scb-flow { margin-block:4px; }
+.source-markdown :is(li,td,th)>:not([data-wf=""])~.scb-flow,
+.source-markdown :is(li,td,th)>.scb-flow+:is(p,ul,ol,blockquote) { margin-top:calc(var(--cds-pad-sm,6px) + 4px); }
+.source-icon-button {
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  color: var(--cds-text-secondary);
+}
+.source-icon-button:hover:not(:disabled) {
+  background: var(--cds-fill-ghost-hover, var(--cds-alpha-1));
+  color: var(--cds-text-primary);
+}
+.source-icon-button:active:not(:disabled) {
+  background: var(--cds-fill-ghost-hover);
+}
+.source-step-trigger {
+  display: flex;
+  align-items: center;
+  text-align: start;
+  gap: 4px;
+  max-width: calc(100% + 8px);
+  width: fit-content;
+  min-height: 26px;
+  margin-inline: -4px;
+  padding: 3px 4px;
+  font: inherit;
+  background: none;
+  border: 0;
+  border-radius: 6px;
+}
+.source-step-trigger:disabled {
+  opacity: 1;
+  color: inherit;
+}
+.source-step-label {
+  min-width: 0;
+  max-width: 100%;
+  flex-shrink: 0;
+  color: var(--cds-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.source-step-meta {
+  min-width: 0;
+  color: var(--cds-text-primary);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+.source-step-caret {
+  opacity: 0;
+  flex-shrink: 0;
+  color: var(--cds-text-muted);
+  transition:
+    opacity 100ms,
+    transform 100ms;
+}
+.source-step-trigger:hover .source-step-caret,
+.source-step-trigger:focus-visible .source-step-caret,
+.source-step-trigger[aria-expanded="true"] .source-step-caret {
+  opacity: 1;
+}
+.source-step-trigger[aria-expanded="true"] .source-step-caret {
+  transform: rotate(90deg);
+}
+.source-step-trigger:hover .source-step-label {
+  color: var(--cds-text-secondary);
+}
+.source-step-outcome {
+  flex-shrink: 0;
+  color: var(--cds-text-secondary);
+}
+.source-step[data-state="failed"] .source-step-outcome,
+.source-tool-error {
+  color: var(--cds-text-danger);
+}
+.source-step[data-state="blocked"] .source-step-outcome {
+  color: var(--cds-text-warning);
+}
+.source-step-detail {
+  padding-top: 4px;
+  color: var(--cds-text-secondary);
+  min-width: 0;
+}
+.source-tool-output {
+  max-height: 320px;
+  overflow: auto;
+  font:
+    12px/1.5 var(--cds-font-code, anthropic-mono),
+    monospace;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  padding: 8px 12px;
+  margin: 6px 0;
+  border-radius: 5px;
+  background: var(--cds-alpha-1);
+  user-select: text;
+}
+/* Thinking rows. Standalone U2 (scroll-messages-current.js:44526-44545):
+   "text-body text-muted italic whitespace-pre-wrap break-words
+   pr-[calc(var(--cds-h-control)+var(--cds-pad-xs))]" in a relative
+   group/thinking, with oue's absolute right-0 top-0 copy button shown on
+   hover or focus-within. H2 "Thought process" is a Step whose plain-text body
+   (Rt: whitespace-pre-wrap break-words, text-secondary, not italic) sits
+   beside the h-[1lh] actions toolbar. */
+.source-reasoning-block {
+  position: relative;
+}
+.source-reasoning-text {
+  color: var(--cds-text-muted);
+  font-style: italic;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  padding-inline-end: calc(var(--cds-h-control, 28px) + var(--cds-pad-xs, 4px));
+}
+.source-reasoning-copy {
+  position: absolute;
+  top: 0;
+  inset-inline-end: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+.source-reasoning-block:hover > .source-reasoning-copy,
+.source-reasoning-copy:focus-within {
+  opacity: 1;
+  pointer-events: auto;
+}
+.source-step-detail-row {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  gap: var(--cds-gap-xs, 4px);
+}
+.source-step-detail-body {
+  flex: 1;
+  min-width: 0;
+}
+.source-step-actions {
+  display: flex;
+  height: 1lh;
+  flex-shrink: 0;
+  align-items: center;
+}
+.source-reasoning-step-text {
+  /* User preference over the source's non-italic H2 body: every thought reads
+     the same muted italic as the classic block. */
+  color: var(--cds-text-muted);
+  font-style: italic;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+}
+.source-working {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 26px;
+  padding: 3px 0;
+  color: var(--cds-text-secondary);
+}
+.source-working-time {
+  font-size: 12px;
+  color: var(--cds-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.source-shimmer {
+  --source-shimmer-base: var(--cds-text-secondary);
+  background: linear-gradient(
+    120deg,
+    var(--source-shimmer-base) 37.5%,
+    /* Peak defaults to text-primary; classic running verbs set the
+       shared-7 rU light peak (source-tool-group.css). */
+    var(--source-shimmer-peak, var(--cds-text-primary)) 50%,
+    var(--source-shimmer-base) 62.5%
+  );
+  background-size: 400% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: cds-shimmer-text-shine 3s linear infinite;
+}
+.source-file-panel.detail-panel {
+  container-type: inline-size;
+  position: relative;
+  inset: auto;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  box-shadow: none;
+  z-index: auto;
+  background: var(--cds-surface-2);
+  color: var(--cds-text-primary);
+  font:
+    13px/19px var(--cds-font-sans, anthropic-sans),
+    sans-serif;
+}
+.source-file-panel > .source-pane-header {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  padding: 0 4px;
+  height: 32px;
+  min-height: 32px;
+  border-bottom: 0;
+}
+/* Mt/Tl pane title (shared-12-C91CUXSD.js vm "text-body text-secondary
+   select-none truncate pl-[4px]", panes-toggle-current.js:1428-1431): regular
+   weight, secondary colour, no native title; pl-0 after the Files ListBullet
+   toggle (panes-tile-current.js:6776). */
+.source-pane-title {
+  flex: 1;
+  min-width: 0;
+  padding-left: 4px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: var(--cds-font-size-body);
+  line-height: var(--cds-leading-body);
+  font-weight: var(--cds-font-weight-regular, 400);
+  color: var(--cds-text-secondary);
+  user-select: none;
+}
+.source-pane-title[data-after-toggle] {
+  padding-left: 0;
+}
+/* Xd tab list z (panes-tabs-current.js:1138-1141): relative isolate
+   -mx-[4px] flex min-w-0 items-center gap-[4px] overflow-x-hidden p-[4px].
+   The 4px padding is the room the tab's has-[:focus-visible]:shadow-focus
+   ring (design-system.css:52987) draws in; without it the scroll box clips
+   the ring at the top, bottom and first tab's left edge. 24px tab + 2*4px =
+   32px, the .source-pane-header height; -4px margins cancel its 0 4px
+   padding. The strip only scrolls programmatically (the _e pass keeps the
+   active tab in view); tabs past its edges move into "More files". */
+.source-file-tabs {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  margin: 0 -4px;
+  padding: 4px;
+  overflow-x: hidden;
+  height: 32px;
+  gap: 4px;
+  scrollbar-width: none;
+}
+/* Xd root (panes-tabs-current.js:1128-1137, className "min-w-0 flex-1"):
+   flex min-w-0 select-none items-center gap-[4px]. */
+.source-file-tabbar {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  align-items: center;
+  gap: 4px;
+  user-select: none;
+}
+/* The end spacer (:1181-1186): shrink-0, minTabWidth + 4px, only while overflowing. */
+.source-file-tabs-spacer {
+  flex-shrink: 0;
+  width: 108px;
+}
+.source-file-tabs-spacer[hidden] {
+  display: none;
+}
+/* [data-vtb-overflow] (:1195-1200): inline-flex shrink-0 around the ghost
+   icon-only CaretDown trigger. */
+.source-file-tabs-overflow {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+/* An overflowed tab keeps its slot but is invisible (he "invisible", :369). */
+.source-file-tab[data-overflowed] {
+  visibility: hidden;
+}
+/* q rows (:111-178): "gap-sm"; the label "truncate text-body" (italic for a
+   preview), the folder "truncate text-caption text-muted"; the trailing X
+   "grid size-[1.25rem] shrink-0 place-items-center rounded-sm text-muted
+   hover:bg-fill-ghost-hover hover:text-primary" with an xs glyph. */
+.source-file-overflow-row {
+  gap: var(--cds-pad-sm);
+}
+.source-file-overflow-copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+.source-file-overflow-label,
+.source-file-overflow-detail {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.source-file-overflow-label {
+  font-size: var(--cds-font-size-body);
+  line-height: var(--cds-leading-body);
+}
+.source-file-overflow-label[data-preview] {
+  font-style: italic;
+}
+.source-file-overflow-detail {
+  color: var(--cds-text-muted);
+  font-size: var(--cds-font-size-caption);
+  line-height: var(--cds-leading-caption);
+}
+.source-file-overflow-close {
+  display: grid;
+  flex-shrink: 0;
+  width: calc(1.25rem * var(--cds-rem-scale, 1));
+  height: calc(1.25rem * var(--cds-rem-scale, 1));
+  place-items: center;
+  border-radius: var(--radius-sm, 0.25rem);
+  color: var(--cds-text-muted);
+}
+.source-file-overflow-close:hover {
+  background-color: var(--cds-fill-ghost-hover);
+  color: var(--cds-text-primary);
+}
+/* he root (panes-tabs-current.js:348-375): group/tab relative isolate flex
+   h-[1.5rem] min-w-[calc(1.25rem+4px)] max-w-max basis-[192px] items-center
+   gap-[4px] overflow-clip rounded p-[2px] text-body text-secondary
+   has-[:focus-visible]:shadow-focus; selected: justify-end text-primary.
+   The class min-width is overridden by the inline style minWidth = Xd
+   minTabWidth (104, panes-tile-current.js:6786); the _e compact/hidden
+   passes set data-compact / data-overflowed. */
+.source-file-tab {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex: 0 1 192px;
+  height: calc(1.5rem * var(--cds-rem-scale, 1));
+  min-width: 104px;
+  max-width: max-content;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 4px;
+  overflow: clip;
+  padding: 2px;
+  border-radius: var(--cds-radius);
+  font-size: var(--cds-font-size-body);
+  line-height: var(--tw-leading, var(--cds-leading-body));
+  color: var(--cds-text-secondary);
+  user-select: none;
+}
+.source-file-tab[data-selected] {
+  justify-content: flex-end;
+  color: var(--cds-text-primary);
+}
+/* A tab lifted by a pointer drag (use-tab-drag-reorder.mjs, Files and Terminal strips): above its neighbours, its
+   opaque backdrop set inline from the strip's surface. */
+.source-file-tab[data-tab-dragging] {
+  z-index: 2;
+}
+.source-file-tab:has(:focus-visible) {
+  box-shadow: var(--cds-focus-shadow);
+}
+/* Background layer: absolute inset-0 -z-[1] rounded-[inherit]; hover and an
+   open tab menu (data-popup-open) use fill-ghost-hover, selected
+   !bg-fill-ghost-selected. */
+.source-file-tab-bg {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+}
+.source-file-tab:hover > .source-file-tab-bg,
+.source-file-tab[data-popup-open] > .source-file-tab-bg {
+  background-color: var(--cds-fill-ghost-hover);
+}
+.source-file-tab[data-selected] > .source-file-tab-bg {
+  background-color: var(--cds-fill-ghost-selected) !important;
+}
+/* ae role=tab: flex h-full flex-1 items-center gap-[2px] outline-none,
+   before:absolute before:inset-0 before:-z-[1] (the whole tab is its hit
+   area); no icon: min-w-[6px] pl-[6px]. */
+.source-file-tab > [role="tab"] {
+  display: flex;
+  height: 100%;
+  flex: 1;
+  align-items: center;
+  gap: 2px;
+  min-width: 6px;
+  padding-left: 6px;
+  outline: none;
+  cursor: default;
+}
+.source-file-tab > [role="tab"]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+}
+/* data-vtb-label: flex h-full min-w-0 max-w-[140px] flex-1 items-center
+   overflow-x-clip; fe mask when clipped and closable (:187-188). */
+.source-file-tab-label {
+  display: flex;
+  height: 100%;
+  min-width: 0;
+  max-width: 140px;
+  flex: 1;
+  align-items: center;
+  overflow-x: clip;
+}
+.source-file-tab-label[data-clipped] {
+  mask-image: linear-gradient(to right, #000 calc(100% - 8px), transparent 100%);
+}
+.source-file-tab-label > span {
+  white-space: nowrap;
+  text-align: left;
+}
+.source-file-tab[data-preview] .source-file-tab-label > span {
+  font-style: italic;
+}
+/* pe (:190-202): grid size-[1.25rem] shrink-0 place-items-center rounded-sm
+   text-muted hover:bg-fill-ghost-hover hover:text-primary
+   group-data-[selected]/tab:text-primary; always visible. */
+.source-file-tab-close {
+  display: grid;
+  width: calc(1.25rem * var(--cds-rem-scale, 1));
+  height: calc(1.25rem * var(--cds-rem-scale, 1));
+  flex-shrink: 0;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm, 0.25rem);
+  background: transparent;
+  color: var(--cds-text-muted);
+  font: inherit;
+  cursor: default;
+}
+.source-file-tab-close:hover {
+  background-color: var(--cds-fill-ghost-hover);
+  color: var(--cds-text-primary);
+}
+.source-file-tab[data-selected] .source-file-tab-close {
+  color: var(--cds-text-primary);
+}
+.source-file-body {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  position: relative;
+}
+.source-files-tree {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+}
+.source-files-tree[hidden] {
+  display: none;
+}
+.source-file-body[data-tree-column="true"] .source-files-tree {
+  flex: 0 0 auto;
+  border-right: 1px solid var(--cds-border);
+}
+.source-tree-divider,
+.source-tree-edge {
+  position: absolute;
+  z-index: 3;
+  top: 0;
+  bottom: 0;
+  right: -4px;
+  width: 8px;
+  cursor: col-resize;
+  touch-action: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  outline: none;
+  -webkit-app-region: no-drag;
+}
+.source-tree-edge {
+  right: auto;
+  left: 0;
+}
+.source-tree-divider > span,
+.source-tree-edge > span {
+  width: 2px;
+  height: 32px;
+  border-radius: 2px;
+  background: var(--cds-alpha-3);
+  opacity: 0;
+}
+.source-tree-divider:hover > span,
+.source-tree-edge:hover > span {
+  opacity: 1;
+}
+.source-tree-divider:focus-visible > span,
+.source-tree-edge:focus-visible > span {
+  opacity: 1;
+  background: var(--cds-fill-accent);
+}
+.source-file-panel[data-tree-resizing] {
+  user-select: none;
+}
+.source-file-panel[data-tree-resizing] .source-tree-divider > span,
+.source-file-panel[data-tree-resizing] .source-tree-edge > span {
+  opacity: 1;
+  background: var(--cds-fill-primary);
+}
+.source-file-panel[data-tree-resizing] * {
+  cursor: col-resize !important;
+}
+.source-tree-header {
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding-inline: 10px 4px;
+}
+.source-tree-header > span {
+  flex: 1;
+  min-width: 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  font-size: 12px;
+  color: var(--cds-text-secondary);
+}
+/* R3-files FT-14 (files-08 / files-v03): the tree (2.42304.0 cccc2cf0a Nx), its rows (NS) and the subfolder error row
+   (AS) carry the official classes (file-tree-row-model.mjs over generated/files-changes: ca7840910 A/j/N/I/F, shared-6
+   _h/vh, shared-frame Cx, cccc2cf0a dx/fx/px), all @layer utilities rules of the loaded CSS; the hand-written
+   .source-tree-content / -item / -row / -caret / -name / -guides / -guided / -error rules that restated them are gone.
+   One host rule is left: the nested tree's focusable treeitem wraps its row and its children's group, so the row
+   ([data-tree-row-body]) paints the focus that NS's focus-visible:shadow-focus paints on the official treeitem, which is
+   the row itself. */
+.source-tree-item:focus-visible > [data-tree-row-body] {
+  box-shadow: var(--cds-focus-shadow);
+}
+/* Ig/Jg root tree states (panes-tile-current.js:5496-5512, :6101-6110), restated unlayered with the tokens the
+   source utilities resolve to (px-lg, py-2.5, text-body, text-muted). (The subfolder error row is 2.42304.0 AS's own
+   classes since R3-files FT-14.) */
+.source-files-tree-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: calc(var(--spacing, 0.25rem) * 2.5) var(--cds-pad-lg);
+  color: var(--cds-text-muted);
+  font-size: var(--cds-font-size-body);
+  line-height: var(--cds-leading-body);
+}
+/* The file viewer (.source-file-view) is styled in source-file-viewer.css. */
+/* panes-tile-current.js:6358 wrapper "flex min-h-0 min-w-0 flex-1 flex-col"
+   around EmptyState yu (.source-empty-state, source-transcript-states.css). */
+.source-file-empty-preview {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+.source-changes {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  /* panes-tile-current.js:15944 diff scroller: [scrollbar-gutter:stable_both-edges].
+     .source-diff itself is overflow: visible (source-diff.css), so only this
+     real scroller reserves the classic lane. */
+  scrollbar-gutter: stable both-edges;
+}
+.source-diff {
+  overflow: auto;
+  font:
+    12px/17px var(--cds-font-mono, anthropic-mono),
+    monospace;
+  margin: 0;
+  padding: 4px 0;
+  white-space: pre;
+  user-select: text;
+}
+/* Legacy raw-patch rows only. The source diff renderer owns its gutters and
+   token spacing; applying these 8px insets to its nested spans widens every
+   preview line number and syntax token. */
+.source-diff:not(.sdiff-view) span {
+  display: block;
+  min-width: fit-content;
+  padding-inline: 8px;
+  white-space: pre;
+}
+.source-diff.diff .added {
+  color: var(--cds-text-git-added, #1e9e3c);
+  background: var(--cds-bg-git-added, #1e9e3c14);
+}
+.source-diff.diff .removed {
+  color: var(--cds-text-git-removed, #cd2054);
+  background: var(--cds-bg-git-removed, #cd205414);
+}
+.source-diff .hunk {
+  color: var(--cds-text-accent);
+  background: var(--cds-alpha-1);
+}
+.source-panel-empty {
+  padding: 12px;
+  margin: 0;
+  color: var(--cds-text-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.source-panel-error {
+  color: var(--cds-text-danger);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+  padding: 8px 12px;
+  margin: 0;
+}
+.source-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+@container (max-width: 399px) {
+  .source-file-body[data-has-preview="true"] .source-files-tree {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .source-shimmer {
+    animation: none;
+    background: none;
+    -webkit-text-fill-color: currentColor;
+  }
+  .source-step-caret {
+    transition: none;
+  }
+}
+html[data-reduce-motion="true"] .source-shimmer { animation: none; background: none; -webkit-text-fill-color: currentColor; }
+html[data-reduce-motion="true"] .source-step-caret { transition: none; }
+
+/* Popped-out pane window: one tile filling the window under the 8px inset. */
+.popout-root {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  background: var(--cds-surface-1);
+}
+.popout-workspace {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  flex-direction: column;
+  padding: 8px;
+  padding-top: 36px;
+  -webkit-app-region: drag;
+}
+/* Windows: the band clears the 40px caption-button overlay (window-chrome.cjs WINDOWS_OVERLAY_HEIGHT), not the
+   macOS traffic lights' 36px. */
+html[data-platform="win32"] .popout-workspace {
+  padding-top: 40px;
+}
+.popout-tile {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  -webkit-app-region: no-drag;
+}
+.popout-error {
+  margin: 0 0 8px;
+}
+/* B27 pane window (main.jsx PANE_WINDOW: the Tasks or Terminal pane popped out, run by the session's App): its one tile
+   fills the window under the same 8px inset and traffic-light clearance as the pane popouts above. */
+.dframe-root[data-pane-window]:not([data-pane-window="side-chat"]) .workspace {
+  padding: 36px 8px 8px;
+  background: var(--cds-surface-1);
+  -webkit-app-region: drag;
+}
+html[data-platform="win32"] .dframe-root[data-pane-window]:not([data-pane-window="side-chat"]) .workspace {
+  padding-top: 40px;
+}
+.dframe-root[data-pane-window]:not([data-pane-window="side-chat"]) .workspace > * {
+  -webkit-app-region: no-drag;
+}
+/* The side chat window: the panel (source-side-chat.css [data-windowed]) is the whole window. */
+.dframe-root[data-pane-window="side-chat"] .workspace {
+  padding: 0;
+}
+
+/* Pc/Kn/Bn: keyboard file chips in response Markdown; no link inside a link. */
+.source-markdown .smd-file-ref { display:inline-block; border-radius:4px; cursor:var(--cds-cursor-interactive,default); }
+.source-markdown .smd-file-ref:focus-visible { outline:none; box-shadow:var(--cds-focus-shadow); }
+/* A Codex review finding's priority (::code-comment priority / '[P1]' title): P0 and P1 stand out, P2 and P3 stay quiet. */
+.source-markdown .smd-priority { display:inline-block; margin-right:2px; padding:0 5px; border-radius:4px; font-size:0.85em; font-weight:600; line-height:1.5; vertical-align:baseline;
+  color:var(--cds-text-secondary); background:var(--cds-alpha-2, rgba(127,127,127,.12)); font-variant-numeric:tabular-nums; }
+.source-markdown .smd-priority[data-priority="0"] { color:var(--cds-text-danger); background:var(--cds-bg-danger); }
+.source-markdown .smd-priority[data-priority="1"] { color:var(--cds-text-warning); background:var(--cds-bg-warning); }
+
+/* code-block-current.js:1043-1100 Dr: a masked secret in inline code
+   ('inline-flex max-w-full items-baseline gap-[2px] align-baseline'; the value
+   'break-all'; the toggle 'inline-flex shrink-0 translate-y-[1px] items-center
+   justify-center rounded-[3px] text-secondary hover:text-primary' with a
+   focus-visible shadow ring and an xs (12px) Eye/EyeSlash glyph). */
+.smd-secret { display: inline-flex; max-width: 100%; align-items: baseline; gap: 2px; vertical-align: baseline; }
+.smd-secret-value { word-break: break-all; }
+.smd-secret-sr { user-select: none; }
+.smd-secret-toggle {
+  display: inline-flex; flex-shrink: 0; align-items: center; justify-content: center; transform: translateY(1px);
+  padding: 0; border: 0; border-radius: 3px; background: none; color: var(--cds-text-secondary);
+  cursor: var(--cds-cursor-interactive, default);
+}
+.smd-secret-toggle:hover { color: var(--cds-text-primary); }
+.smd-secret-toggle:focus-visible { outline: none; box-shadow: var(--cds-focus-shadow); }
+/* R09: a pressed CDS Button paints bg-accent behind text-accent, hovered or
+   not (shared-frame-C_2npUJq.js:2697 cs "group-aria-pressed/btn:bg-accent
+   group-hover/btn:group-aria-pressed/btn:bg-accent", :2723-2724 secondary and
+   ghost "aria-pressed:text-accent"): the Files ListBullet, the Changes file
+   list toggle, the popped-out pin and the arrange picks (ra is a pressed
+   ghost Button too, panes-toggle-current.js:964-998). */
+.source-icon-button[aria-pressed="true"],
+.source-icon-button[aria-pressed="true"]:not(:disabled),
+.source-icon-button[aria-pressed="true"]:hover:not(:disabled) {
+  color: var(--cds-text-accent);
+  background: var(--cds-bg-accent);
+}
+
+/* Codex imageGeneration / imageView / sleep / hookPrompt rows (media-item-model.mjs): the revised prompt or the
+   hook's context as muted body text, a failure in the danger tone. */
+.source-media-detail { display: flex; flex-direction: column; gap: 6px; padding: 4px 0 2px; }
+.source-media-caption, .source-media-error { margin: 0; font-size: 13px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; }
+.source-media-caption { color: var(--cds-text-secondary); }
+.source-media-error { color: var(--cds-text-danger, #b44338); }
+.source-memory-citation { margin: 6px 0 0; font-size: 12px; line-height: 1.5; color: var(--cds-text-secondary); overflow-wrap: anywhere; }
+.source-memory-citation > span:first-child { font-weight: 500; }
+
+/* Language-server errors after an edit (OpenCode diagnostics): muted, monospace locations, danger-tinted marker. */
+.source-diagnostics { margin-top: 6px; padding: 6px 10px; border-radius: var(--cds-radius, 6px); background: var(--cds-fill-ghost-hover); font-size: var(--cds-font-size-footnote, 12px); }
+.source-diagnostics-title { color: var(--cds-text-danger); margin-bottom: 4px; }
+.source-diagnostics ul { display: flex; flex-direction: column; gap: 2px; margin: 0; padding: 0; list-style: none; }
+.source-diagnostics li { display: flex; gap: 8px; min-width: 0; }
+.source-diagnostics-where { flex: none; color: var(--cds-text-secondary); font-family: var(--cds-font-mono); }
+.source-diagnostics-message { min-width: 0; color: var(--cds-text-primary); overflow-wrap: anywhere; }
+
+/* 2.31226.0 cfe7c4b3b: deleted file names are struck through in both tab surfaces. */
+.source-file-tab[data-deleted] .source-file-tab-label > span,
+.source-file-overflow-label[data-deleted] { text-decoration: line-through; }

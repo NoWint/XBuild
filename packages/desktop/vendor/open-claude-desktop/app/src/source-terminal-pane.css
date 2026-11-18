@@ -1,0 +1,214 @@
+/* Terminal pane (2.2553.1 cccc2cf0a / c6bf19e8f): the source-file-panel shell with the Xd tab strip in its header
+   (source-session.css .source-file-tab*), and the xterm body: padding --cds-pad-md 0, the gutter on the left of
+   .xterm, a transparent viewport over the theme background, a 6px rounded scrollbar thumb. */
+.stp-pane.source-file-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+.stp-pane > .source-pane-header {
+  flex: none;
+}
+.stp-tabbar {
+  overflow: hidden;
+}
+.stp-tabs {
+  flex: 0 1 auto;
+  overflow-x: auto;
+}
+.stp-tabs::-webkit-scrollbar {
+  display: none;
+}
+.stp-tab {
+  flex-basis: 160px;
+}
+.stp-tab[data-exited] .source-file-tab-label > span {
+  color: var(--cds-text-muted);
+}
+/* "Terminal (command running)": a small accent dot before the label. */
+.stp-tab-dot {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  margin-left: 2px;
+  border-radius: 50%;
+  background: var(--cds-text-accent);
+}
+.stp-tab[data-bell] > .source-file-tab-bg {
+  animation: stp-bell 1.2s ease-out;
+}
+@keyframes stp-bell {
+  0%, 40% { background-color: var(--cds-fill-ghost-selected); }
+  100% { background-color: transparent; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .stp-tab[data-bell] > .source-file-tab-bg { animation: none; }
+}
+html[data-reduce-motion="true"] .stp-tab[data-bell] > .source-file-tab-bg { animation: none; }
+.stp-rename {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  margin: 0 2px;
+  padding: 0 4px;
+  border: 0;
+  border-radius: var(--radius-sm, 0.25rem);
+  outline: none;
+  background: var(--cds-surface-0, transparent);
+  box-shadow: var(--cds-focus-shadow);
+  color: var(--cds-text-primary);
+  font: inherit;
+}
+.stp-new {
+  flex: none;
+}
+/* At the per-session terminal cap: dimmed, with its tooltip saying why (aria-disabled, so it still hovers). */
+.stp-new[aria-disabled="true"] {
+  opacity: .45;
+}
+.stp-new[aria-disabled="true"]:hover {
+  background: none;
+  color: var(--cds-text-secondary);
+}
+.stp-body {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  padding: var(--cds-pad-md) 0;
+  --terminal-gutter: var(--cds-pad-md);
+}
+.stp-host {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+.stp-xterm {
+  width: 100%;
+  height: 100%;
+}
+.stp-xterm .xterm {
+  height: 100%;
+  padding-left: var(--terminal-gutter, 0);
+  cursor: text;
+}
+.stp-xterm .xterm.xterm-cursor-pointer,
+.stp-xterm .xterm .xterm-cursor-pointer {
+  cursor: text;
+}
+.stp-xterm .xterm-viewport {
+  background-color: transparent !important;
+}
+.stp-xterm textarea {
+  caret-color: transparent;
+}
+.stp-xterm .xterm .xterm-scrollable-element > .scrollbar.vertical > .slider {
+  width: 6px !important;
+  left: 6px !important;
+  border-radius: 3px;
+  background: var(--cds-alpha-4, rgba(128, 128, 128, 0.3));
+}
+.stp-xterm .xterm .xterm-scrollable-element > .scrollbar.vertical > .slider:hover {
+  background: var(--cds-alpha-5, rgba(128, 128, 128, 0.45));
+}
+.stp-xterm .xterm .xterm-scrollable-element > .scrollbar.vertical > .slider.active {
+  background: var(--cds-alpha-6, rgba(128, 128, 128, 0.6));
+}
+.stp-xterm .xterm .xterm-scrollable-element > .shadow {
+  box-shadow: none !important;
+}
+/* 2.31226.0 Jt: Surface panel, top-2/right-5, w-48 input, gap-xs/p-xs. */
+.stp-find { position:absolute;top:calc(.5rem * var(--cds-rem-scale,1));right:calc(1.25rem * var(--cds-rem-scale,1));z-index:13;display:flex;align-items:center;gap:var(--cds-gap-xs);padding:var(--cds-pad-xs);max-width:calc(100% - 24px); }
+.stp-find-input { width:calc(12rem * var(--cds-rem-scale,1));min-width:0; }
+.stp-find > .source-settings-button { flex-shrink:0; }
+@media (forced-colors:active) { .stp-find {border:1px solid CanvasText;} }
+.stp-error {
+  position: absolute;
+  left: var(--cds-pad-md);
+  right: var(--cds-pad-md);
+  bottom: var(--cds-pad-md);
+  z-index: 4;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--cds-pad-sm, 6px);
+  margin: 0;
+  padding: var(--cds-pad-sm, 6px) var(--cds-pad-md);
+  border: 0.5px solid var(--cds-border);
+  border-radius: var(--radius-lg, .5rem);
+  background: var(--cds-surface-3);
+  box-shadow: var(--cds-shadow-lg);
+  color: var(--cds-text-secondary);
+  font-size: var(--cds-font-size-footnote);
+  line-height: var(--cds-leading-footnote);
+}
+.stp-error > span {
+  flex: 1 1 12rem;
+  min-width: 0;
+}
+.stp-error {
+  color: var(--cds-text-danger, var(--cds-text-primary));
+}
+/* The limited-terminal note sits above the output, in flow, so it never covers the prompt. */
+.stp-note {
+  flex: none;
+  margin: 0 var(--cds-pad-md) var(--cds-pad-sm, 6px);
+  color: var(--cds-text-muted);
+  font-size: var(--cds-font-size-footnote);
+  line-height: var(--cds-leading-footnote);
+}
+/* The idle cursor is cf718f694 B (generated/code-current/terminal-idle-cursor.mjs): its pointer-events-none block
+   h-[1lh] w-[1ch] opacity-50 / motion-safe:animate-blink and the pane's group-has-[[data-ccd-terminal]]/terminal:hidden
+   come from the loaded c6a992d55 utilities, so no local rule styles it. */
+/* Narrow panes: the strip keeps the selected tab and the + button. */
+@container (max-width: 320px) {
+  .stp-tab:not([data-selected]) {
+    flex-basis: 72px;
+  }
+}
+
+/* 2.31226.0 Xr and ceb49ada3 action strip: original geometry is source-extracted. */
+.stp-selection-action { position:absolute;transform:translate(-50%,-100%);z-index:12;width:max-content;border-radius:4px;background:var(--cds-surface-3);box-shadow:inset 0 0 0 var(--cds-ring-inner,0px) var(--cds-ring-color,transparent),0 0 0 var(--cds-ring-outer,0px) var(--cds-ring-color,transparent),var(--cds-shadow-popover); }
+
+/* c6bf19e8f exited shell / cccc2cf0a Bg load failure: "absolute inset-0 bg-surface-1" over the terminal surface,
+   holding the centered EmptyState. */
+.stp-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  background: var(--cds-surface-1);
+}
+/* cccc2cf0a Zg tab description: "ms-xs text-muted" after the name. */
+.stp-tab-description {
+  margin-inline-start: var(--cds-gap-xs, 4px);
+  color: var(--cds-text-muted);
+}
+/* cfe7c4b3b ae rows: the original gap-sm over the host menu default. */
+.stp-overflow-menu .smenu-item { gap: var(--cds-gap-sm); }
+/* cc63499d2 Qm on-target drop ring (z-index layer 40): inset 2px accent ring, then a 24px inner accent glow. */
+.stp-drop-ring {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  pointer-events: none;
+  border-radius: var(--cds-radius, 6px);
+  box-shadow: inset 0 0 0 2px var(--cds-fill-accent);
+  animation: stp-drop-ring-in 0.15s cubic-bezier(0.215, 0.61, 0.355, 1);
+}
+.stp-drop-ring > div {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 24px 0 color-mix(in srgb, var(--cds-fill-accent) 20%, transparent);
+  animation: stp-drop-fade-in 0.2s cubic-bezier(0.215, 0.61, 0.355, 1) 0.08s backwards;
+}
+@keyframes stp-drop-ring-in { 0% { opacity: 0; transform: scale(1.005); } }
+@keyframes stp-drop-fade-in { 0% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .stp-drop-ring, .stp-drop-ring > div { animation: none; }
+}
+html[data-reduce-motion="true"] .stp-drop-ring,
+html[data-reduce-motion="true"] .stp-drop-ring > div { animation: none; }

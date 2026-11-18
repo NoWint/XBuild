@@ -155,6 +155,8 @@ import {
   type ZCodeProtocolSessionRecord,
 } from "./server-types.js";
 import { createInMemorySessionEventStore } from "@zcode/contracts";
+import { dshAttachResultSchema, dshDispatchSchema, dshEventSchema, dshOverviewSchema, dshReplaySchema, dshResultSchema } from "@zcode/shared/dsh-compat";
+import type { DshController } from "../dsh-controller/index.js";
 
 export type { ZCodeProtocolAgentDependencies, ZCodeProtocolSessionRecord };
 
@@ -250,6 +252,11 @@ export class ZCodeProtocolAgentServer {
   });
   private readonly runtimeResources: ProtocolRuntimeResources;
   private shutdownPromise?: Promise<void>;
+  private dshControllerTask?: Promise<DshController>;
+  private dshController?: DshController;
+  private dshShutdownTask?: Promise<void>;
+  private dshAdmissionClosed = false;
+  private releaseDshNotifications?: () => void;
   readonly browserControlPort: BrowserControlPort;
   /**
    * 官方 MCP 身份头端口所需的最小上下文。
@@ -412,6 +419,9 @@ export class ZCodeProtocolAgentServer {
   }
 
   disconnectClient(error: Error): void {
+    void this.closeDshAdmission().catch(() => {
+      this.logger?.warn("Native plugin shutdown failed after protocol disconnect");
+    });
     this.networkCapture.setCaptureId(null);
     this.clientDisconnectError = error;
     // 连接关闭后反向请求已不可能收到响应，必须先结束 pending，
@@ -478,7 +488,7 @@ export class ZCodeProtocolAgentServer {
         });
       }
     }
-    void Promise.allSettled([closingResources, ...closingSessions]).then((results) => {
+    void Promise.allSettled([closingResources, this.closeDshAdmission(), ...closingSessions]).then((results) => {
       const errors = results.flatMap((result) =>
         result.status === "rejected" ? [result.reason] : [],
       );
@@ -517,6 +527,10 @@ export class ZCodeProtocolAgentServer {
   async handleMessage(
     message: ZCodeProtocolMessage,
   ): Promise<ZCodeProtocolError | ZCodeProtocolResponse | undefined> {
+    if (this.dshAdmissionClosed && isRequest(message) && message.method === zcodeProtocolMethods.pluginsDshDispatch) {
+      // 通用 runtime gate 在 try 外抛错；DSH 迟到请求仍须得到不泄露 stack 的稳定拒绝。
+      return this.fail(message.id, -32603, "Native plugin controller is closed", { code: "DSH_CONTROLLER_CLOSED" });
+    }
     this.runtimeResources.assertServing();
     if (isResponse(message)) {
       this.resolveClientRequest(message.id, message.result);
@@ -580,6 +594,8 @@ export class ZCodeProtocolAgentServer {
 
   private async dispatchRequest(request: ZCodeProtocolRequest) {
     switch (request.method) {
+      case zcodeProtocolMethods.pluginsDshDispatch:
+        return await this.dispatchDsh(request.params);
       // ── v4 conversation 通道（竖切，与旧 session/* 并存）──
       case V4_METHODS.connectionFlow: {
         this.requireV4Gateway().setConnectionFlowState(request.params);
@@ -933,6 +949,65 @@ export class ZCodeProtocolAgentServer {
       default:
         throw new ProtocolRequestError(-32601, `Method not found: ${request.method}`);
     }
+  }
+
+  private async dispatchDsh(raw: unknown) {
+    // 通用协议错误会透传 upstream stack；DSH 边界独立校验并只返回稳定、无凭据的诊断。
+    const parsed = dshDispatchSchema.safeParse(raw);
+    if (!parsed.success) throw new ProtocolRequestError(-32602, "Invalid native plugin params", { code: "DSH_INVALID_PARAMS" });
+    try {
+      if (this.dshAdmissionClosed) throw { code: "DSH_CONTROLLER_CLOSED" };
+      const factory = this.context.deps.createDshController;
+      if (!factory) throw { code: "DSH_DISTRIBUTION_UNAVAILABLE" };
+      this.dshControllerTask ??= Promise.resolve().then(factory).then((controller) => {
+        this.dshController = controller;
+        if (!this.dshAdmissionClosed) this.releaseDshNotifications = controller.subscribe((event) => {
+          const parsedEvent = dshEventSchema.safeParse(event);
+          if (!this.dshAdmissionClosed && parsedEvent.success) {
+            this.messageSink?.({ method: zcodeProtocolMethods.pluginsDshEvent, params: parsedEvent.data });
+          }
+        });
+        return controller;
+      });
+      const controller = await this.dshControllerTask;
+      if (this.dshAdmissionClosed) throw { code: "DSH_CONTROLLER_CLOSED" };
+      const result = dshResultSchema.parse(await controller.dispatch(parsed.data));
+      if (parsed.data.command.kind === "overview") dshOverviewSchema.parse(result.value);
+      if (parsed.data.command.kind === "attach") dshAttachResultSchema.parse(result.value);
+      if (parsed.data.command.kind === "events") dshReplaySchema.parse(result.value);
+      return result;
+    } catch (error) {
+      const candidate = error && typeof error === "object" && "code" in error ? error.code : undefined;
+      const code = typeof candidate === "string" && /^DSH_[A-Z_]{1,100}$/.test(candidate) ? candidate : "DSH_OPERATION_FAILED";
+      // 修复原因：未归类异常被压成通用 "operation failed"，真实原因（原生启动失败、包解析失败、
+      // 依赖缺失）在前端完全不可见。这里把原始原因写入 stderr 供本地诊断；对外错误码不变。
+      process.stderr.write(
+        `[dsh] dispatch ${parsed.data.command.kind} failed: ${error instanceof Error ? `${error.name}: ${error.message}` : String(error)}\n`,
+      );
+      const command = parsed.data.command;
+      const domainId = "domainId" in command ? command.domainId : "attachment" in command ? command.attachment.domainId : undefined;
+      const revision = "attachment" in command ? command.attachment.revision : "grant" in command ? command.grant.revision : command.kind === "rollback" ? command.revision : undefined;
+      throw new ProtocolRequestError(-32603,
+        code === "DSH_CONTROLLER_CLOSED" ? "Native plugin controller is closed"
+          : code === "DSH_DISTRIBUTION_UNAVAILABLE" ? "Native plugin distribution is unavailable"
+            : "Native plugin operation failed",
+        { code, ...(domainId ? { domainId } : {}), ...(revision ? { revision } : {}) });
+    }
+  }
+
+  private closeDshAdmission(): Promise<void> {
+    if (this.dshShutdownTask) return this.dshShutdownTask;
+    const shutdown = Promise.withResolvers<void>();
+    this.dshShutdownTask = shutdown.promise;
+    this.dshAdmissionClosed = true;
+    this.releaseDshNotifications?.();
+    this.releaseDshNotifications = undefined;
+    // 已完成的 factory 必须同步关闭 controller admission；不能延后一拍继续接受 management。
+    const closing = this.dshController ? this.dshController.shutdown() : this.dshControllerTask
+      ? this.dshControllerTask.then((controller) => controller.shutdown(), () => {})
+      : Promise.resolve();
+    void closing.then(shutdown.resolve, shutdown.reject);
+    return this.dshShutdownTask;
   }
 
   private requireV4Gateway() {

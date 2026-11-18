@@ -1,9 +1,106 @@
+import { execFile } from "node:child_process";
+import { mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
+import { promisify } from "node:util";
 import { describe, expect, it } from "vitest";
 import tsupConfig, {
   resolveBuildPackagedAgentTelemetryEnv,
   resolveBuildRemoteCdnReleaseRoots,
   resolveDesktopTsupBundleSecurityOptions,
 } from "../tsup.config";
+
+const execFileAsync = promisify(execFile);
+const desktopDir = fileURLToPath(new URL("..", import.meta.url));
+const sandboxPreloadProbe = `
+import { readFile, readdir } from "node:fs/promises";
+import { createRequire } from "node:module";
+import { join } from "node:path";
+import { runInNewContext } from "node:vm";
+import { build } from "tsup";
+import configs from "./tsup.config.ts";
+
+const preload = configs.find((config) => config.name === "preload");
+const outDir = process.argv[1];
+await build({
+  ...preload,
+  config: false,
+  outDir,
+  onSuccess: undefined,
+  watch: false,
+  silent: true,
+});
+
+const exposed = {};
+const handlers = new Map();
+const forwarded = [];
+const closed = [];
+const validPort = { close() { closed.push("valid"); } };
+const electron = {
+  contextBridge: {
+    exposeInMainWorld(name, value) { exposed[name] = value; },
+    executeInMainWorld() { return false; },
+  },
+  ipcRenderer: {
+    send() {},
+    invoke: async () => undefined,
+    on(channel, handler) { handlers.set(channel, handler); },
+    removeListener() {},
+  },
+  webFrame: { getZoomFactor() { return 1; } },
+  webUtils: { getPathForFile() { return ""; } },
+};
+const nodeRequire = createRequire(import.meta.url);
+// Electron sandbox 只提供这些内置入口，不允许从 node_modules 加载 Zod。
+function preloadRequire(id) {
+  if (id === "electron") return electron;
+  if (["events", "timers", "url", "node:events", "node:timers", "node:url"].includes(id)) {
+    return nodeRequire(id);
+  }
+  throw new Error("module not found: " + id);
+}
+const window = {
+  addEventListener() {},
+  postMessage(message, target, ports) {
+    forwarded.push({ message, target, transferredOriginalPort: ports[0] === validPort });
+  },
+};
+let startupError = null;
+try {
+  runInNewContext(await readFile(join(outDir, "preload/index.cjs"), "utf8"), {
+    require: preloadRequire,
+    exports: {},
+    module: { exports: {} },
+    process: { argv: [], env: {}, platform: "darwin" },
+    window,
+    document: { title: "Sandbox regression" },
+    URL,
+    URLSearchParams,
+    ArmsEventBridge: { send() {} },
+  });
+} catch (error) {
+  startupError = String(error);
+}
+if (startupError === null) {
+  const servicePort = handlers.get("zcode:service-port");
+  servicePort({ ports: [validPort] }, { databaseStartupId: "startup-1" });
+  for (const [name, payload] of [
+    ["empty", { databaseStartupId: "" }],
+    ["number", { databaseStartupId: 1 }],
+    ["extra", { databaseStartupId: "startup-1", unexpected: true }],
+  ]) {
+    servicePort({ ports: [{ close() { closed.push(name); } }] }, payload);
+  }
+}
+console.log(JSON.stringify({
+  startupError,
+  hasPrintPageToPdf: typeof exposed.zcode?.printPageToPdf === "function",
+  forwarded,
+  closed,
+  artifacts: await readdir(join(outDir, "preload")),
+}));
+`;
 
 type EsbuildLikeOptions = {
   chunkNames?: string;
@@ -44,6 +141,41 @@ function getDefines(configName: string): Record<string, string> {
 }
 
 describe("desktop tsup chunk isolation", () => {
+  it.each(["development", "production"])(
+    "%s preload 在 sandbox require 边界内建立 bridge，并保留真实 schema 校验",
+    async (mode) => {
+      const outDir = await mkdtemp(join(tmpdir(), "zcode-sandbox-preload-"));
+      try {
+        const { stdout } = await execFileAsync(
+          process.execPath,
+          ["--import", "tsx", "--input-type=module", "-e", sandboxPreloadProbe, outDir],
+          {
+            cwd: desktopDir,
+            env: { ...process.env, NODE_ENV: mode, ZCODE_E2E_COVERAGE: "0" },
+            timeout: 30_000,
+            maxBuffer: 1_048_576,
+          },
+        );
+        const result = JSON.parse(stdout.trim().split("\n").at(-1) ?? "");
+        expect(result.startupError).toBeNull();
+        expect(result.hasPrintPageToPdf).toBe(true);
+        expect(result.forwarded).toEqual([
+          {
+            message: { type: "zcode:service-port", databaseStartupId: "startup-1" },
+            target: "*",
+            transferredOriginalPort: true,
+          },
+        ]);
+        expect(result.closed).toEqual(["empty", "number", "extra"]);
+        if (mode === "production") {
+          expect(result.artifacts.some((name: string) => name.endsWith(".map"))).toBe(false);
+        }
+      } finally {
+        await rm(outDir, { recursive: true, force: true });
+      }
+    },
+  );
+
   it("ZIP 解包器应外置，避免 Electron ESM 启动时动态 require fs 崩溃", () => {
     for (const name of ["main", "host", "scheduler"]) expect(getExternal(name)).toContain("yauzl");
   });
@@ -182,7 +314,7 @@ describe("desktop tsup chunk isolation", () => {
       const defines = getDefines(entry);
       expect(defines).toHaveProperty("__ZCODE_ENV__");
       expect(defines).toHaveProperty("__ZCODE_PRODUCT_FLAVOR__");
-      expect(["\"production\"", "\"preview\""]).toContain(defines.__ZCODE_PRODUCT_FLAVOR__);
+      expect(['"production"', '"preview"']).toContain(defines.__ZCODE_PRODUCT_FLAVOR__);
     }
   });
 

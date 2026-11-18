@@ -1,5 +1,27 @@
 # Conversation Session Case Catalog
 
+## CDR：Claude Desktop presentation reconstruction（2026-11-14 accepted）
+
+规格：[整套桌面 UI 重构](superpowers/specs/2026-11-14-claude-desktop-ui-reconstruction-design.md)。
+仅调整 presentation；runtime、模型/provider、DSH、accepted queue、workspace identity 与两种 stream delivery 不变。
+候选为 `packages/desktop/test/e2e/ui-shell/manual-review/pending/claude-desktop-reconstruction.test.ts`；
+工程视觉工具回归为 `scripts/test/desktop-ui-visual-compare.test.mjs`，不属于 App 业务单测。
+
+| ID | 前置与动作 | 必须断言 |
+| --- | --- | --- |
+| CDR-01 | 隔离 Desktop、1200×800，双主题打开真实新草稿 | 新默认侧栏比例、header/frame/reading/composer geometry；内容可用、无横向溢出 |
+| CDR-02 | 1200/768/390px，Sidebar/Side Pane 收放与 resize | 原入口可用；草稿/面板内容不因展示变化丢失；移动单列/overlay |
+| CDR-03 | 真实新草稿输入，打开模型、附件/配置菜单并取消 | 原 Lexical draft、model config/capability、菜单 keyboard/Esc/focus；不自动提交 |
+| CDR-04 | 真实 CLI/Host + case-local provider replay 发送 | Thinking/tool/stream 来自 runtime；最终消息、展开/复制等真实操作 |
+| CDR-05 | 运行中、权限等待、错误状态执行原按钮 | stop/permission/retry 沿原命令路径；无第二份 accepted queue 或假状态 |
+| CDR-06 | Account、Search、Settings，各配置类型与双主题 | 当前实际账号/API Key 事实；所有原配置入口保留，overlay focus/shadow/布局可用 |
+| CDR-07 | Markdown/code/真实文件产物打开 preview/download | 原 renderer、文件/平台路由与状态，非截图/假文件 |
+| CDR-08 | theme/locale/UI font/reduced-motion 切换与重载 | 原持久化/广播防回环；UI 字号不改变 html/几何；移动 editable floor |
+| CDR-09 | 合法同尺寸、主题、DPR、状态官方参考图对比 | 真实 Overlay/Pixel Difference，metadata 相符；缺参考图明确 blocked，不能报告像素通过 |
+
+CDR-01–08 的具体执行证据写入覆盖矩阵及专用 coverage；CDR-09 当前受官方调试限制与 macOS 截图权限阻塞。
+测试中受控的 provider/account/relay fixture 永不接入最终产品组件的数据来源。
+
 ## 会话 ID 兼容（SID，2026-10-28 accepted）
 
 规格：[Session identity compatibility](session-context-tool.md#session-identity-compatibility)。

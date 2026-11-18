@@ -1451,7 +1451,8 @@ export const MessageResponse = memo(
       [renderZCodeFileCitations, workspaceHomePath, workspacePath],
     );
     const responseClassName = cn(
-      "size-full text-ui-base leading-[1.75] tracking-wide [&>*:first-child]:mt-0 [&>*:last-child]:mb-0",
+      // 旧显式 UI 字号覆盖了父级阅读 role；正文自身使用同一 role，代码仍由独立偏好控制。
+      "size-full text-ui-prose tracking-normal [&>*:first-child]:mt-0 [&>*:last-child]:mb-0",
       className,
     );
     const fallbackClassName = cn(responseClassName, "whitespace-pre-wrap break-words");

@@ -120,12 +120,12 @@ describe("Side Pane Tab responsive interactions", () => {
         const metrics = await readIndependentPanelMetrics();
         return Boolean(
           metrics &&
-          Math.abs(metrics.gap - 3) < 1 &&
+          Math.abs(metrics.gap - 4) < 1 &&
           Math.abs(metrics.topDelta) < 1 &&
           Math.abs(metrics.bottomDelta) < 1,
         );
       },
-      { timeout: 5000, timeoutMsg: "独立面板未形成上下对齐的 3px 间距" },
+      { timeout: 5000, timeoutMsg: "独立面板未形成上下对齐的 4px 间距" },
     );
     const panels = await readIndependentPanelMetrics();
     if (process.platform === "win32" || process.platform === "linux")
@@ -315,7 +315,7 @@ describe("Side Pane Tab responsive interactions", () => {
     ).toMatchObject({
       hasExtendedIndicatorLine: true,
       indicatorOpacity: "0",
-      handleWidth: 3,
+      handleWidth: 4,
     });
     await hoverResizeHandle('[data-workspace-side-pane-resize-handle="true"]');
     await assertResizeHandleVisible('[data-workspace-side-pane-resize-handle="true"]');
@@ -350,7 +350,7 @@ describe("Side Pane Tab responsive interactions", () => {
       },
       { timeout: 5000, timeoutMsg: "独立面板间距无法拖动调整宽度" },
     );
-    expect((await readIndependentPanelMetrics())?.gap).toBeCloseTo(3, 0);
+    expect((await readIndependentPanelMetrics())?.gap).toBeCloseTo(4, 0);
     const terminalToggle = await $(`[data-testid="${TID_TERMINAL_TOGGLE}"]`);
     await terminalToggle.click();
     await browser.waitUntil(
@@ -877,7 +877,7 @@ describe("Side Pane Tab responsive interactions", () => {
           return (
             bounds.width === normalBounds.width &&
             bounds.height === normalBounds.height &&
-            Math.abs((await readIndependentPanelMetrics())!.gap - 3) < 1
+            Math.abs((await readIndependentPanelMetrics())!.gap - 4) < 1
           );
         });
       }

@@ -1,0 +1,351 @@
+/* XBuild reusable presentation roles. Values are owned by styles.css;
+ * these roles never own runtime, theme, draft, queue or pane state. */
+
+.xb-reading-rail {
+  inline-size: 100%;
+  max-inline-size: var(--desktop-reading-width);
+  min-inline-size: 0;
+}
+
+/* 草稿轨道单独一档：真实 Claude 空态 composer 实测 671.5px ≈ 672px（1582px 窗口下），
+   比会话阅读轨道窄。此前该 class 只被引用、没有规则，草稿宽度实际由旧 max-w-2xl 兜底。 */
+.xb-draft-reading-rail {
+  max-inline-size: var(--desktop-draft-reading-width);
+}
+
+.xb-workspace-header {
+  block-size: var(--desktop-header-height);
+  min-block-size: var(--desktop-header-height);
+  transition-duration: var(--desktop-duration-layout);
+  transition-timing-function: var(--desktop-ease-out);
+}
+
+.xb-desktop-frame {
+  font-family: var(--font-sans);
+  color: var(--color-foreground);
+}
+
+.xb-sidebar-surface {
+  background: var(--color-sidebar);
+}
+
+.xb-conversation-frame,
+.xb-side-pane-frame,
+.xb-terminal-frame {
+  background: var(--color-background);
+  border-color: var(--color-border);
+}
+
+.xb-sidebar-navigation {
+  gap: calc(var(--spacing) / 2);
+  font-size: var(--text-ui-caption);
+  padding-block: calc(var(--spacing) * 3);
+}
+
+.xb-sidebar-navigation [data-slot="button"],
+.xb-sidebar-navigation > [role="group"] {
+  block-size: var(--desktop-sidebar-row-height);
+  font-size: var(--text-ui-caption);
+  border-radius: var(--desktop-control-radius);
+  justify-content: flex-start;
+}
+
+/* New Task 是原有 group 而非 Button；子操作需填满行高并继承导航字号，避免保留 h-8/text-ui-base。 */
+.xb-sidebar-navigation > [role="group"] > div {
+  block-size: 100%;
+  font-size: inherit;
+}
+
+.xb-sidebar-wordmark {
+  block-size: var(--desktop-header-height);
+  font-family: var(--font-voice);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0;
+}
+
+.xb-sidebar-row {
+  min-block-size: var(--desktop-sidebar-row-height);
+  border-radius: var(--desktop-control-radius);
+  font-size: var(--text-ui-caption);
+  transition: background-color var(--desktop-duration-fast) ease;
+}
+
+.xb-sidebar-list-header {
+  color: var(--color-foreground-subtle);
+  font-size: var(--text-ui-sm);
+}
+
+.xb-profile-trigger {
+  border: 1px solid transparent;
+  border-radius: var(--desktop-control-radius);
+  transition: background-color var(--desktop-duration-fast) ease;
+}
+
+.xb-profile-trigger:focus-visible {
+  border-color: var(--color-input-border-focused);
+}
+
+.xb-greeting {
+  font-family: var(--font-voice);
+  font-weight: var(--font-weight-normal);
+  letter-spacing: 0;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+.xb-composer-shell {
+  border-radius: var(--desktop-composer-radius);
+  background: var(--color-input);
+  border-color: var(--color-input-border);
+  box-shadow: var(--desktop-shadow-composer);
+  transition: border-color var(--desktop-duration-snap) ease;
+}
+
+.xb-composer-shell:hover {
+  border-color: var(--color-input-border-hover);
+}
+
+.xb-composer-shell:focus-within {
+  border-color: var(--color-input-border-focused);
+}
+
+.xb-composer-drag-overlay {
+  border-radius: var(--desktop-composer-radius);
+}
+
+.xb-composer-shell[aria-disabled="true"] {
+  color: var(--color-foreground-subtlest);
+}
+
+.xb-draft-composer-shell {
+  border-color: var(--desktop-border);
+}
+
+.xb-draft-composer-shell:hover {
+  border-color: var(--desktop-border-hover);
+}
+
+.xb-draft-composer-shell:focus-within {
+  border-color: var(--desktop-border-hover);
+}
+
+.xb-user-bubble {
+  border: 0;
+  background: var(--color-user-message-bubble);
+  border-radius: var(--desktop-composer-radius);
+}
+
+.xb-artifact-card {
+  border-radius: var(--desktop-frame-radius);
+}
+
+.xb-artifact-card > button {
+  border-radius: inherit;
+}
+
+.xb-open-split {
+  border-radius: var(--desktop-control-radius);
+  transition-property: border-color, background-color, color;
+  transition-duration: var(--desktop-duration-snap);
+}
+
+.xb-preview-header {
+  block-size: var(--desktop-header-height);
+  min-block-size: var(--desktop-header-height);
+}
+
+.xb-composer-toolbar {
+  min-inline-size: 0;
+  font-size: var(--text-ui-caption);
+}
+
+.xb-animated-pane {
+  transition-duration: var(--desktop-duration-base);
+  transition-timing-function: var(--desktop-ease-out);
+}
+
+/* Lusion 的节奏只用于新草稿的一次性展示：先星标、再问候、后输入与建议。
+ * 最终几何由 CSS 布局决定，不由 JS 动画持有；不引入 WebGL、鼠标粒子或持续循环。 */
+@keyframes xb-draft-dock-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 20px, 0) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes xb-brand-in {
+  from {
+    opacity: 0;
+    transform: rotate(-18deg) scale(0.82);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(0) scale(1);
+  }
+}
+
+@keyframes xb-suggestion-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 8px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.xb-draft-dock {
+  transform-origin: 50% 100%;
+  animation: xb-draft-dock-in var(--desktop-duration-reveal) var(--desktop-ease-out) 110ms both;
+}
+
+.xb-brand-entrance {
+  animation: xb-brand-in var(--desktop-duration-reveal) var(--desktop-ease-out) both;
+}
+
+.xb-draft-suggestion-row {
+  animation: xb-suggestion-in var(--desktop-duration-base) var(--desktop-ease-out) both;
+  animation-delay: calc(240ms + var(--desktop-stagger-index, 0) * var(--desktop-stagger-step));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .xb-draft-dock,
+  .xb-brand-entrance,
+  .xb-draft-suggestion-row {
+    animation: none;
+  }
+}
+
+.xb-assistant-content {
+  font-family: var(--font-sans);
+  font-size: var(--text-ui-prose);
+  line-height: var(--text-ui-prose--line-height);
+  overflow-wrap: anywhere;
+}
+
+.xb-thinking-trigger,
+.xb-tool-summary {
+  color: var(--color-foreground-subtle);
+  font-size: var(--text-ui-caption);
+}
+
+.xb-settings-panel {
+  background: var(--color-background);
+}
+
+.xb-settings-nav {
+  background: var(--color-sidebar);
+}
+
+[data-slot="button"],
+[data-slot="input"],
+[data-slot="textarea"],
+[data-slot="select-trigger"] {
+  transition-duration: var(--desktop-duration-snap);
+}
+
+[data-slot="button"]:focus-visible {
+  border-color: var(--color-input-border-focused);
+}
+
+/* important 的 layer 顺序反转：原菜单 !shadow-md 压过 unlayered role。
+ * 只将 shadow 放入 base 层以统一浮层 token，并保留全局 reset 和原生强制色行为。 */
+@layer base {
+  [data-slot="dropdown-menu-content"],
+  [data-slot="dropdown-menu-sub-content"],
+  [data-slot="context-menu-content"],
+  [data-slot="context-menu-sub-content"],
+  [data-slot="popover-content"],
+  [data-slot="select-content"],
+  [data-slot="dialog-content"],
+  [data-slot="alert-dialog-content"] {
+    box-shadow: var(--desktop-shadow-popover) !important;
+  }
+}
+
+[data-slot="dropdown-menu-content"],
+[data-slot="dropdown-menu-sub-content"],
+[data-slot="context-menu-content"],
+[data-slot="context-menu-sub-content"],
+[data-slot="popover-content"],
+[data-slot="select-content"],
+[data-slot="dialog-content"],
+[data-slot="alert-dialog-content"] {
+  animation-duration: var(--desktop-duration-snap);
+  transition-duration: var(--desktop-duration-snap);
+}
+
+[data-slot="dropdown-menu-content"],
+[data-slot="dropdown-menu-sub-content"],
+[data-slot="context-menu-content"],
+[data-slot="context-menu-sub-content"],
+[data-slot="select-content"] {
+  border-radius: var(--desktop-menu-radius);
+}
+
+[data-slot="tooltip-content"] {
+  box-shadow: var(--desktop-shadow-popover);
+  animation-duration: var(--desktop-duration-fast);
+}
+
+@media (max-width: 767px) {
+  /* 无设备导航时仍需避让顶部远控按钮；unlayered 通用 padding 会覆盖原 max-md:pt-11。 */
+  .xb-sidebar-navigation.xb-sidebar-mobile-controls-inset {
+    padding-block-start: calc(var(--spacing) * 11);
+  }
+
+  .xb-sidebar-navigation [data-slot="button"],
+  .xb-sidebar-navigation > [role="group"] {
+    min-block-size: var(--desktop-touch-row-height);
+    font-size: var(--text-ui-base);
+  }
+
+  .xb-sidebar-row,
+  .xb-profile-trigger {
+    min-block-size: var(--desktop-touch-row-height);
+    font-size: var(--text-ui-base);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-slot="button"],
+  [data-slot="input"],
+  [data-slot="textarea"],
+  [data-slot="select-trigger"],
+  [data-slot="dropdown-menu-content"],
+  [data-slot="dropdown-menu-sub-content"],
+  [data-slot="context-menu-content"],
+  [data-slot="context-menu-sub-content"],
+  [data-slot="popover-content"],
+  [data-slot="select-content"],
+  [data-slot="dialog-content"],
+  [data-slot="alert-dialog-content"],
+  [data-slot="tooltip-content"],
+  .xb-workspace-header,
+  .xb-sidebar-row,
+  .xb-profile-trigger,
+  .xb-composer-shell,
+  .xb-open-split,
+  .xb-animated-pane,
+  .xb-thinking-trigger,
+  .xb-tool-summary {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto;
+  }
+}
+
+@media (forced-colors: active) {
+  [data-slot="button"]:focus-visible,
+  [data-slot="input"]:focus-visible,
+  [data-slot="select-trigger"]:focus-visible,
+  .xb-composer-shell:focus-within {
+    border-color: Highlight;
+  }
+}

@@ -363,7 +363,7 @@ export const ReasoningTrigger = memo(
       <CollapsibleTrigger
         data-testid={TID_CHAT_REASONING_TRIGGER}
         className={cn(
-          "group/reasoning inline-flex max-w-full min-w-0 items-center gap-2 self-start text-ui-base transition-colors",
+          "xb-thinking-trigger group/reasoning inline-flex max-w-full min-w-0 items-center gap-2 self-start text-ui-caption transition-colors",
           className,
         )}
         {...props}

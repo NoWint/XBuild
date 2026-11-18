@@ -59,6 +59,7 @@ const INSTALL_OPERATION_TIMEOUT_MS = 10_000;
 
 type Props = ConversationDraftSuggestedPromptsContainerProps & {
   proactive?: boolean;
+  layout?: "chips" | "list";
   onOpenAutomations?: (automationTab?: AutomationsNavigationTab) => void;
 };
 
@@ -82,6 +83,7 @@ function toPluginMutationErrorMessage(error: unknown): string {
 export function ConversationDraftSuggestedPromptsContainer({
   className,
   proactive = false,
+  layout = "chips",
   workspacePath,
   workspaceIdentity,
   remoteSessionId,
@@ -734,12 +736,19 @@ export function ConversationDraftSuggestedPromptsContainer({
   );
 
   return (
-    <div data-v4-draft-suggested-prompts-slot="true" className={cn(!proactive && "h-8", className)}>
+    <div
+      data-v4-draft-suggested-prompts-slot="true"
+      className={cn(
+        "xb-reading-rail xb-draft-reading-rail mx-auto min-w-0",
+        !proactive && layout === "chips" && "h-8",
+        className,
+      )}
+    >
       <ConversationDraftSuggestedPrompts
         // 绝对定位让推荐区脱离 Composer 的正常结构，调试和间距语义都不直观。
         // 旧场景推荐保留固定槽位；主动推荐列表必须由内容撑高，否则多行会溢出并覆盖下方内容。
         items={items}
-        layout={proactive ? "list" : "chips"}
+        layout={layout}
         onSelect={handleSelect}
         onRefresh={proactive ? () => advanceRecommendedPromptPane(recommendationPaneId) : undefined}
         onClose={proactive ? closeRecommendations : undefined}

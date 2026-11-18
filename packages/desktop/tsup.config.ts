@@ -249,7 +249,9 @@ export default defineConfig([
   {
     name: "main",
     entry: {
-      "main/index": "src/main/index.ts",
+      "main/index": process.env.ZCODE_LEGACY_DESKTOP_UI === "1"
+        ? "src/main/index.ts"
+        : "src/open-shell/index.ts",
       "main/browserWebmRecorder": "src/main/browserView/electronBrowserWebmRecorder.ts",
       "main/zcodeDataSizeWorker": "src/main/zcodeDataSizeWorker.ts",
       // 资源管理器「存储」tab 的扫描 Worker：main 持有 StorageService，遍历放独立线程，供 new Worker(new URL()) 解析。
@@ -288,7 +290,7 @@ export default defineConfig([
       applyDesktopTsupEsbuildSecurityOptions(options);
       options.chunkNames = "main/chunk-[hash]";
     },
-    onSuccess: createDevReadyMarkerHook("main"),
+    onSuccess: `${process.env.ZCODE_LEGACY_DESKTOP_UI === "1" ? "" : "node scripts/prepare-open-shell.mjs && "}${createDevReadyMarkerHook("main")}`,
     ...desktopTsupBundleSecurityOptions,
   },
   {
@@ -310,7 +312,9 @@ export default defineConfig([
     removeNodeProtocol: false,
     target: "node22",
     external: ["electron"],
-    noExternal: ["@zcode/shared"],
+    // Desktop 声明 Zod 后 tsup 会默认外置，但 sandbox preloadRequire 不支持 node_modules。
+    // 共享运行时 schema 依赖 Zod，必须一起内联，才能在隔离环境中建立 contextBridge。
+    noExternal: ["@zcode/shared", "zod"],
     outExtension: () => ({ js: ".cjs" }),
     define: createSharedDefines(),
     esbuildOptions(options) {

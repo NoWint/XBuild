@@ -29,6 +29,7 @@
     "@zcode/adapters": "workspace:*",
     "@zcode/contracts": "workspace:*",
     "@zcode/core": "workspace:*",
+    "@zcode/dsh-runtime": "workspace:*",
     "@zcode/dynamic-workflow": "workspace:*",
     "@zcode/dynamic-workflow-runtime": "workspace:*",
     "@zcode/i18n": "workspace:*",
@@ -37,6 +38,7 @@
     "@zcode/shared": "workspace:*",
     "@zcode/telemetry": "workspace:*",
     "diff": "^9.0.0",
+    "pnpm": "10.33.2",
     "zod": "4.6.5"
   },
   "devDependencies": {

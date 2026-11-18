@@ -40,7 +40,7 @@ export function ContextAttachmentPill({
           {...triggerProps}
           aria-label={label}
           className={cn(
-            "group flex h-8 max-w-full cursor-pointer select-none items-center gap-1.5 rounded-full border-0 bg-surface py-1.5 text-ui-base font-medium text-foreground transition-all hover:bg-surface-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-input-border-focused",
+            "group flex h-8 max-w-full cursor-pointer select-none items-center gap-1.5 rounded-full border-0 bg-surface py-1 text-ui-base font-medium text-foreground transition-all hover:bg-surface-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-input-border-focused",
             // 输入框与对话流共用该外壳，但只有输入框存在关闭按钮。
             // 无条件压缩右 padding 会让对话流 pill 视觉上偏右，因此按删除入口分流间距。
             onRemoveAll ? "pl-3 pr-1.5" : "px-3",
@@ -57,7 +57,8 @@ export function ContextAttachmentPill({
               type="button"
               variant="ghost"
               size="icon-xs"
-              className="size-5 shrink-0 rounded-full text-foreground-subtle opacity-0 transition-opacity hover:text-foreground group-hover:opacity-100"
+              // 原因：仅 hover 显示会让键盘与触控用户找不到关闭入口；复用 focus-within / hover:none，不新增状态。
+              className="size-6 shrink-0 rounded-full text-foreground-subtle opacity-0 transition-opacity hover:text-foreground group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100 [@media(hover:none)]:opacity-100"
               aria-label={removeLabel}
               title={removeLabel}
               onClick={(event) => {

@@ -76,6 +76,8 @@ export function buildRemoteWorkspaceSessionServices(
     pluginsService: remoteServices.pluginsService,
     // 设置页插件管理与 pluginsService 同理，必须打到远端（插件目录在远端文件系统）。
     pluginManagementService: remoteServices.pluginManagementService,
+    // 原生域归实际 Source Host 所有，不能把远端 scope 下发到本机管理进程。
+    dshPluginService: remoteServices.dshPluginService,
     commandsService: remoteServices.commandsService,
     // SSH/Docker 工作区的 hooks 声明、信任状态与待审项都位于远端文件系统。
     // hooksService 必须覆盖 baseServices 中的本机服务，否则会用远端路径扫描本机文件系统，

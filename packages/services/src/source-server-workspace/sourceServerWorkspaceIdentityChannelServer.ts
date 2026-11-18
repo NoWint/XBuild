@@ -6,6 +6,15 @@ import {
 } from "@zcode/rpc";
 import { ServiceChannels } from "@zcode/shared";
 import {
+  dshDispatchSchema,
+  dshEventSchema,
+  dshEventSubscriptionSchema,
+  dshOverviewSchema,
+  dshReplaySchema,
+  dshResultSchema,
+  type DshScope,
+} from "@zcode/shared/dsh-compat";
+import {
   conversationTopicFrameSchema,
   encodeTopicWireFrames,
   measureTopicNotificationEnvelopeBytes,
@@ -183,7 +192,18 @@ class SourceServerWorkspaceIdentityServerChannel<TContext> implements IServerCha
   public constructor(
     private readonly inner: IServerChannel<TContext>,
     private readonly mapper: SourceServerWorkspaceIdentityMapper,
+    private readonly dshOnly = false,
   ) {}
+
+  private mapDshScope(scope: DshScope, outgoing: boolean): DshScope {
+    if (!scope.workspaceIdentity) return scope;
+    return {
+      ...scope,
+      workspaceIdentity: outgoing
+        ? this.mapper.mapOutgoing(scope.workspaceIdentity)
+        : this.mapper.mapIncoming(scope.workspaceIdentity),
+    };
+  }
 
   public async call<T>(
     context: TContext,
@@ -191,6 +211,52 @@ class SourceServerWorkspaceIdentityServerChannel<TContext> implements IServerCha
     args?: unknown,
     cancellationToken?: CancellationToken,
   ): Promise<T> {
+    if (this.dshOnly || command === "dispatchDshPlugin") {
+      // 原因：原生插件 JSON 里的字符串是插件数据，不是 Host identity；递归 mapper 会篡改
+      // SDK 参数、结果和 client graph。DSH 仅映射已定义的 envelope scope 与 overview/replay scope。
+      const [input] = args as [Record<string, unknown>];
+      const { __zcodeTrustedV4Connection: carrier, ...native } = input;
+      const params = dshDispatchSchema.parse(native);
+      const result = dshResultSchema.parse(
+        await this.inner.call(
+          context,
+          command,
+          [
+            {
+              ...params,
+              scope: this.mapDshScope(params.scope, false),
+              ...(carrier ? { __zcodeTrustedV4Connection: carrier } : {}),
+            },
+          ],
+          cancellationToken,
+        ),
+      );
+      if (params.command.kind === "overview") {
+        const overview = dshOverviewSchema.parse(result.value);
+        return {
+          value: {
+            ...overview,
+            domains: overview.domains.map((domain) => ({
+              ...domain,
+              scope: this.mapDshScope(domain.scope, true),
+            })),
+          },
+        } as T;
+      }
+      if (params.command.kind === "events") {
+        const replay = dshReplaySchema.parse(result.value);
+        return {
+          value: {
+            ...replay,
+            events: replay.events.map((event) => ({
+              ...event,
+              scope: this.mapDshScope(event.scope, true),
+            })),
+          },
+        } as T;
+      }
+      return result as T;
+    }
     const result = await this.inner.call<T>(
       context,
       command,
@@ -201,6 +267,19 @@ class SourceServerWorkspaceIdentityServerChannel<TContext> implements IServerCha
   }
 
   public listen<T>(context: TContext, event: string, arg?: unknown): Event<T> {
+    if (this.dshOnly || event === "onDynamicDshPluginEvent") {
+      const params = dshEventSubscriptionSchema.parse(arg);
+      return Event.map(
+        this.inner.listen(context, event, {
+          ...params,
+          scope: this.mapDshScope(params.scope, false),
+        }),
+        (value) => {
+          const parsed = dshEventSchema.parse(value);
+          return { ...parsed, scope: this.mapDshScope(parsed.scope, true) };
+        },
+      ) as Event<T>;
+    }
     const innerEvent = this.inner.listen<unknown>(context, event, this.mapper.mapIncoming(arg));
     if (event === "onDynamicConversationFrame") {
       return mapTopicWireEvent(
@@ -246,7 +325,11 @@ export class SourceServerWorkspaceIdentityChannelServer<
       channelName,
       channelName === ServiceChannels.SourceServerWorkspace
         ? channel
-        : new SourceServerWorkspaceIdentityServerChannel(channel, this.mapper),
+        : new SourceServerWorkspaceIdentityServerChannel(
+            channel,
+            this.mapper,
+            channelName === ServiceChannels.DshPlugins,
+          ),
     );
   }
 

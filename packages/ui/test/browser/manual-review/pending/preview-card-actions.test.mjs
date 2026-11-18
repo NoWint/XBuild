@@ -16,6 +16,8 @@ before(async () => {
   await mkdir(artifacts, { recursive: true });
   server = await createServer({
     root,
+    // 并行浏览器 fixture 各自拥有预构建缓存，避免模型 fixture 的依赖扫描覆盖当前产物。
+    cacheDir: join(artifacts, "vite-cache"),
     configFile: false,
     plugins: [
       {
@@ -43,7 +45,7 @@ before(async () => {
       host: "127.0.0.1",
       port: 0,
       hmr: false,
-      watch: { ignored: ["**/packages/desktop/out/**", "**/.e2e-artifacts/**"] },
+      watch: { ignored: ["**/out/**", "**/dist/**", "**/.e2e-artifacts/**"] },
     },
   });
   await server.listen();
@@ -62,13 +64,13 @@ after(async () => {
 const FILE_CARD_TITLE = "项目 简介.docx";
 const WEB_CARD_TITLE = "APC Local Preview";
 
-async function openFixture() {
-  const page = await browser.newPage({ viewport: { width: 1100, height: 844 } });
+async function openFixture({ width = 1100, theme = "dark", hasTouch = false, surface = "" } = {}) {
+  const page = await browser.newPage({ viewport: { width, height: 844 }, hasTouch });
   // 首次访问要冷编译整条 ui 依赖链，放宽默认超时避免误报。
   page.setDefaultTimeout(60_000);
   const errors = [];
   page.on("pageerror", (error) => errors.push(String(error)));
-  await page.goto(`${origin}fixture?theme=dark&locale=zh-CN`);
+  await page.goto(`${origin}fixture?theme=${theme}&locale=zh-CN&surface=${surface}`);
   const fileCard = page.locator(`[data-preview-card-title="${FILE_CARD_TITLE}"]`);
   const webCard = page.locator(`[data-preview-card-title="${WEB_CARD_TITLE}"]`);
   await fileCard.waitFor();
@@ -171,4 +173,86 @@ test("PCA06 overlay button supports keyboard Enter activation", async () => {
     await page.close();
   }
   assert.deepEqual(errors, []);
+});
+
+for (const width of [390, 1200]) {
+  for (const theme of ["light", "dark"]) {
+    test(`PCA07 artifact and preview frame ${width}/${theme} keep actions inside the rail`, async () => {
+      const { page, errors, fileCard } = await openFixture({ width, theme, surface: "preview" });
+      try {
+        const pane = page.getByTestId("preview-pane");
+        await pane.waitFor();
+        const geometry = await page.evaluate(() => {
+          const card = document.querySelector("[data-preview-card-title]");
+          const pane = document.querySelector('[data-testid="preview-pane"]');
+          const header = pane.firstElementChild;
+          const split = card.querySelector('[data-slot="button"]').parentElement;
+          const rect = card.getBoundingClientRect();
+          return {
+            radius: parseFloat(getComputedStyle(card).borderRadius),
+            headerHeight: header.getBoundingClientRect().height,
+            splitHeight: split.getBoundingClientRect().height,
+            cardContained: rect.left >= 0 && rect.right <= innerWidth,
+            overflow: document.documentElement.scrollWidth > innerWidth,
+            chevronSize: split.querySelector("svg").getBoundingClientRect().width,
+            letterSpacing: getComputedStyle(card).letterSpacing,
+          };
+        });
+        assert.equal(geometry.radius, 8, JSON.stringify(geometry));
+        assert.equal(geometry.headerHeight, 36, JSON.stringify(geometry));
+        assert.equal(geometry.splitHeight, 28);
+        assert.equal(geometry.chevronSize, 16);
+        assert.ok(["normal", "0px"].includes(geometry.letterSpacing));
+        assert.equal(geometry.cardContained, true);
+        assert.equal(geometry.overflow, false);
+        await fileCard.getByRole("button", { name: "选择打开方式" }).click();
+        await page.getByRole("menu").waitFor();
+        await page.keyboard.press("Escape");
+        assert.equal(
+          await fileCard
+            .getByRole("button", { name: "选择打开方式" })
+            .evaluate((element) => document.activeElement === element),
+          true,
+        );
+        await page.screenshot({ path: join(artifacts, `frames-${width}-${theme}.png`) });
+        assert.deepEqual(errors, []);
+      } finally {
+        await page.close();
+      }
+    });
+  }
+}
+
+test("PCA08 context removal is discoverable from keyboard focus and activates exactly once", async () => {
+  const { page, errors, readEvents } = await openFixture();
+  try {
+    const pill = page.getByRole("button", { name: "Context attachment", exact: true });
+    const remove = page.getByRole("button", { name: "Remove context", exact: true });
+    await pill.focus();
+    await remove.evaluate(async (element) => {
+      await Promise.allSettled(element.getAnimations().map((animation) => animation.finished));
+    });
+    assert.equal(await remove.evaluate((element) => getComputedStyle(element).opacity), "1");
+    await remove.focus();
+    await page.keyboard.press("Enter");
+    await pill.waitFor({ state: "detached" });
+    assert.deepEqual(await readEvents(), ["removeContext"]);
+    assert.deepEqual(errors, []);
+  } finally {
+    await page.close();
+  }
+});
+
+test("PCA09 context removal is discoverable on touch without hover", async () => {
+  const { page, errors, readEvents } = await openFixture({ width: 390, hasTouch: true });
+  try {
+    assert.equal(await page.evaluate(() => matchMedia("(hover: none)").matches), true);
+    const remove = page.getByRole("button", { name: "Remove context", exact: true });
+    assert.equal(await remove.evaluate((element) => getComputedStyle(element).opacity), "1");
+    await remove.tap();
+    assert.deepEqual(await readEvents(), ["removeContext"]);
+    assert.deepEqual(errors, []);
+  } finally {
+    await page.close();
+  }
 });

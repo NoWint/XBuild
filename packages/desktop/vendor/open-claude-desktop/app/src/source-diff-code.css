@@ -1,0 +1,9 @@
+/* c49d7f557 Pierre word-alt decorations: a continuous range can contain
+   multiple syntax tokens; the rounded emphasis belongs to the range. */
+.source-diff-code [data-diff-span] { box-decoration-break:clone;-webkit-box-decoration-break:clone;border-radius:3px; }
+[data-kind=added] .source-diff-code [data-diff-span] { background-color:light-dark(rgb(from var(--diffs-addition-color-override,var(--diffs-light-addition-color,#0dbe4e)) r g b / .15),rgb(from var(--diffs-addition-color-override,var(--diffs-dark-addition-color,#5ecc71)) r g b / .2)); }
+[data-kind=removed] .source-diff-code [data-diff-span] { background-color:light-dark(rgb(from var(--diffs-deletion-color-override,var(--diffs-light-deletion-color,#ff2e3f)) r g b / .15),rgb(from var(--diffs-deletion-color-override,var(--diffs-dark-deletion-color,#ff6762)) r g b / .2)); }
+
+/* Syntax and decoration spans must retain code whitespace, even in the
+   Changes panel whose outer chrome uses inline-flex spans. */
+.source-diff-code.source-diff-code span { display:inline;white-space:inherit;padding:0;min-width:0; }

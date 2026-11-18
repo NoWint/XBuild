@@ -86,6 +86,7 @@ import { SubagentsSection } from "@/settings/SubagentsSection.js";
 import { AutomationsSection } from "@/settings/AutomationsSection.js";
 import { SegmentPill } from "@/settings/PluginStoreListView.js";
 import { PluginsSection } from "@/settings/PluginsSection.js";
+import { DshPluginsSection } from "@/dsh-native-ui/DshPluginsSection.js";
 import { HooksSection } from "@/settings/HooksSection.js";
 import { CustomizationSection } from "@/settings/CustomizationSection.js";
 import { WorkspaceFileSearchSection } from "@/settings/WorkspaceFileSearchSection.js";
@@ -903,9 +904,7 @@ export function SettingsPage({
         setDesktopChromiumHardwareAccelerationEnabled(
           settings.desktopChromiumHardwareAccelerationEnabled ?? true,
         );
-        setDesktopWindowMaterial(
-          settings.desktopWindowMaterial === "blur" ? "blur" : "acrylic",
-        );
+        setDesktopWindowMaterial(settings.desktopWindowMaterial === "blur" ? "blur" : "acrylic");
       })
       .catch(() => {});
     localHostServices.systemService
@@ -1548,7 +1547,7 @@ export function SettingsPage({
           {usesInlineWindowControls ? (
             <div
               className={cn(
-                "absolute z-30 mt-px mr-px flex h-12 items-center gap-0.5 px-2 pointer-events-auto [app-region:no-drag]",
+                "absolute z-30 mt-px mr-px flex h-desktop-header items-center gap-0.5 px-2 pointer-events-auto [app-region:no-drag]",
                 // 外沿留白变化后，悬浮操作组也必须同步，否则与内容 Header 错位。
                 isWindowsDesktop ? "right-1.5 top-1.5" : "right-1 top-1",
               )}
@@ -1560,7 +1559,7 @@ export function SettingsPage({
               <DesktopWindowControls />
             </div>
           ) : null}
-          <aside className="min-w-0">
+          <aside className="xb-settings-nav min-w-0">
             <div className="flex h-full flex-col">
               <div className="h-12 [app-region:drag]"></div>
               <div className="px-2 pb-3 pt-3">
@@ -1725,7 +1724,7 @@ export function SettingsPage({
             <div
               data-settings-panel-frame="true"
               className={cn(
-                "relative flex flex-col min-h-0 h-full border border-border bg-background",
+                "xb-settings-panel relative flex flex-col min-h-0 h-full border border-border bg-background",
                 // 直接写像素圆角会绕过设计 token；设置页与工作区统一复用 rounded-md（默认 6px）。
                 isWindowsDesktop ? "rounded-md" : "rounded-xl",
               )}
@@ -1751,7 +1750,7 @@ export function SettingsPage({
                 sectionLabel={settingsBreadcrumbSectionLabel}
               >
                 <div className="flex min-h-0 flex-1 flex-col">
-                  <div className="flex h-12 shrink-0">
+                  <div className="flex h-desktop-header shrink-0">
                     <div
                       // Settings 窄布局会像左侧导航一样在 max-lg 收成 icon rail。
                       // 此时外层已经提供 max-lg:h-16 的顶部拖拽/避让区，内层 h-10 再保留会把内容额外压低。
@@ -2189,6 +2188,11 @@ export function SettingsPage({
                                 requestPluginStoreOpen({ returnScopeKey: "user", intent });
                                 onBack?.();
                               }}
+                            />
+                          ) : activeSection === "dshPlugins" ? (
+                            <DshPluginsSection
+                              workspacePath={activeWorkspacePath}
+                              workspaceIdentity={activeWorkspaceIdentity}
                             />
                           ) : activeSection === "migration" ? (
                             <MigrationSection

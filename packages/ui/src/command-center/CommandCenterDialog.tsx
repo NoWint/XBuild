@@ -254,14 +254,12 @@ export function CommandCenterScopeButton({
   return (
     <button
       type="button"
+      data-slot="button"
       role="tab"
       aria-selected={active}
       onClick={onClick}
       className={cn(
-        // scope tabs 是可交互的范围切换按钮，按 DESIGN.md 语义角色属于
-        // common buttons，应使用 text-ui-base；不能用 text-ui-xs（10px，badge/
-        // counter 专用），否则字号过小。同时与上方搜索输入框 (text-ui-base) 保持一致。
-        "inline-flex h-6 shrink-0 items-center gap-1 rounded-full border px-2 text-ui-base font-medium leading-none transition-colors",
+        "inline-flex min-h-desktop-sidebar-row shrink-0 items-center gap-1.5 rounded-md border px-2 text-ui-caption font-medium leading-none transition-colors max-md:min-h-[var(--desktop-touch-row-height)]",
         active
           ? "border-border bg-selected text-foreground"
           : "border-transparent text-foreground-subtle hover:bg-surface-hover hover:text-foreground",
@@ -305,7 +303,7 @@ export function CommandCenterConversationTimestamp({
   return (
     <span
       className={cn(
-        "max-w-12 shrink-0 truncate font-sans text-ui-sm tracking-normal text-foreground-subtlest",
+        "max-w-12 shrink-0 truncate font-sans text-ui-sm tracking-normal text-foreground-subtle",
         className,
       )}
     >
@@ -351,8 +349,9 @@ export function CommandCenterSearchHistory({
         <span>{historyLabel}</span>
         <button
           type="button"
+          data-slot="button"
           aria-label={clearLabel}
-          className="ml-auto inline-grid size-6 place-items-center rounded-md text-foreground-subtlest hover:bg-surface-hover hover:text-foreground"
+          className="ml-auto inline-grid size-6 place-items-center rounded-md border border-transparent text-foreground-subtlest hover:bg-surface-hover hover:text-foreground"
           onClick={onClear}
         >
           <Trash2Icon className="size-3.5" />
@@ -370,6 +369,7 @@ export function CommandCenterSearchHistory({
             <button
               key={`${entry.scope}:${entry.query}:${entry.updatedAt}`}
               type="button"
+              data-slot="button"
               // text-ui-base 随 --ui-font-size（12–20px）缩放，不能用固定 h-5
               // 否则 20px 字号下内容区（20px - 2px 边框 = 18px）装不下字体行盒，
               // 配合外层 overflow-hidden 会裁切文字。改用 min-h-5 + py-0.5 + leading-none
@@ -385,8 +385,9 @@ export function CommandCenterSearchHistory({
         {canExpand ? (
           <button
             type="button"
+            data-slot="button"
             aria-label={expanded ? collapseLabel : expandLabel}
-            className="absolute top-1 right-3 inline-grid size-6 place-items-center rounded-md text-foreground-subtle hover:bg-surface-hover hover:text-foreground"
+            className="absolute top-1 right-3 inline-grid size-6 place-items-center rounded-md border border-transparent text-foreground-subtle hover:bg-surface-hover hover:text-foreground"
             onClick={onToggleExpanded}
           >
             <ChevronDownIcon
@@ -730,7 +731,8 @@ export const CommandCenterDialog = memo(function CommandCenterDialogComponent({
     return (
       <button
         type="button"
-        className="mt-0.5 flex min-h-7 w-full items-center gap-1.5 rounded-xl px-2.5 pl-8 text-left text-ui-base text-foreground-subtle hover:bg-menu-hover hover:text-foreground"
+        data-slot="button"
+        className="xb-sidebar-row mt-0.5 flex w-full items-center gap-1.5 rounded-md px-2.5 pl-8 text-left text-ui-caption text-foreground-subtle hover:bg-menu-hover hover:text-foreground"
         onClick={() => setExpandedSections((current) => new Set(current).add(sectionId))}
       >
         {intl.formatMessage({ id: "commandCenter.moreResults" })}
@@ -767,7 +769,7 @@ export const CommandCenterDialog = memo(function CommandCenterDialogComponent({
               className={quickPickItemClassName}
               onSelect={() => selectRecentChange(file)}
             >
-              <FileDisplayIcon src={descriptor.fileIconSrc} size={14} className="shrink-0" />
+              <FileDisplayIcon src={descriptor.fileIconSrc} size={16} className="shrink-0" />
               <span className="min-w-0 flex-1 truncate">{relativePath}</span>
               <CommandShortcut className={quickPickMetadataClassName}>
                 <span className="text-diff-added">+{file.added}</span>{" "}
@@ -808,7 +810,7 @@ export const CommandCenterDialog = memo(function CommandCenterDialogComponent({
               className={quickPickItemClassName}
               onSelect={() => selectRecentTask(task)}
             >
-              <MessageSquareIcon className="size-3.5 text-foreground-subtle" />
+              <MessageSquareIcon className="size-4 text-foreground-subtle" />
               <span className="min-w-0 flex-1 truncate">{title}</span>
               <CommandShortcut className={quickPickMetadataClassName}>
                 {formatTaskRelativeTime(task.updatedAt, intl)}
@@ -842,7 +844,7 @@ export const CommandCenterDialog = memo(function CommandCenterDialogComponent({
               className={quickPickItemClassName}
               onSelect={() => runCommand(command)}
             >
-              <Icon className="size-3.5 text-foreground-subtle" />
+              <Icon className="size-4 text-foreground-subtle" />
               <span className="min-w-0 flex-1 truncate">
                 <HighlightedMatchText text={title} query={searchQuery} />
               </span>
@@ -893,13 +895,13 @@ export const CommandCenterDialog = memo(function CommandCenterDialogComponent({
               className={quickPickItemClassName}
               onSelect={() => selectTask(row)}
             >
-              <MessageSquareIcon className="size-3.5 text-foreground-subtle" />
+              <MessageSquareIcon className="size-4 text-foreground-subtle" />
               <span className="flex min-w-0 flex-1 flex-col justify-center py-0.5">
-                <span className="truncate text-ui-base leading-5 font-normal text-foreground">
+                <span className="truncate text-ui-caption leading-5 font-normal text-foreground">
                   <HighlightedMatchText text={title} query={searchQuery} />
                 </span>
                 {searchSnippet ? (
-                  <span className="min-w-0 truncate text-ui-base leading-4 text-foreground-subtle">
+                  <span className="min-w-0 truncate text-ui-sm leading-4 text-foreground-subtle">
                     <HighlightedMatchText text={searchSnippet} query={searchQuery} />
                   </span>
                 ) : null}
@@ -950,7 +952,7 @@ export const CommandCenterDialog = memo(function CommandCenterDialogComponent({
               className={quickPickItemClassName}
               onSelect={() => selectFile(entry)}
             >
-              <FileDisplayIcon src={descriptor.fileIconSrc} size={14} className="shrink-0" />
+              <FileDisplayIcon src={descriptor.fileIconSrc} size={16} className="shrink-0" />
               <span className="min-w-0 flex-1 truncate">
                 <HighlightedMatchText text={entry.name} query={searchQuery} />
               </span>
@@ -1005,13 +1007,13 @@ export const CommandCenterDialog = memo(function CommandCenterDialogComponent({
     >
       <Command shouldFilter={false} loop className={quickPickCommandClassName}>
         <div className="border-b border-border px-2 pt-2 pb-2">
-          <div className="flex h-8 items-center gap-2 rounded-full border border-input-border bg-input px-2.5 transition-colors hover:border-input-border-hover focus-within:border-input-border-focused focus-within:bg-input-focused">
+          <div className="flex h-8 items-center gap-2 rounded-lg border border-input-border bg-input px-2.5 transition-colors hover:border-input-border-hover focus-within:border-input-border-focused focus-within:bg-input-focused max-md:h-[var(--desktop-touch-row-height)]">
             <SearchIcon className="size-4 shrink-0 text-foreground-subtlest" />
             <CommandPrimitive.Input
               value={rawQuery}
               onValueChange={setRawQuery}
               placeholder={intl.formatMessage({ id: "commandCenter.placeholder" })}
-              className="min-w-0 flex-1 bg-transparent text-ui-base leading-5 text-foreground outline-none placeholder:text-foreground-subtlest"
+              className="min-w-0 flex-1 bg-transparent text-ui-base leading-5 text-foreground outline-none placeholder:text-foreground-subtlest max-md:text-mobile-input-safe"
             />
           </div>
           <div
@@ -1024,28 +1026,28 @@ export const CommandCenterDialog = memo(function CommandCenterDialogComponent({
               label={intl.formatMessage({ id: "commandCenter.scope.all" })}
               onClick={() => setScope("all")}
             >
-              <ListIcon className="size-3" />
+              <ListIcon className="size-4" />
             </CommandCenterScopeButton>
             <CommandCenterScopeButton
               active={activeScope === "commands"}
               label={intl.formatMessage({ id: "commandCenter.scope.commands" })}
               onClick={() => setScope("commands")}
             >
-              <RocketIcon className="size-3" />
+              <RocketIcon className="size-4" />
             </CommandCenterScopeButton>
             <CommandCenterScopeButton
               active={activeScope === "conversations"}
               label={intl.formatMessage({ id: "commandCenter.scope.conversations" })}
               onClick={() => setScope("conversations")}
             >
-              <MessagesSquareIcon className="size-3" />
+              <MessagesSquareIcon className="size-4" />
             </CommandCenterScopeButton>
             <CommandCenterScopeButton
               active={activeScope === "files"}
               label={intl.formatMessage({ id: "commandCenter.scope.files" })}
               onClick={() => setScope("files")}
             >
-              <FileIcon className="size-3" />
+              <FileIcon className="size-4" />
             </CommandCenterScopeButton>
           </div>
         </div>

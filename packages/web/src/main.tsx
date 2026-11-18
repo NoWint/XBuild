@@ -771,6 +771,8 @@ export function createHomeOnlyWebRemoteControlServices(): RootServices {
       createUnsupportedHomeOnlyService<RootServices["pluginManagementService"]>(
         "pluginManagementService",
       ),
+    dshPluginService:
+      createUnsupportedHomeOnlyService<RootServices["dshPluginService"]>("dshPluginService"),
     subagentsService: createEmptyHomeOnlyService<RootServices["subagentsService"]>({
       list: async () => ({ agents: [], capability: { supported: false } }),
     }),

@@ -17,6 +17,9 @@ describe("desktop e2e startup credentials", () => {
     ["C:\\repo\\packages\\desktop\\test\\e2e\\new-unregistered-feature.test.ts"],
     ["/repo/packages/desktop/test/e2e/browser-human-viewport-preference.test.ts"],
     ["/repo/packages/desktop/test/e2e/browser-permission-prompt.test.ts"],
+    [
+      "/repo/packages/desktop/test/e2e/ui-shell/manual-review/pending/claude-desktop-reconstruction.test.ts",
+    ],
   ])("未声明账号 fixture 时默认无账号：%j", (specs) => {
     expect(
       createE2EStartupCredentialSeed({

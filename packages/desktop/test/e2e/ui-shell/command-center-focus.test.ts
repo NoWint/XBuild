@@ -77,16 +77,18 @@ describe("组合输入框焦点", () => {
         const searchRect = button.getBoundingClientRect();
         const filterRect = filter.getBoundingClientRect();
         return {
-          titleUsesBase:
+          titleUsesSmall:
             parseFloat(getComputedStyle(title).fontSize) ===
             parseFloat(
               getComputedStyle(document.documentElement).getPropertyValue("--ui-font-size"),
-            ),
-          sectionUsesBase:
+            ) -
+              2,
+          sectionUsesSmall:
             parseFloat(getComputedStyle(section).fontSize) ===
             parseFloat(
               getComputedStyle(document.documentElement).getPropertyValue("--ui-font-size"),
-            ),
+            ) -
+              2,
           titleSizeDelta:
             parseFloat(getComputedStyle(title).fontSize) -
             parseFloat(getComputedStyle(section).fontSize),
@@ -116,8 +118,8 @@ describe("组合输入框焦点", () => {
         };
       });
       expect(entrance).toEqual({
-        titleUsesBase: true,
-        sectionUsesBase: true,
+        titleUsesSmall: true,
+        sectionUsesSmall: true,
         titleSizeDelta: 0,
         titleHasSecondaryColor: true,
         titleTopSpacing: "12px",

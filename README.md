@@ -165,8 +165,9 @@ git tag v3.18.0 && git push origin v3.18.0
 
 ## 许可证
 
-本项目沿用上游 [Apache License 2.0](LICENSE)，保留 ZCode 的版权与许可声明。
-再次感谢 [zai-org/ZCode](https://github.com/zai-org/ZCode) 及所有上游贡献者。
+XBuild 的新改动及整体分发采用 [GNU Affero General Public License v3.0](LICENSE)。
+原始 ZCode 代码仍按 [Apache License 2.0](licenses/Apache-2.0.txt) 提供；各第三方组件继续适用其随附许可证，包括桌面壳 `packages/desktop/vendor/open-claude-desktop` 的 MIT 许可。
+上游版权、许可声明和来源均予保留。感谢 [zai-org/ZCode](https://github.com/zai-org/ZCode)、[oleyyu/OpenClaudeDesktop](https://github.com/oleyyu/OpenClaudeDesktop) 及所有贡献者。
 
 ---
 

@@ -39,6 +39,9 @@ describe("AP02/AP06：附件上传进度与发送门禁", () => {
         let settled = false;
         const finish = (value: {
           ariaLabel?: string | null;
+          attachmentHeight?: number;
+          fontSize?: number;
+          declaredFontSize?: number;
           ok: boolean;
           reason?: string;
           sendDisabled?: boolean;
@@ -60,8 +63,16 @@ describe("AP02/AP06：附件上传进度与发送门禁", () => {
           );
           const send = document.querySelector<HTMLButtonElement>(`[data-testid="${sendTestId}"]`);
           if (!attachment || !progress || !send) return;
+          const fontProbe = document.createElement("span");
+          fontProbe.style.fontSize = "var(--text-ui-xs)";
+          document.body.append(fontProbe);
+          const declaredFontSize = parseFloat(getComputedStyle(fontProbe).fontSize);
+          fontProbe.remove();
           finish({
             ariaLabel: progress.getAttribute("aria-label"),
+            attachmentHeight: attachment.getBoundingClientRect().height,
+            fontSize: parseFloat(getComputedStyle(progress).fontSize),
+            declaredFontSize,
             ok: true,
             sendDisabled: send.disabled,
             status: attachment.dataset.uploadStatus,
@@ -100,6 +111,9 @@ describe("AP02/AP06：附件上传进度与发送门禁", () => {
       TID_V4_COMPOSER_SEND,
     )) as {
       ariaLabel?: string | null;
+      attachmentHeight?: number;
+      fontSize?: number;
+      declaredFontSize?: number;
       ok: boolean;
       reason?: string;
       sendDisabled?: boolean;
@@ -110,6 +124,9 @@ describe("AP02/AP06：附件上传进度与发送门禁", () => {
     expect(observed).toMatchObject({ ok: true, sendDisabled: true });
     expect(["waitingSession", "queued", "uploading", "committing"]).toContain(observed.status);
     expect(`${observed.ariaLabel ?? ""}${observed.text ?? ""}`).toMatch(/%|上传|upload/iu);
+    // 7px 百分比在 48px 缩略图上不可读；字号遵循声明角色，不缩小附件来腾出文字空间。
+    expect(observed.attachmentHeight).toBe(48);
+    expect(observed.fontSize).toBe(observed.declaredFontSize);
 
     await browser.waitUntil(
       async () =>

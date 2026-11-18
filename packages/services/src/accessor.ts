@@ -43,6 +43,7 @@ import type { IMcpSyncService } from "./mcp-sync/mcpSync.js";
 import type { IPluginSyncService } from "./plugin-sync/pluginSync.js";
 import type { IPluginsService } from "./plugins/plugins.js";
 import type { IPluginManagementService } from "./plugins/pluginManagement.js";
+import type { IDshPluginService } from "./dsh-plugins/contract.js";
 import type { ISubagentsService } from "./subagents/subagents.js";
 import type { ICommandsService } from "./commands/commands.js";
 import type { IHooksService } from "./hooks/hooks.js";
@@ -124,6 +125,7 @@ export interface IServiceAccessor {
   readonly pluginsService: IPluginsService;
   /** 设置页插件管理（UI 不再直触 zcodeAgentService 的 plugins/* 面） */
   readonly pluginManagementService: IPluginManagementService;
+  readonly dshPluginService: IDshPluginService;
   readonly subagentsService: ISubagentsService;
   readonly commandsService: ICommandsService;
   readonly hooksService: IHooksService;

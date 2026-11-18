@@ -1,5 +1,16 @@
 # Tool Change Chain Spec
 
+## DSH 原生工具链载体（2026-11-15）
+
+DSH 依赖域使用完整上游 Tool/Approval/Hook/Agent pipeline，不把自定义工具注册为 ZCode
+Skill 或 MCP 替代品，也不直接执行原始 definition.execute。真实工具参数、schema、前置阻断、
+后置变换、结果 presenter、进度和权限仍由域内原始 owner 处理。外层只传输原生 SDK/Connection
+载荷，并为调用维护 attachment/revision/generation、审批应答权、取消与真实结算。
+command/prompt 回执不是工具或任务完成；native follow/control stream 才提供原生 UI 的基线
+和增量。ZCode 现有 executor、model request、持久化和 V4 投影不改。回归覆盖真实 native Tool、
+审批拒绝/取消/晚答、command 后续调用与 Peer 卸载，详见
+[DSH 域合同](../plugins/dsh-native-domains.md)。
+
 工具 schema、顺序与描述是固定字节（tools 段字节进入缓存前缀）：`toToolJsonSchema` 按
 zod v4 toJSONSchema 的 key 顺序输出——`$schema` 在最前，`description`、`default` 在 `type` 前，
 数组的 `minItems`/`maxItems` 在 `type` 前，属性声明顺序不变；ToolSearch 输入 schema 走同一入口。

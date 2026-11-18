@@ -2125,7 +2125,7 @@ function ConversationTimelineImpl({
             <div
               className={cn(
                 centeredEmptyLayout
-                  ? "flex w-full max-w-2xl shrink-0 items-center justify-center"
+                  ? "xb-reading-rail xb-draft-reading-rail flex w-full shrink-0 items-center justify-center"
                   : "min-h-0 flex-1",
                 !centeredEmptyLayout && summaryPanelInlineOffsetClassName,
               )}

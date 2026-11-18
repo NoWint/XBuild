@@ -49,6 +49,8 @@ const cliWorkspaceBuilds = [
   { packageName: "@zcode/adapters", packageDir: "adapters" },
   { packageName: "@zcode/i18n", packageDir: "i18n" },
   { packageName: "@zcode/telemetry", packageDir: "telemetry" },
+  // Bootstrap 新增 DSH 公开类型依赖；干净构建缺少 dist 时会报 TS2307，必须先构建其入口。
+  { packageName: "@zcode/dsh-runtime", packageDir: "dsh-runtime" },
   { packageName: "@zcode/bootstrap", packageDir: "bootstrap" },
 ];
 // 官方插件 manifest 可以在 server.js 缺失时被 filesystem seed，直到 session

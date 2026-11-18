@@ -804,6 +804,12 @@ export interface IZCodeAgentService {
   onDynamicPluginOperationProgress(
     operationId: string,
   ): Event<ZCodePluginOperationProgressNotification>;
+  dispatchDshPlugin(
+    params: import("@zcode/shared/dsh-compat").DshDispatch,
+  ): Promise<import("@zcode/shared/dsh-compat").DshResult>;
+  onDynamicDshPluginEvent(
+    params: import("@zcode/shared/dsh-compat").DshEventSubscription,
+  ): Event<import("@zcode/shared/dsh-compat").DshEvent>;
   getPluginsOverview(params: ZCodeAgentPluginViewParams): Promise<ZCodePluginsOverviewResult>;
   /**
    * 资源管理器：枚举本 Host 内全部本地 Agent 进程（含 plugin / mcp-status 泳道），

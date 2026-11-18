@@ -115,7 +115,11 @@ import { getE2EProviderEndpointEnv } from "#e2e/helpers/e2e-provider-endpoint";
 import { prepareOAuthCompletionRaceFixture } from "./test/e2e/helpers/oauth-completion-race-fixture.js";
 import { prepareWebRemoteControlAuthGateFixture } from "./test/e2e/helpers/web-remote-control-auth-gate-fixture.js";
 import { prepareAccessToken401Fixture } from "./test/e2e/helpers/access-token-401-fixture.js";
-import { createE2EReplayFixtureVariables } from "./test/e2e/helpers/e2e-runtime-paths.js";
+import {
+  createE2EReplayFixtureVariables,
+  resolveE2EHomeDir,
+  resolveE2EStorageRoot,
+} from "./test/e2e/helpers/e2e-runtime-paths.js";
 import { stageE2EAppOutput } from "./test/e2e/helpers/e2e-app-output-stage.js";
 import { withE2EDesktopBuildLock } from "./scripts/ensure-e2e-desktop-build.mjs";
 import {
@@ -226,17 +230,12 @@ const E2E_LOCAL_ENV_FILES = [
 loadE2ELocalEnv();
 const BUILD_DESKTOP_AGENT_SCRIPT = resolve(REPO_ROOT, "scripts/build-desktop-agent-cli.mjs");
 const ZCODE_CLI_ENTRYPOINT = resolve(REPO_ROOT, "apps/zcode-cli/packages/cli/dist/zcode.cjs");
-const E2E_HOME_DIR = resolve(
-  process.env.ZCODE_E2E_HOME_DIR?.trim() ||
-    // 修复原因：多个 WDIO 本地并发时会互相清理默认 .e2e-home，导致窗口白屏、
-    // DevTools 断链或登录页等待失败；默认路径保持兼容，调试时允许显式隔离。
-    resolve(DESKTOP_DIR, ".e2e-home"),
-);
+// 隔离 base 与 helper 共用同一优先级和 cwd，避免相对路径指向不同 sandbox。
+const E2E_HOME_DIR = resolveE2EHomeDir({ cwd: DESKTOP_DIR });
 const E2E_PACKAGED_APP_BINARY_PATH = process.env.ZCODE_E2E_PACKAGED_APP_PATH?.trim()
   ? resolve(process.env.ZCODE_E2E_PACKAGED_APP_PATH)
   : null;
-// 目录隔离已回滚：所有 Desktop E2E 继续使用历史 ~/.zcode 布局。
-const E2E_STORAGE_ROOT = resolve(E2E_HOME_DIR, ".zcode");
+const E2E_STORAGE_ROOT = resolveE2EStorageRoot(E2E_HOME_DIR);
 const E2E_APP_CONFIG_DIR = resolve(E2E_STORAGE_ROOT, "v2");
 const E2E_APP_SETTINGS_FILE = resolve(E2E_APP_CONFIG_DIR, "setting.json");
 const E2E_APP_CREDENTIALS_FILE = resolve(E2E_APP_CONFIG_DIR, "credentials.json");
@@ -1072,6 +1071,7 @@ function createPnpmChildEnv() {
     // 修复原因：E2E 依赖 renderer 暴露 store bridge；只在 WDIO 构建链路显式注入，
     // 避免普通 production/test 产品构建意外暴露可变全局 store。
     VITE_ZCODE_E2E_STORE_BRIDGE: "1",
+    ZCODE_LEGACY_DESKTOP_UI: "1",
     ZCODE_DESKTOP_AGENT_BUILD_MODE: env.ZCODE_DESKTOP_AGENT_BUILD_MODE ?? "pnpm",
   };
 }
@@ -4582,6 +4582,7 @@ export const config: WebdriverIO.Config = {
         }
       : {}),
     VITE_ZCODE_E2E_STORE_BRIDGE: "1",
+    ZCODE_LEGACY_DESKTOP_UI: "1",
     ZCODE_AGENT_SERVER_ARGS_JSON: "",
     ZCODE_AGENT_SERVER_COMMAND: "",
     ZCODE_DATA_BASE_DIR: E2E_HOME_DIR,

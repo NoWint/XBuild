@@ -35,7 +35,7 @@ export interface ZCodeProtocolRequestTimeoutEvent {
 interface PendingRequest<T> {
   method: string;
   observation: boolean;
-  timeout: ReturnType<typeof setTimeout>;
+  timeout?: ReturnType<typeof setTimeout>;
   resumeTimeout: () => void;
   resolve: (value: T) => void;
   reject: (error: Error) => void;
@@ -52,7 +52,7 @@ interface ZCodeProtocolClientRequestOptions {
   lifecycle?: "operation" | "observation";
   signal?: AbortSignal;
   trace?: ZCodeProtocolTrace;
-  timeoutMs?: number;
+  timeoutMs?: number | null;
 }
 
 export const DEFAULT_ZCODE_PROTOCOL_REQUEST_TIMEOUT_MS = 3 * 60_000;
@@ -226,7 +226,9 @@ export class ZCodeProtocolClient implements IDisposable {
         }
         reject(error);
       };
-      const timeout = setTimeout(expire, requestTimeoutMs);
+      // DSH 原生 SDK 等待可能跨审批/长任务；null 明确取消业务期限，连接关闭/显式取消仍结算。
+      const timeout =
+        options?.timeoutMs === null ? undefined : setTimeout(expire, requestTimeoutMs);
 
       const abortHandler = () => {
         const pending = this.pending.get(requestKey);
@@ -244,7 +246,7 @@ export class ZCodeProtocolClient implements IDisposable {
         observation,
         timeout,
         resumeTimeout: () => {
-          pending.timeout = setTimeout(expire, requestTimeoutMs);
+          if (options?.timeoutMs !== null) pending.timeout = setTimeout(expire, requestTimeoutMs);
         },
         resolve: resolve as (value: unknown) => void,
         reject,

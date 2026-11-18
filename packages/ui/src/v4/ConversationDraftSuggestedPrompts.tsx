@@ -192,7 +192,7 @@ export function ConversationDraftSuggestedPrompts({
     return (
       <div
         data-v4-draft-suggested-prompts="true"
-        className={cn("w-full min-w-0 px-2 py-4", className)}
+        className={cn("xb-draft-suggestions w-full min-w-0 px-2 pt-1", className)}
       >
         <div className="flex items-center justify-between gap-2 px-3 pb-2 text-ui-sm text-foreground-subtle">
           <span>{intl.formatMessage({ id: "occupationOnboarding.suggestionsHeading" })}</span>
@@ -242,7 +242,7 @@ export function ConversationDraftSuggestedPrompts({
           </AlertDialogContent>
         </AlertDialog>
         <ul className="m-0 flex list-none flex-col p-0">
-          {items.map((item) => (
+          {items.map((item, index) => (
             <Popover
               key={item.id}
               open={pluginActionPopover?.anchorItemId === item.id}
@@ -255,19 +255,27 @@ export function ConversationDraftSuggestedPrompts({
                     data-draft-suggested-prompt={item.id}
                     disabled={!onSelect || disabled}
                     onClick={() => onSelect?.(item)}
-                    className="flex w-full items-center gap-3 rounded-xl p-3 text-left text-ui-base text-foreground hover:bg-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-input-border-focused disabled:opacity-50"
+                    className="xb-draft-suggestion-row group/suggestion flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-ui-base text-foreground transition-colors hover:bg-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-input-border-focused disabled:opacity-50"
+                    style={
+                      {
+                        "--desktop-stagger-index": index + 3,
+                      } as CSSProperties
+                    }
                   >
-                    <span className="flex size-6 shrink-0 items-center justify-center overflow-hidden rounded-md bg-surface p-px">
-                      <img
-                        src={item.iconUrl}
-                        alt=""
-                        draggable={false}
-                        className={cn(
-                          "shrink-0 rounded-sm object-contain",
-                          // GitHub 素材自带白色方形底，再缩小一圈以露出与其他图标一致的外层留白。
-                          item.iconUrl?.includes("/github/icon.png") ? "size-4.5" : "size-full",
-                        )}
-                      />
+                    <span className="flex size-6 shrink-0 items-center justify-center text-foreground-subtle transition-transform duration-200 group-hover/suggestion:-translate-y-0.5 motion-reduce:transition-none">
+                      {item.iconUrl ? (
+                        <img
+                          src={item.iconUrl}
+                          alt=""
+                          draggable={false}
+                          className={cn(
+                            "shrink-0 rounded-sm object-contain",
+                            item.iconUrl?.includes("/github/icon.png") ? "size-4.5" : "size-5",
+                          )}
+                        />
+                      ) : (
+                        <DraftSuggestedPromptIcon name={item.iconName} />
+                      )}
                     </span>
                     <span className="min-w-0 flex-1 break-words">
                       {resolveDraftSuggestedPromptText(item.label, locale)}

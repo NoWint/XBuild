@@ -1,5 +1,18 @@
 # Conversation Session E2E Coverage Matrix
 
+## CDR：整套 Desktop presentation 验收（2026-11-14）
+
+规格：[UI reconstruction](../superpowers/specs/2026-11-14-claude-desktop-ui-reconstruction-design.md)。
+状态以 [专用 coverage](../design/claude-desktop-reconstruction/coverage.md) 的实际运行证据为准；
+不把已有功能、候选路径或工程 PNG 数学夹具当成产品交互已覆盖。
+
+| ID | 自动化入口/证据 | 初始状态 |
+| --- | --- | --- |
+| CDR-01/02/03/06/08 | `packages/desktop/test/e2e/ui-shell/manual-review/pending/claude-desktop-reconstruction.test.ts` | accepted / pending，未执行 |
+| CDR-04/05/07 | 现有会话/Thinking/tool/文件 acceptance + 专用 coverage 逐项记录 | accepted，待定向执行；不恢复 App 单测 |
+| CDR-09 | `scripts/compare-desktop-ui.mjs` + 合法 same-state reference/candidate metadata | reference-capture-blocked；没有像素一致率 |
+| PNG tooling | `scripts/test/desktop-ui-visual-compare.test.mjs` | 工程回归 pending，不认证产品像素一致 |
+
 ## 会话 ID 兼容 SID（2026-10-28）
 
 SID01–SID05 已接受，候选：

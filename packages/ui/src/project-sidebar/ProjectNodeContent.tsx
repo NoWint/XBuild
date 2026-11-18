@@ -228,7 +228,7 @@ export const ProjectNodeContent = memo(function ProjectNodeContent({
                   );
                 }
               }}
-              className="group/project-row ml-2 flex h-8 min-w-0 items-center gap-1 rounded-lg pr-1 hover:bg-surface-hover"
+              className="xb-sidebar-row group/project-row ml-2 flex min-w-0 items-center gap-1 pr-1 hover:bg-surface-hover focus-visible:bg-selected"
             >
               {/* 标题仍可展开历史；失效提示仅绑定禁用的操作按钮，避免悬停整行也弹出。 */}
               <span className="flex min-w-0 flex-1 shrink-0">
@@ -240,7 +240,7 @@ export const ProjectNodeContent = memo(function ProjectNodeContent({
                     variant="ghost"
                     className={cn(
                       dragEnabled ? "touch-none" : "touch-pan-y",
-                      "flex h-8 min-w-0 flex-1 justify-start gap-2 rounded-lg pl-2.5 pr-1 text-left text-foreground hover:bg-transparent hover:text-foreground aria-expanded:bg-transparent aria-expanded:text-foreground",
+                      "xb-sidebar-row flex h-auto min-w-0 flex-1 justify-start gap-2 pl-2.5 pr-1 py-0 text-left text-ui-caption text-foreground hover:bg-transparent hover:text-foreground aria-expanded:bg-transparent aria-expanded:text-foreground",
                       primaryRootDisabledReason && "opacity-50",
                     )}
                     data-testid="virtual-project-toggle"
@@ -274,7 +274,7 @@ export const ProjectNodeContent = memo(function ProjectNodeContent({
                     </span>
                     {/* 不同字号按框居中会让设备名基线上浮；文字单独对齐基线，外层图标仍居中。 */}
                     <span className="flex min-w-0 items-baseline gap-2">
-                      <span className="truncate text-ui-base text-foreground-subtle">
+                      <span className="truncate text-ui-caption text-foreground-subtle max-md:text-ui-base">
                         {project.name}
                       </span>
                       {remoteHost && !hideDeviceName ? (
@@ -342,7 +342,7 @@ export const ProjectNodeContent = memo(function ProjectNodeContent({
                         aria-label={more}
                         className="text-foreground-subtle hover:text-foreground"
                       >
-                        <Ellipsis className="size-3.5" />
+                        <Ellipsis className="size-4" />
                       </Button>
                     </DropdownMenuTrigger>
                   </ControlHintTooltip>
@@ -364,7 +364,7 @@ export const ProjectNodeContent = memo(function ProjectNodeContent({
                               aria-label={showFiles}
                               className="text-foreground-subtle hover:text-foreground"
                             >
-                              <ListTree className="size-3.5" />
+                              <ListTree className="size-4" />
                             </Button>
                           </DropdownMenuTrigger>
                         </ControlHintTooltip>
@@ -384,7 +384,7 @@ export const ProjectNodeContent = memo(function ProjectNodeContent({
                         className="text-foreground-subtle hover:text-foreground"
                         onClick={() => files[0]?.run()}
                       >
-                        <ListTree className="size-3.5" />
+                        <ListTree className="size-4" />
                       </TaskRowActionButton>
                     )}
                     <TaskRowActionButton
@@ -395,7 +395,7 @@ export const ProjectNodeContent = memo(function ProjectNodeContent({
                       className="text-foreground-subtle hover:text-foreground"
                       onClick={onCreate}
                     >
-                      <MessageCirclePlus className="size-3.5" />
+                      <MessageCirclePlus className="size-4" />
                     </TaskRowActionButton>
                   </>
                 ) : null}

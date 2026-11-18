@@ -292,6 +292,13 @@ export { createMcpSyncService } from "./mcp-sync/mcpSyncService.js";
 export { createPluginSyncService } from "./plugin-sync/pluginSyncService.js";
 export { createPluginsService } from "./plugins/pluginsService.js";
 export { createPluginManagementService } from "./plugins/pluginManagementService.js";
+export {
+  createDshPluginService,
+  createDshPluginConnectionScope,
+  createUnsupportedDshPluginService,
+  scopeDshAgentService,
+  type DshPluginConnectionScope,
+} from "./dsh-plugins/index.js";
 export { createSubagentsService } from "./subagents/subagentsService.js";
 export { createCommandsService } from "./commands/commandsService.js";
 export { createHooksService } from "./hooks/hooksService.js";
@@ -417,6 +424,8 @@ import { IUserConfigSyncService } from "./data-sync/contract.js";
 import { createUserConfigSyncService } from "./data-sync/userConfigSyncService.js";
 import { IPluginsService } from "./plugins/plugins.js";
 import { IPluginManagementService } from "./plugins/pluginManagement.js";
+import { IDshPluginService } from "./dsh-plugins/contract.js";
+import { createDshPluginService } from "./dsh-plugins/index.js";
 import { ISubagentsService } from "./subagents/subagents.js";
 import { ICommandsService } from "./commands/commands.js";
 import { IHooksService } from "./hooks/hooks.js";
@@ -2985,6 +2994,7 @@ export function createLocalServices(options: {
         reportTelemetryEvent: options?.reportPluginTelemetryEvent,
       }),
     )
+    .register(IDshPluginService, createDshPluginService({ zcodeAgentService }))
     .register(ISubagentsService, subagentsService)
     .register(ICommandsService, createCommandsService({ isDesktopRuntime: true }))
     .register(

@@ -8,7 +8,7 @@
 
 import { cn } from "../lib/utils.js";
 import type { MotionProps } from "motion/react";
-import { motion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 import type { CSSProperties, ElementType, JSX } from "react";
 import { memo, useMemo } from "react";
 
@@ -44,27 +44,44 @@ const ShimmerComponent = ({
   duration = 2,
   spread = 2,
 }: TextShimmerProps) => {
+  const reduceMotion = useReducedMotion();
   const MotionComponent = getMotionComponent(Component as keyof JSX.IntrinsicElements);
 
   const dynamicSpread = useMemo(() => (children?.length ?? 0) * spread, [children, spread]);
+  const shimmerClassName = cn(
+    "relative inline-block bg-[length:250%_100%,auto] bg-clip-text text-transparent",
+    "[--bg:linear-gradient(90deg,#0000_calc(50%-var(--spread)),var(--color-background),#0000_calc(50%+var(--spread)))] [background-repeat:no-repeat,padding-box]",
+    className,
+  );
+  const shimmerStyle = {
+    "--spread": `${dynamicSpread}px`,
+    backgroundImage:
+      "var(--bg), linear-gradient(var(--color-muted-foreground, var(--color-foreground-subtle)), var(--color-muted-foreground, var(--color-foreground-subtle)))",
+  } as CSSProperties;
+
+  // CSS motion reset 不会停止 Motion 的 JS 循环；静态元素卸载动画 owner，状态文字仍可见。
+  if (reduceMotion) {
+    return (
+      <Component
+        className={shimmerClassName}
+        style={{ ...shimmerStyle, backgroundPosition: "0% center" }}
+      >
+        {children}
+      </Component>
+    );
+  }
 
   return (
     <MotionComponent
       animate={{ backgroundPosition: "0% center" }}
-      className={cn(
-        "relative inline-block bg-[length:250%_100%,auto] bg-clip-text text-transparent",
-        "[--bg:linear-gradient(90deg,#0000_calc(50%-var(--spread)),var(--color-background),#0000_calc(50%+var(--spread)))] [background-repeat:no-repeat,padding-box]",
-        className,
-      )}
+      className={shimmerClassName}
       initial={{ backgroundPosition: "100% center" }}
       style={
         {
-          "--spread": `${dynamicSpread}px`,
+          ...shimmerStyle,
           // 当前主题没有定义 ai-elements 默认依赖的 --color-muted-foreground，
           // 之前这里整条 background-image 会因为变量缺失而失效，配合 text-transparent 后文字就完全不可见。
           // 这里保留上游 token 作为第一优先级，同时回退到项目里稳定存在的 --color-foreground-subtle。
-          backgroundImage:
-            "var(--bg), linear-gradient(var(--color-muted-foreground, var(--color-foreground-subtle)), var(--color-muted-foreground, var(--color-foreground-subtle)))",
         } as CSSProperties
       }
       transition={{

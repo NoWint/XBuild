@@ -56,6 +56,7 @@ import {
   IProviderProvisioningStatusService,
   IWindowControllerService,
   IConversationShareService,
+  IDshPluginService,
   IPromptAttachmentTransferService,
   IZCodeAgentService,
   IZCodeTaskService,
@@ -68,6 +69,8 @@ import {
 } from "@zcode/services";
 import {
   createLocalServices,
+  createDshPluginConnectionScope,
+  scopeDshAgentService,
   createProjectWorkspaceNavigation,
   createRemoteProjectConnectionAdmission,
   remoteProjectHostIdForProfile,
@@ -2675,6 +2678,14 @@ function exposeServicesOnMessagePort(
   const connectionScope = agentService
     ? createZCodeAgentConnectionScope(agentService, connectionContext)
     : undefined;
+  const dshService = services.getOptional(IDshPluginService);
+  const dshConnectionScope = dshService
+    ? createDshPluginConnectionScope(
+        dshService,
+        connectionContext,
+        attachmentScope.kind === "remote" ? attachmentScope : undefined,
+      )
+    : undefined;
   services.register(IWindowControllerService, windowHostControllerRuntime.service);
   // 未读自动写入只归窗口 base renderer；手机和 remote facade 不能重复消费同一完成信号。
   const controllerAttachment = windowHostControllerRuntime.createAttachmentService(
@@ -2721,8 +2732,14 @@ function exposeServicesOnMessagePort(
     );
   }
   if (connectionScope) {
-    overrides.set(IZCodeAgentService.channelName, connectionScope.service);
+    overrides.set(
+      IZCodeAgentService.channelName,
+      dshConnectionScope
+        ? scopeDshAgentService(connectionScope.service, dshConnectionScope)
+        : connectionScope.service,
+    );
   }
+  if (dshConnectionScope) overrides.set(IDshPluginService.channelName, dshConnectionScope.service);
   const conversationShareService = services.getOptional(IConversationShareService);
   if (conversationShareService) {
     // Share service 若继续持有 raw Agent，会绕过当前 MessagePort 已握手的 trusted carrier，
@@ -2789,6 +2806,9 @@ function exposeServicesOnMessagePort(
       disposed = true;
       flowStateDisposable.dispose();
       controllerAttachment.dispose();
+      void dshConnectionScope?.dispose().catch((error: unknown) => {
+        logger.warn("failed to dispose DSH attachment leases", error);
+      });
       legacyTerminalScope?.dispose();
       webRemoteProjectTreeRetention?.dispose();
       void disposePromptAttachmentTransfer?.().catch((error: unknown) => {
@@ -3363,7 +3383,9 @@ parentPort.on("message", async (e: Electron.MessageEvent) => {
   if (msg.type === HostMessageTypes.SessionMessageDeliveryResult) {
     const zcodeTaskService = activeServices?.getOptional(IZCodeTaskService);
     if (!zcodeTaskService) {
-      logger.warn("session message delivery result received before XBuild task service initialized");
+      logger.warn(
+        "session message delivery result received before XBuild task service initialized",
+      );
       return;
     }
     void zcodeTaskService.sendSessionMessageDeliveryResult(msg.result).catch((error) => {

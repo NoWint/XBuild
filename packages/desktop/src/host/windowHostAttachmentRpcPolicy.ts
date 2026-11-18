@@ -61,6 +61,7 @@ const WEB_REMOTE_REPLAYABLE_ALLOWED_CHANNELS = new Set<string>([
   ServiceChannels.McpSync,
   ServiceChannels.Plugins,
   ServiceChannels.PluginManagement,
+  ServiceChannels.DshPlugins,
   ServiceChannels.Subagents,
   ServiceChannels.Commands,
   ServiceChannels.Hooks,

@@ -1748,7 +1748,11 @@ const AssistantTextRowView = memo(function AssistantTextRowView({
       {/* Bugfix：MessageResponse 只消费自身声明的 props，不会把 data-* 透传到真实 DOM，
           导致 assistant 正文虽然在 JSX 上标了 selectable，框选逻辑却永远找不到该区域。
           selectable 语义必须放在稳定的 DOM 包装层上，完成态和 streaming 共用同一路径。 */}
-      <div ref={textElement} data-conversation-selectable="true" className="w-full text-ui-base">
+      <div
+        ref={textElement}
+        data-conversation-selectable="true"
+        className="xb-assistant-content w-full text-ui-prose"
+      >
         <GenUiMessageResponse
           completed={row.state === "complete"}
           messageKey={`${row.rowId}:${row.entityId ?? ""}`}

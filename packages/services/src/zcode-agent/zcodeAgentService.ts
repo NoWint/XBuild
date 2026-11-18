@@ -1323,6 +1323,16 @@ export function resolveOffPeakToolSelection(
     ? selection
     : { ...selection, options: { reasoningLevel: thoughtLevel } };
 }
+import {
+  DSH_METHODS,
+  dshDispatchSchema,
+  dshEventSchema,
+  dshEventSubscriptionSchema,
+  dshResultSchema,
+  type DshEvent,
+} from "@zcode/shared/dsh-compat";
+import { dshScopeMatches, stripDshConnectionCarrier } from "../dsh-plugins/index.js";
+
 export function createZCodeAgentService(
   options?: CreateZCodeAgentServiceOptions,
 ): IZCodeAgentService & { disposeAllAndWait(): Promise<void> } {
@@ -1411,6 +1421,7 @@ export function createZCodeAgentService(
     string,
     Emitter<ZCodePluginOperationProgressNotification>
   >();
+  const dshEventEmitter = new Emitter<DshEvent>();
   // v4 conversation 帧 fan-out：workspace 级 emitter，renderer 侧按 topic 自行路由。
   const sessionLifecycleEmitter = new Emitter<{
     workspaceKey: string;
@@ -2526,6 +2537,19 @@ export function createZCodeAgentService(
               })),
             });
           }
+          return;
+        }
+
+        if (message.method === DSH_METHODS.event) {
+          const parsed = dshEventSchema.safeParse(message.params);
+          if (parsed.success) dshEventEmitter.fire(parsed.data);
+          else
+            logger.warn(undefined, "丢弃无效 DSH 原生事件 envelope", {
+              issues: parsed.error.issues.map((issue) => ({
+                code: issue.code,
+                path: issue.path.join("."),
+              })),
+            });
           return;
         }
 
@@ -4094,6 +4118,7 @@ export function createZCodeAgentService(
       emitter.dispose();
     }
     pluginOperationProgressEmitters.clear();
+    dshEventEmitter.dispose();
     for (const emitter of conversationFrameEmitters.values()) {
       emitter.dispose();
     }
@@ -5413,6 +5438,29 @@ export function createZCodeAgentService(
 
     onDynamicPluginOperationProgress(operationId: string) {
       return getPluginOperationProgressEmitter(operationId).event;
+    },
+    async dispatchDshPlugin(input) {
+      const params = dshDispatchSchema.parse(stripDshConnectionCarrier(input));
+      const client = await getPluginManagementClient();
+      // 原生审批/Agent 工作由显式 cancel 和连接 owner 结算，不能用管理面的固定超时中断。
+      return client.request(DSH_METHODS.dispatch, params, dshResultSchema, { timeoutMs: null });
+    },
+    onDynamicDshPluginEvent(input) {
+      const params = dshEventSubscriptionSchema.parse(input);
+      return (listener) =>
+        dshEventEmitter.event((event) => {
+          if (!dshScopeMatches(params.scope, event.scope)) return;
+          const attachment = params.attachment;
+          if (
+            attachment &&
+            (event.domainId !== attachment.domainId ||
+              event.revision !== attachment.revision ||
+              event.generation !== attachment.generation ||
+              (event.attachmentId !== undefined && event.attachmentId !== attachment.attachmentId))
+          )
+            return;
+          listener(event);
+        });
     },
 
     async collectLocalRuntimeChildProcesses(signal?: AbortSignal) {

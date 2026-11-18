@@ -1,0 +1,74 @@
+{
+  "kind": "upstream-contract-probe-not-xbuild-compatibility-acceptance",
+  "executedAt": "2026-11-14T13:59:06.018Z",
+  "runtime": "v24.14.0",
+  "platform": "darwin",
+  "package": "@deepseek-ai/cordis",
+  "version": "4.1.0",
+  "upstreamTag": "dsh-v0.2.2-rc.3",
+  "upstreamCommit": "38a6a5c965aa99ab525161efb7cc5cf1fe62fced",
+  "integrity": "sha512-CJrjNyBkKn1SfvBQUcgFYKFnLjS+uKrhdMsbHU60xabvi12d+xQ+IQSNlME5Z+B+4Zi6n4BDknKY94tEPeo47w==",
+  "observations": [
+    {
+      "name": "serial-zero-is-a-blocking-return",
+      "status": "passed",
+      "observed": {
+        "order": ["first", "second"],
+        "result": 0
+      }
+    },
+    {
+      "name": "waterfall-preserves-veto-and-result-transformation",
+      "status": "passed",
+      "observed": {
+        "order": ["before", "execute", "after"],
+        "result": {
+          "value": 7,
+          "transformed": true
+        },
+        "vetoPreventedExecution": true
+      }
+    },
+    {
+      "name": "parallel-settles-all-before-aggregating-errors",
+      "status": "passed",
+      "observed": {
+        "settled": ["first", "second"],
+        "aggregatedErrors": 2
+      }
+    },
+    {
+      "name": "ordinary-emit-propagates-synchronous-errors",
+      "status": "passed",
+      "observed": {
+        "order": ["first"],
+        "secondListenerRan": false,
+        "originalErrorPropagated": true
+      }
+    },
+    {
+      "name": "plugin-services-share-live-references-and-synchronous-callbacks",
+      "status": "passed",
+      "observed": {
+        "mutationVisibleBeforeEmitReturned": true,
+        "sameObjectIdentity": true
+      }
+    },
+    {
+      "name": "tracked-plugin-listeners-are-disposed",
+      "status": "passed",
+      "observed": {
+        "callsBeforeAndAfterDisposal": 1,
+        "trackedListenerRemoved": true
+      }
+    },
+    {
+      "name": "separate-contexts-do-not-isolate-untracked-global-effects",
+      "status": "passed",
+      "observed": {
+        "seenByOtherContext": true,
+        "untrackedEffectRemainedAfterDisposal": true
+      }
+    }
+  ]
+}

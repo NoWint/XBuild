@@ -19,9 +19,9 @@ import {
   TID_PROMPT_SUGGESTION_PANEL,
   TID_LOGIN_API_KEY_CONTINUE_BUTTON,
   TID_LOGIN_API_KEY_INPUT,
-  TID_LOGIN_USE_API_KEY_BUTTON,
   TID_TASK_ITEM,
   TID_TASK_NEW_BUTTON,
+  TID_TASK_SETTINGS_BUTTON,
   TID_V4_AUTODRAIN_TOGGLE,
   TID_V4_ATTACHMENT,
   TID_V4_BACKGROUND_WORK_ITEM,
@@ -155,19 +155,21 @@ export async function prepareV4ConversationE2E(options: PrepareV4ConversationE2E
 }
 
 async function ensureV4ShellReady() {
-  try {
-    // 新隔离 profile 的职业引导会遮住工作区，先复用真实 UI 跳过流程。
-    await skipOccupationOnboardingIfPresent();
-    await waitForProjectRow(DEFAULT_WORKSPACE, { timeout: 30000 });
-    return;
-  } catch (error) {
-    if (!(await hasApiKeyLoginButton())) {
-      throw error;
-    }
+  // 根因：当前欢迎页直接展示表单；先等职业引导再检查旧 chooser 会在登录前超时。
+  // 按实际可见表面选择既有 UI 路径，seed 已满足的 shell 不经过登录。
+  let surface: Awaited<ReturnType<typeof readV4StartupSurface>> = null;
+  await browser.waitUntil(
+    async () => {
+      surface = await readV4StartupSurface();
+      return surface !== null;
+    },
+    { timeout: 30000, timeoutMsg: "没有出现 API Key 表单、职业引导或应用设置入口" },
+  );
+  if (surface === "apiKey") {
     await loginWithApiKey();
-    await skipOccupationOnboardingIfPresent();
-    await waitForProjectRow(DEFAULT_WORKSPACE, { timeout: 30000 });
   }
+  await skipOccupationOnboardingIfPresent();
+  await waitForProjectRow(DEFAULT_WORKSPACE, { timeout: 30000 });
 }
 
 async function ensureV4PreparationDraft(options: PrepareV4ConversationE2EOptions) {
@@ -204,20 +206,27 @@ async function ensureV4PreparationDraft(options: PrepareV4ConversationE2EOptions
   }
 }
 
-async function hasApiKeyLoginButton() {
-  const exists = await browser
-    .execute(
-      (currentTestId) => Boolean(document.querySelector(`[data-testid="${currentTestId}"]`)),
-      TID_LOGIN_USE_API_KEY_BUTTON,
-    )
-    .catch(() => false);
-  return Boolean(exists);
+async function readV4StartupSurface(): Promise<"apiKey" | "onboarding" | "shell" | null> {
+  return browser.execute(
+    (inputId, continueId, settingsId) => {
+      const visible = (id: string) =>
+        Boolean(
+          document.querySelector<HTMLElement>(`[data-testid="${id}"]`)?.getClientRects().length,
+        );
+      if (visible(inputId) && visible(continueId)) return "apiKey";
+      if (visible("onboarding-page")) return "onboarding";
+      return visible(settingsId) ? "shell" : null;
+    },
+    TID_LOGIN_API_KEY_INPUT,
+    TID_LOGIN_API_KEY_CONTINUE_BUTTON,
+    TID_TASK_SETTINGS_BUTTON,
+  );
 }
 
 export async function loginWithApiKey() {
-  await clickTestIdByDom(TID_LOGIN_USE_API_KEY_BUTTON, {
-    timeout: 30000,
-    timeoutMsg: "欢迎页没有出现 API Key 登录入口",
+  await browser.waitUntil(async () => (await readV4StartupSurface()) === "apiKey", {
+    timeout: 15000,
+    timeoutMsg: "欢迎页没有出现可见的 API Key 登录表单",
   });
   await setInputValueByTestIdDom(TID_LOGIN_API_KEY_INPUT, LOGIN_API_KEY, {
     timeout: 15000,

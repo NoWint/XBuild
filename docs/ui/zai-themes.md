@@ -1,5 +1,16 @@
 # Zai Themes
 
+## XBuild Desktop reconstruction（2026-11-14）
+
+当前视觉由 [Desktop reconstruction spec](../superpowers/specs/2026-11-14-claude-desktop-ui-reconstruction-design.md) 接管。
+保留 `system` / `zai-light` / `zai-dark` 持久化 ID 和旧 light/dark 规范化，不创建新的 theme owner。
+这些兼容 ID 现在承载 XBuild 的中性 CDS-referenced presentation；不表示仍使用历史 Zai 品牌色。
+`styles.css` 是产品数值唯一来源，普通内容 panel 使用确定的不透明 semantic surface，窗口外沿的原生材质仍通过既有平台设置控制。
+Popover/Menu 使用各自的 surface、border、shadow 与 motion role，不把所有 `.bg-popover` 强制处理为毛玻璃。
+保留 `applyingBroadcast`、nativeTheme gate、手机独立偏好与 color-scheme/theme-color 首屏同步；所有组件在现行双主题验收。
+
+以下记录为原主题接入与兼容背景；数值意图以当前 spec/CSS 为准。
+
 ## 目标
 
 新增 `zai-light` 与 `zai-dark` 两套品牌主题，并由它们接管用户可见的 Light Theme / Dark Theme。
