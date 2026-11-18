@@ -192,6 +192,20 @@ test("Push 使用 remote SHA；新分支使用 staging 共同祖先；手动模�
   }
 });
 
+test("新分支默认分支为 main 且不存在 staging 时使用 origin/HEAD 共同祖先", async (t) => {
+  const { write, git, base, invoke, hook } = await fixture(t);
+  await git("update-ref", "refs/remotes/origin/main", base);
+  await git("symbolic-ref", "refs/remotes/origin/HEAD", "refs/remotes/origin/main");
+  await write("source.mjs", "export const value = 2;");
+  await git("add", ".");
+  await git("commit", "-m", "task");
+  for (const overrides of [await hook(zero), {}]) {
+    const result = await invoke(["--scope", "push", "--dry-run", "--json"], overrides);
+    assert.equal(result.code, 0, result.stderr);
+    assert.deepEqual(paths(result), ["a.test.mjs"]);
+  }
+});
+
 test("无基线、无效基线、非 HEAD 推送均报错；删除 ref 不测试", async (t) => {
   const { invoke, hook, base } = await fixture(t);
   for (const [args, env] of [

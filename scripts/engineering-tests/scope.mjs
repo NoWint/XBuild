@@ -1,5 +1,6 @@
 import { resolve } from "node:path";
 import { git, run } from "./process.mjs";
+import { selectDefaultBranchRef } from "../architecture/default-branch.mjs";
 import { checkPushWorktree } from "../check-push-worktree.mjs";
 
 async function commit(root, ref) {
@@ -31,9 +32,25 @@ async function resolvePushBase(root, head, remote) {
 }
 
 async function firstPushBase(root, head) {
-  // 首次推送没有 remote SHA；只使用已确认的集成分支，缺失时严格报错，不猜测其他分支。
-  const staging = await commit(root, "origin/staging");
-  return (await git(root, ["merge-base", staging, head])).toString().trim();
+  // Bug 根因：fork 的默认分支是 main，固定读取不存在的 origin/staging 会拒绝整个推送。
+  // 与架构门禁共用默认分支选择；找不到任何真实提交基线时仍明确失败。
+  const originHead = await run("git", ["symbolic-ref", "--quiet", "--short", "refs/remotes/origin/HEAD"], {
+    cwd: root,
+    allowFailure: true,
+  });
+  const candidates = [];
+  for (const candidate of ["origin/staging", originHead.code === 0 ? originHead.stdout.toString().trim() : null, "origin/main", "origin/master"]) {
+    if (candidate && (await run("git", ["rev-parse", "--verify", "--end-of-options", `${candidate}^{commit}`], { cwd: root, allowFailure: true })).code === 0) {
+      candidates.push(candidate);
+    }
+  }
+  const existing = new Set(candidates);
+  const ref = selectDefaultBranchRef({
+    originHead: originHead.code === 0 ? originHead.stdout.toString().trim() : null,
+    hasCommit: (candidate) => existing.has(candidate),
+  });
+  if (!ref) throw new Error("无法解析首次推送基线：缺少 origin/staging、origin/HEAD 或其他默认分支提交");
+  return (await git(root, ["merge-base", ref, head])).toString().trim();
 }
 
 /** 只解析比较基线；改动文件与关联测试全部由 Vitest 官方选择。 */
