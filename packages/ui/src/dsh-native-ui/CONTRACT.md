@@ -23,16 +23,19 @@
 
 ## 原生客户端生命周期
 
-`native-client.ts` 是上游 `@deepseek-ai/dsh-client-modules` 与 `dsh-client-connection` 的适配器，不是另一套模块加载器。每次 mount 使用独立 `ClientModuleSystem`、Cordis `Context` 和 attachment lease；React/ReactDOM 等宿主单例经 `staticModules` 注入，插件工厂使用原始同步 `require`。
+`native-client.ts` 是上游 `@deepseek-ai/dsh-client-modules`、`dsh-client-connection` 与 Cordis entry 的适配器，不是另一套模块加载器。每次 mount 使用独立 `ClientModuleSystem`、Cordis `Context` 和 attachment lease；React/ReactDOM/Cordis 等宿主单例经 `staticModules` 注入，插件工厂使用原始同步 `require`。
 
 ```text
 attach(scope, desktop-continuous) → attachment(token, generation, clientGraph)
        → fetch 原始 bundle 字节 → 原始 __ModuleLoader__.load({id,factory})
-       → installConnection(transport.rpc) → ctx.plugin(original entry graph)
+       → bootstrap factory 物化 client-modules → entries.start(BrowserLoader, manifest)
+       → 上游 connection 插件从 __DSH_TRANSPORT__ 取同一 attachment 的 HTTP 载体
        → surface 的真实组件 → dispose fiber/subscriptions → detach(同一 lease)
-
-mobile/web: attachment(clientMode=web-remote-replayable)，相同域、不同 lease，不另建 Host
 ```
+
+- `BrowserLoader` 只实现上游 `ClientEntries` 实际调用的 `create/resolve/remove/entries/await`，不复用 Node 版 `cordis-plugin-loader`：其入口静态 import `node:fs/node:path`，打进 renderer 会把 Node builtin 外部化。
+- 这不等同于上游完整 Loader 语义：`loader.patch-context`、`loader/partial` 事件与热替换路径没有实现，client graph 只能按 `entries.start` 初始装载；需要这些能力的 UI 插件当前不应显示为等价。
+- `mobile/web`：attachment(clientMode=web-remote-replayable)，相同域、不同 lease，不另建 Host
 
 - 只允许 dispatch 返回的 attachment 驱动本代模块；旧 generation 的晚到字节、事件与 RPC 不得推进状态。
 - `loadBundle` 不是通用网络 fetch：必须经由 attachment 的 `/plugins/` fetch 授权与原始响应字节执行；资源路径沿用上游 URL 语义，不能用字符串前缀绕过。
