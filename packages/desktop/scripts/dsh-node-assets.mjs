@@ -31,7 +31,11 @@ export function resolveDshNodeExecutable({ cacheDir, platformKey, executablePath
   }
   const artifact = DSH_NODE_ARTIFACTS[platformKey];
   if (!artifact) throw new Error(`[dsh-node] unsupported target platform: ${platformKey}`);
-  return join(dshNodeExtractDir({ cacheDir, platformKey }), "bin", platformKey.startsWith("win32") ? "node.exe" : "node");
+  // 已经解压过就用磁盘上真实存在的那一处；否则按归档的默认布局（自带顶层目录）给出预期路径。
+  for (const candidate of dshNodeExecutableCandidates({ cacheDir, platformKey })) {
+    if (existsSync(candidate)) return candidate;
+  }
+  return dshNodeExecutableCandidates({ cacheDir, platformKey })[0];
 }
 
 /**
@@ -80,10 +84,34 @@ export async function stageDshNodeExecutable({
   mkdirSync(extractRoot, { recursive: true });
   extract({ archivePath, archiveExt: artifact.suffix.endsWith("zip") ? "zip" : "tar.xz", extractDir: extractRoot, cwd: cacheDir });
   if (!existsSync(executable)) {
-    // Windows 官方 ZIP 把 node.exe 放在包根，而非 POSIX 的 bin/ 下。
-    const windowsExecutable = join(extractRoot, "node.exe");
-    if (platformKey.startsWith("win32") && existsSync(windowsExecutable)) return windowsExecutable;
+    // 官方归档自带一层 node-v<version>-<platform>/ 顶层目录，Windows ZIP 里的
+    // node.exe 也不在 POSIX 的 bin/ 下。两种布局都要认：干净缓存一构建就失败过。
+    for (const candidate of dshNodeExecutableCandidates({ cacheDir, platformKey })) {
+      if (existsSync(candidate)) return candidate;
+    }
     throw new Error(`[dsh-node] executable missing after extraction: ${executable}`);
   }
   return executable;
+}
+
+/**
+ * 解压后 node 可执行文件可能出现的位置，按优先级排列。
+ *
+ * 归档自带顶层目录（node-v24.15.0-darwin-x64/bin/node、node-v24.15.0-win-x64/node.exe），
+ * 而解压目标是去掉扩展名的同名目录，于是真实路径多嵌套一层。把两种嵌套和
+ * Windows 的根布局都列出来，避免再次只赌一种布局。
+ */
+export function dshNodeExecutableCandidates({ cacheDir, platformKey }) {
+  const artifact = DSH_NODE_ARTIFACTS[platformKey];
+  if (!artifact) throw new Error(`[dsh-node] unsupported target platform: ${platformKey}`);
+  const extractRoot = dshNodeExtractDir({ cacheDir, platformKey });
+  // 归档内层目录名保留了平台后缀（不含扩展名）。
+  const inner = join(extractRoot, `node-v${DSH_NODE_VERSION}-${artifact.suffix.replace(/\.(tar\.xz|zip)$/, "")}`);
+  const executableName = platformKey.startsWith("win32") ? "node.exe" : "node";
+  return [
+    join(inner, "bin", executableName),
+    join(inner, executableName),
+    join(extractRoot, "bin", executableName),
+    join(extractRoot, executableName),
+  ];
 }

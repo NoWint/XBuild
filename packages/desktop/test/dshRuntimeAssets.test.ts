@@ -98,8 +98,9 @@ describe("DSH node executable staging", () => {
       },
       extract: ({ archivePath, extractDir }: { archivePath: string; extractDir: string }) => {
         seen.push({ archivePath, extractDir });
-        mkdirSync(join(extractDir, "bin"), { recursive: true });
-        writeFileSync(join(extractDir, "bin", "node"), "node");
+        const inner = join(extractDir, "node-v24.15.0-darwin-x64", "bin");
+        mkdirSync(inner, { recursive: true });
+        writeFileSync(join(inner, "node"), "node");
       },
       verifyArchive: () => {},
     });
@@ -111,6 +112,27 @@ describe("DSH node executable staging", () => {
     expect(call.archivePath.endsWith(".tar.xz")).toBe(true);
     expect(existsSync(call.archivePath)).toBe(true);
     expect(existsSync(call.extractDir)).toBe(true);
-    expect(executable).toBe(join(call.extractDir, "bin", "node"));
+    // 官方归档自带一层顶层目录，可执行文件在它下面的 bin/ 里。
+    expect(executable).toBe(join(call.extractDir, "node-v24.15.0-darwin-x64", "bin", "node"));
+  });
+
+  // Windows ZIP 把 node.exe 直接放在顶层目录里，没有 POSIX 的 bin/。
+  it("finds node.exe in the archive's own top directory on win32", async () => {
+    const cacheDir = await makeRoot();
+    const executable = await stageDshNodeExecutable({
+      cacheDir,
+      platformKey: "win32-x64",
+      download: async (_url: string, target: string) => {
+        await writeFile(target, "archive");
+      },
+      extract: ({ extractDir }: { extractDir: string }) => {
+        const inner = join(extractDir, "node-v24.15.0-win-x64");
+        mkdirSync(inner, { recursive: true });
+        writeFileSync(join(inner, "node.exe"), "node");
+      },
+      verifyArchive: () => {},
+    });
+    expect(executable.endsWith(join("node-v24.15.0-win-x64", "node.exe"))).toBe(true);
+    expect(existsSync(executable)).toBe(true);
   });
 });
