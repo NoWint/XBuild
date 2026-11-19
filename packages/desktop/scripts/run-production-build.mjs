@@ -46,6 +46,23 @@ export function createDesktopProductionBuildPlan({ cwd, baseEnv = process.env })
 
   return [
     {
+      // 壳的 renderer 必须显式构建：主入口已经是 src/open-shell，tsup 打包时会去搬
+      // vendor/open-claude-desktop/app/dist，缺了它 stat 直接 ENOENT（CI 实测）。
+      // 先备好可再分发的静态资源，再按壳自己的 vite 配置产出 dist，两步有先后。
+      label: "open shell assets",
+      command: "node",
+      args: ["scripts/prepare-open-shell-runtime.mjs"],
+      cwd,
+      env,
+    },
+    {
+      label: "open shell renderer",
+      command: "pnpm",
+      args: ["exec", "vite", "build", "--config", "vite.open-shell.config.ts"],
+      cwd,
+      env,
+    },
+    {
       label: "desktop production bundles",
       parallel: [
         {

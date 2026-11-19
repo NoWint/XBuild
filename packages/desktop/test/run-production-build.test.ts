@@ -15,8 +15,22 @@ describe("createDesktopProductionBuildPlan", () => {
       baseEnv: { PATH: "/usr/bin" },
     });
 
-    expect(plan).toHaveLength(1);
+    // 壳的静态资源与 renderer 必须先于 tsup 产出：主入口是 open-shell，
+    // tsup 打包时要搬 vendor/open-claude-desktop/app/dist。
+    expect(plan).toHaveLength(3);
     expect(plan[0]).toMatchObject({
+      label: "open shell assets",
+      command: "node",
+      args: ["scripts/prepare-open-shell-runtime.mjs"],
+      env: { PATH: "/usr/bin", NODE_ENV: "production" },
+    });
+    expect(plan[1]).toMatchObject({
+      label: "open shell renderer",
+      command: "pnpm",
+      args: ["exec", "vite", "build", "--config", "vite.open-shell.config.ts"],
+      env: { PATH: "/usr/bin", NODE_ENV: "production" },
+    });
+    expect(plan[2]).toMatchObject({
       label: "desktop production bundles",
       parallel: [
         {
