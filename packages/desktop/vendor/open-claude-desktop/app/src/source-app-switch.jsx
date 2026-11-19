@@ -74,7 +74,9 @@ function AppSwitchContainer({ mode, homeMode, onMode, chord, attention, rtl }) {
   const size = useAppSwitchSize();
   // YS: the merged home is "Claude" (D11). The other original answer, "Chat and Cowork", depends on account and
   // GrowthBook conditions this host does not have.
-  const homeName = intl.formatMessage({ defaultMessage: 'Claude', id: '4PjoX4rZSt' });
+  // XBuild: the home surface belongs to this product, so its label follows the embedded identity
+  // rather than the upstream brand. "Code" stays literal — it is the code surface's own name.
+  const homeName = intl.formatMessage({ defaultMessage: 'XBuild', id: '4PjoX4rZSt' });
   const { selected, home, code } = appSwitchProps({ mode, pressed, homeMode, homeName, chord, rtl, attention, shortcutHint: appSwitchShortcutHint });
   const onChange = useCallback(value => { press(value, onMode); }, [press, onMode]);
   return <AppSwitch data-compact-mode-switcher={true} data-chorus-callout="pills" className="flex"

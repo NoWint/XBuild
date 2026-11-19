@@ -36,11 +36,44 @@ integration as complete until the corresponding runtime flows have evidence.
 - Earlier bridge initialization identified the real bundled Agent as `zcode
   0.17.1`; the packaged terminal rendered real shell output.
 
+## 2026-11-19 — the Agent channel is live (new evidence)
+
+The previously blocking gap — "no configured provider, so no real prompt has
+ever been accepted in this shell" — is closed. A real dev window at `9229`
+completed two round trips against the bundled Agent:
+
+- `Reply with exactly: AGENT_OK` → the model replied `AGENT_OK`. The turn was
+  created, streamed, completed and appeared in the session list.
+- `Use your Read tool to read package.json ...` → the Agent actually invoked
+  tools: the activity row reported `读取了 package.json（1 个失败），运行了 1 条
+  命令`, and the answer truthfully reported the directory was empty. This is a
+  complete Agent loop, not a chat-only stub.
+
+Model was `deepseek-v4-flash (deepseek)` with reasoning set to highest; the
+surface rendered in Chinese with the full sidebar, right rail and composer.
+
+### Gaps this run exposed
+
+- The default working directory is an auto-created, empty `~/Documents/XBuild`.
+  Every new session therefore starts in a directory with no project in it; a
+  user who never changes the environment row gets an Agent that cannot see
+  their code. Needs a product decision, not a silent fix.
+- The account menu and toolbar still expose the strings `Claude` and `Code`
+  as button names, so the selected shell is not fully rebranded on this
+  surface. Low risk, but it is a visible product-identity leak.
+
+A stray `h` appeared in the first test message. It was traced to the harness
+sending keys before the composer held focus, not to the app: a focused composer
+keeps its text intact across Escape and the focus moves to `BODY`. Recorded so
+it is not mistaken for a defect later.
+
 ### Explicitly not verified
 
 - No configured provider was available in the isolated acceptance profile, so
   no real prompt, streaming response, permission approval, file edit or retry
   has been accepted in this shell.
+  - Superseded 2026-11-19 for prompt/stream/tool invocation; permission
+    approval, file edit and retry remain unexecuted.
 - Old-Host session ownership, mobile attachment, scheduled/off-peak execution,
   DSH plugin behavior and full remote compatibility remain unverified here.
 - The old legacy acceptance background task no longer exists in the harness;
