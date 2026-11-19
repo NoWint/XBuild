@@ -135,4 +135,25 @@ describe("DSH node executable staging", () => {
     expect(executable.endsWith(join("node-v24.15.0-win-x64", "node.exe"))).toBe(true);
     expect(existsSync(executable)).toBe(true);
   });
+
+  // CI 实测：Expand-Archive 解出的是两层同名目录，node.exe 在第二层根上。
+  // 静态候选会全部落空，必须靠递归兜底找到它。
+  it("finds node.exe under a doubly nested layout", async () => {
+    const cacheDir = await makeRoot();
+    const executable = await stageDshNodeExecutable({
+      cacheDir,
+      platformKey: "win32-x64",
+      download: async (_url: string, target: string) => {
+        await writeFile(target, "archive");
+      },
+      extract: ({ extractDir }: { extractDir: string }) => {
+        const nested = join(extractDir, "node-v24.15.0-win-x64", "node-v24.15.0-win-x64");
+        mkdirSync(nested, { recursive: true });
+        writeFileSync(join(nested, "node.exe"), "node");
+      },
+      verifyArchive: () => {},
+    });
+    expect(executable.endsWith("node.exe")).toBe(true);
+    expect(existsSync(executable)).toBe(true);
+  });
 });

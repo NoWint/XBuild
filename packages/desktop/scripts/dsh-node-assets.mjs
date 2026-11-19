@@ -1,7 +1,7 @@
 // DSH worker 复用应用的 Electron Node，但安装 DSH 包时必须运行真正的 pnpm CLI。
 // Electron 二进制不能复制成 bin/node：它依赖同包 Framework；这里提供独立、固定版本的 Node。
-import { existsSync, mkdirSync, rmSync } from "node:fs";
-import { join } from "node:path";
+import { existsSync, mkdirSync, readdirSync, rmSync } from "node:fs";
+import { join, sep } from "node:path";
 import { downloadPrebuiltArchive } from "../../../scripts/prebuilt-binary-download.mjs";
 import {
   extractPrebuiltArchive,
@@ -89,6 +89,10 @@ export async function stageDshNodeExecutable({
     for (const candidate of dshNodeExecutableCandidates({ cacheDir, platformKey })) {
       if (existsSync(candidate)) return candidate;
     }
+    // 解压器的嵌套层数依平台而异（Windows 实测多一层），静态候选落空后递归兜底。
+    const executableName = platformKey.startsWith("win32") ? "node.exe" : "node";
+    const found = findNodeExecutable(extractRoot, executableName);
+    if (found) return found;
     throw new Error(`[dsh-node] executable missing after extraction: ${executable}`);
   }
   return executable;
@@ -109,9 +113,47 @@ export function dshNodeExecutableCandidates({ cacheDir, platformKey }) {
   const inner = join(extractRoot, `node-v${DSH_NODE_VERSION}-${artifact.suffix.replace(/\.(tar\.xz|zip)$/, "")}`);
   const executableName = platformKey.startsWith("win32") ? "node.exe" : "node";
   return [
-    join(inner, "bin", executableName),
-    join(inner, executableName),
-    join(extractRoot, "bin", executableName),
-    join(extractRoot, executableName),
+    ...depthVariants(inner, executableName),
+    ...depthVariants(extractRoot, executableName),
   ];
+}
+
+/**
+ * 同一目录下的 bin/<exe> 与 <exe> 两种布局。
+ *
+ * 不能再往里逐层穷举：Windows 的 Expand-Archive 解出来后实际嵌套了两层同名目录
+ * （node-v24.15.0-win-x64/node-v24.15.0-win-x64/node.exe），预先枚举层数只会
+ * 一次次漏掉。调用方在静态候选都落空后改为递归查找，见 findNodeExecutable。
+ */
+function depthVariants(root, executableName) {
+  return [join(root, "bin", executableName), join(root, executableName)];
+}
+
+/** 递归查找解压目录里最浅的一处 node 可执行文件。 */
+export function findNodeExecutable(extractRoot, executableName) {
+  const queue = [extractRoot];
+  let best;
+  let bestDepth = Infinity;
+  while (queue.length > 0) {
+    const directory = queue.shift();
+    let entries;
+    try {
+      entries = readdirSync(directory, { withFileTypes: true });
+    } catch {
+      continue;
+    }
+    for (const entry of entries) {
+      const full = join(directory, entry.name);
+      if (entry.isFile() && entry.name === executableName) {
+        const depth = full.split(sep).length;
+        if (depth < bestDepth) {
+          best = full;
+          bestDepth = depth;
+        }
+      } else if (entry.isDirectory()) {
+        queue.push(full);
+      }
+    }
+  }
+  return best;
 }
