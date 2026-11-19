@@ -85,12 +85,18 @@ to an unrelated paid provider or claim a completed response.
 ## Import
 
 Claude, Codex, ZCode and DeepSeek Harness imports are local, explicit actions.
-Detect format and validate paths without reading arbitrary files supplied by a
-renderer. Preserve source IDs in an idempotency namespace, map messages/tools
-into a single session record, and report unsupported or partially imported
-items. Import never replays tool calls, executes commands, uploads transcripts
-or changes the original sessions. It must not silently mark running source
-sessions as completed or overwrite an existing XBuild session.
+The desktop main process owns source discovery and parsing; the renderer sends
+only canonical source IDs and never supplies a filesystem path. The current
+host contract is `session-import` with `detect` and `import` operations. Each
+source adapter reads its authoritative local store (Claude/Codex rollout JSONL,
+ZCode SQLite, or DeepSeek Harness session JSONL/JSONL.zstd), normalizes visible
+user/assistant text, and records unsupported tool/artifact events as skipped
+history. The host persists a versioned, namespaced ledger keyed by
+`source:sourceSessionId`, and returns the same target ID on a repeated import.
+Imported records are inert/read-only projections: import never replays tool
+calls, executes commands, uploads transcripts or changes the original sessions.
+Running source sessions are skipped rather than marked completed, and a source
+record is never allowed to overwrite an existing XBuild session.
 
 ## Acceptance
 
