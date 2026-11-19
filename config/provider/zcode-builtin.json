@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 45,
+  "revision": 46,
   "config": {
     "providerConfigRules": {
       "templateRules": [
@@ -20,6 +20,7 @@
               "baseUrl": "https://nowint.qzz.io"
             },
             "builtinModelIds": [
+              "deepseek-v4.1-flash",
               "z-ai/glm-5.3-flash",
               "z-ai/glm-5.3"
             ],
