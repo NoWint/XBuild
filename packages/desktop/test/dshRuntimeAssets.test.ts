@@ -1,7 +1,7 @@
-import { existsSync, mkdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, realpathSync, writeFileSync } from "node:fs";
 import { mkdtemp, mkdir, readFile, readlink, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join, relative, isAbsolute } from "node:path";
+import { join, relative, isAbsolute, sep } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { stageDshRuntimeDistribution } from "../scripts/dsh-runtime-assets.mjs";
 import { dshNodeDownloadUrl, stageDshNodeExecutable } from "../scripts/dsh-node-assets.mjs";
@@ -29,6 +29,92 @@ async function writePackage(root: string, relativePath: string, dependencies = {
 }
 
 describe("DSH staged runtime distribution", () => {
+  // v3.18.6 macOS arm64 CI 实测：cordis ↔ cordis-plugin-include 互为 peer，旧逻辑给
+  // 双方都建 node_modules 链接，electron-builder 的文件遍历逐层跟随这个环，路径重复
+  // 累积直到 ENAMETOOLONG。链接只能建在“向上解析找不到”的方向上，环必须被打破。
+  it("never creates a link cycle between mutually-peered packages", async () => {
+    const root = await makeRoot();
+    await writePackage(root, "apps/zcode-cli/packages/dsh-runtime", { "@deepseek-ai/cordis": "1.0.0" });
+    await mkdir(join(root, "apps/zcode-cli/packages/dsh-runtime/dist"), { recursive: true });
+    await writeFile(join(root, "apps/zcode-cli/packages/dsh-runtime/dist/index.js"), "export {}\n");
+    await writeFile(join(root, "apps/zcode-cli/packages/dsh-runtime/dist/worker.js"), "export {}\n");
+    await writeFile(join(root, "apps/zcode-cli/packages/dsh-runtime/dist/worker-entry.js"), "export {}\n");
+    await writePackage(root, "node_modules/@deepseek-ai/cordis");
+    await writeFile(
+      join(root, "node_modules/@deepseek-ai/cordis/package.json"),
+      JSON.stringify({
+        name: "@deepseek-ai/cordis",
+        version: "1.0.0",
+        peerDependencies: { "@deepseek-ai/cordis-plugin-include": "1.0.0" },
+      }),
+    );
+    await writePackage(root, "node_modules/@deepseek-ai/cordis-plugin-include");
+    await writeFile(
+      join(root, "node_modules/@deepseek-ai/cordis-plugin-include/package.json"),
+      JSON.stringify({
+        name: "@deepseek-ai/cordis-plugin-include",
+        version: "1.0.0",
+        peerDependencies: { "@deepseek-ai/cordis": "1.0.0" },
+      }),
+    );
+    await writePackage(root, "node_modules/pnpm");
+    await writeFile(join(root, "node_modules/pnpm/package.json"), JSON.stringify({ name: "pnpm", version: "10.33.2" }));
+    await mkdir(join(root, "node_modules/pnpm/bin"), { recursive: true });
+    await writeFile(join(root, "node_modules/pnpm/bin/pnpm.cjs"), "// test\n");
+    const node = join(root, "node");
+    await writeFile(node, "not executed by this structural regression");
+
+    const { targetRoot } = stageDshRuntimeDistribution({
+      repoRoot: root,
+      glmDir: join(root, "glm"),
+      platformKey: "darwin-arm64",
+      nodeExecutable: node,
+      log: () => {},
+    });
+
+    const stagedCordis = join(targetRoot, "node_modules/@deepseek-ai/cordis");
+    const stagedInclude = join(targetRoot, "node_modules/@deepseek-ai/cordis-plugin-include");
+    expect(existsSync(stagedCordis)).toBe(true);
+    expect(existsSync(stagedInclude)).toBe(true);
+    // cordis 先入 pending，此时 include 还没暂存，这个方向的链接保留。
+    expect(existsSync(join(stagedCordis, "node_modules", "@deepseek-ai", "cordis-plugin-include"))).toBe(true);
+    // 反方向已被向上解析覆盖，绝不能再建链，否则链接图成环。
+    expect(existsSync(join(stagedInclude, "node_modules", "@deepseek-ai", "cordis"))).toBe(false);
+
+    // 以“链接所属包的规范目录 → 链接目标规范目录”为边做全图环检测。
+    const linksFrom = new Map<string, Set<string>>();
+    const walk = (dir: string): void => {
+      for (const entry of readdirSync(dir, { withFileTypes: true })) {
+        const full = join(dir, entry.name);
+        if (entry.isSymbolicLink()) {
+          const ownerIndex = dir.lastIndexOf(`${sep}node_modules${sep}`);
+          const owner = realpathSync(ownerIndex >= 0 ? dir.slice(0, ownerIndex) : dir);
+          if (!linksFrom.has(owner)) linksFrom.set(owner, new Set());
+          linksFrom.get(owner)!.add(realpathSync(full));
+        } else if (entry.isDirectory()) {
+          walk(full);
+        }
+      }
+    };
+    walk(targetRoot);
+    let cycles = 0;
+    const visit = (dir: string, hops: number, visiting: Set<string>): void => {
+      const outgoing = linksFrom.get(dir);
+      if (!outgoing) return;
+      for (const target of outgoing) {
+        if (visiting.has(target) || hops > 1000) {
+          cycles += 1;
+          continue;
+        }
+        visiting.add(target);
+        visit(target, hops + 1, visiting);
+        visiting.delete(target);
+      }
+    };
+    for (const [dir] of linksFrom) visit(dir, 0, new Set([dir]));
+    expect(cycles).toBe(0);
+  });
+
   it("preserves installed peer resolution and emits only relative staged links", async () => {
     const root = await makeRoot();
     await writePackage(root, "apps/zcode-cli/packages/dsh-runtime", { "@deepseek-ai/dsh-app-boot": "1.0.0" });
@@ -136,8 +222,10 @@ describe("DSH node executable staging", () => {
     expect(existsSync(executable)).toBe(true);
   });
 
-  // CI 实测：Expand-Archive 解出的是两层同名目录，node.exe 在第二层根上。
-  // 静态候选会全部落空，必须靠递归兜底找到它。
+  // v3.18.6 曾把 Windows 失败误诊为“Expand-Archive 解出两层同名目录”；真实根因是
+  // runner 的 PSModulePath 让 powershell.exe 装载 PowerShell 7 版 Archive 模块，
+  // Expand-Archive 一个文件都没解出来（见 prebuilt-binary-extract.mjs）。这里保留
+  // 递归兜底的行为回归：无论解压器嵌套多少层同名目录，都要找到 node.exe。
   it("finds node.exe under a doubly nested layout", async () => {
     const cacheDir = await makeRoot();
     const executable = await stageDshNodeExecutable({

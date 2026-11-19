@@ -20,8 +20,8 @@ function toTarPosixPath(pathValue) {
   return pathValue.replaceAll("\\", "/");
 }
 
-function resolveTarArchiveArg(archivePath, cwd) {
-  if (process.platform === "win32") {
+function resolveTarArchiveArg(archivePath, cwd, platform = process.platform) {
+  if (platform === "win32") {
     try {
       const relativeArchivePath = relative(cwd, archivePath);
       if (relativeArchivePath && !relativeArchivePath.startsWith("..")) {
@@ -35,31 +35,47 @@ function resolveTarArchiveArg(archivePath, cwd) {
   return toTarPosixPath(archivePath);
 }
 
-export function extractPrebuiltArchive({ archivePath, archiveExt, extractDir, cwd }) {
-  mkdirSync(extractDir, { recursive: true });
+/**
+ * 解压命令选择，纯函数便于回归测试。
+ *
+ * Windows 的 zip 不能再用 Expand-Archive：windows-2025 runner 的 PSModulePath 会让
+ * powershell.exe 装载 PowerShell 7 版 Microsoft.PowerShell.Archive，其在新 .NET 上调用
+ * 已被移除的 ExtractToDirectory 三参重载直接报 MethodCountCouldNotFindBest，一个文件都
+ * 不会落盘（v3.18.6 Windows CI 实测）。系统自带 bsdtar 同样支持 zip，且与 .tar.xz
+ * 共用同一套盘符/斜杠处理。
+ */
+export function resolveArchiveExtractCommand({
+  archivePath,
+  archiveExt,
+  extractDir,
+  cwd,
+  platform = process.platform,
+}) {
   if (archiveExt === "zip") {
-    if (process.platform === "win32") {
-      runCommand("powershell.exe", [
-        "-NoProfile",
-        "-NonInteractive",
-        "-ExecutionPolicy",
-        "Bypass",
-        "-Command",
-        `Expand-Archive -LiteralPath '${archivePath.replaceAll("'", "''")}' -DestinationPath '${extractDir.replaceAll("'", "''")}' -Force`,
-      ]);
-      return;
+    if (platform === "win32") {
+      const tarCwd = cwd ?? process.cwd();
+      return {
+        command: "tar",
+        args: ["-xf", resolveTarArchiveArg(archivePath, tarCwd, platform), "-C", toTarPosixPath(extractDir)],
+        options: { cwd: tarCwd },
+      };
     }
 
-    runCommand("unzip", ["-q", archivePath, "-d", extractDir], { cwd });
-    return;
+    return { command: "unzip", args: ["-q", archivePath, "-d", extractDir], options: { cwd } };
   }
 
   const tarCwd = cwd ?? process.cwd();
-  runCommand(
-    "tar",
-    ["-xzf", resolveTarArchiveArg(archivePath, tarCwd), "-C", toTarPosixPath(extractDir)],
-    { cwd: tarCwd },
-  );
+  return {
+    command: "tar",
+    args: ["-xzf", resolveTarArchiveArg(archivePath, tarCwd, platform), "-C", toTarPosixPath(extractDir)],
+    options: { cwd: tarCwd },
+  };
+}
+
+export function extractPrebuiltArchive({ archivePath, archiveExt, extractDir, cwd }) {
+  mkdirSync(extractDir, { recursive: true });
+  const { command, args, options } = resolveArchiveExtractCommand({ archivePath, archiveExt, extractDir, cwd });
+  runCommand(command, args, options);
 }
 
 export function findPrebuiltBinary(rootDir, binaryName) {

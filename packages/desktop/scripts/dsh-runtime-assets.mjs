@@ -24,6 +24,26 @@ function isInside(root, target) {
 }
 
 /**
+ * 模拟 Node 的向上解析，判断依赖是否已在暂存树里可解析。
+ *
+ * 暂存目录镜像源安装的相对布局，依赖的规范位置一定落在目标目录的祖先链上，
+ * 所以 node_modules 内部的互指链接（cordis ↔ cordis-plugin-include 这类 peer 环）
+ * 全是冗余的；而 electron-builder 的文件遍历会逐层跟随这些链接，直到路径超过
+ * PATH_MAX 直接 ENAMETOOLONG（v3.18.6 macOS arm64 CI 实测）。Node 本身按 realpath
+ * 解析不会死循环，但打包器不会——凡向上已可解析就不再建链。
+ */
+function isResolvableInStagedTree(targetRoot, fromDirectory, packageName) {
+  let directory = fromDirectory;
+  while (isInside(targetRoot, directory)) {
+    if (existsSync(join(directory, "node_modules", ...packageName.split("/")))) return true;
+    const parent = dirname(directory);
+    if (parent === directory) return false;
+    directory = parent;
+  }
+  return false;
+}
+
+/**
  * Node's package-directory lookup is intentionally independent of package.json exports.
  * DSH's peer graph includes packages without a main entry or a public ./package.json export;
  * require.resolve would discard those packages and leave a runtime that only fails at boot.
@@ -132,9 +152,11 @@ export function stageDshRuntimeDistribution({
         );
       }
       const dependencyTarget = resolve(targetRoot, relative(canonicalRepoRoot, dirname(dependencyPackageJson)));
-      const link = resolve(targetDirectory, "node_modules", ...packageName.split("/"));
-      mkdirSync(dirname(link), { recursive: true });
-      symlinkSync(relative(dirname(link), dependencyTarget), link, "dir");
+      if (!isResolvableInStagedTree(targetRoot, targetDirectory, packageName)) {
+        const link = resolve(targetDirectory, "node_modules", ...packageName.split("/"));
+        mkdirSync(dirname(link), { recursive: true });
+        symlinkSync(relative(dirname(link), dependencyTarget), link, "dir");
+      }
       pending.push(dependencyPackageJson);
     }
   }
