@@ -10,7 +10,17 @@ import "./source-resume-dialog.css";
 // 'Resume a session' (/resume, as Claude Desktop's dialog and the agents' own `resume` pickers): every session the
 // running core keeps, its own CLI's or app's included (main.cjs resume-sessions → thread/list), searchable, this
 // folder or all folders. Picking one adds it to the sidebar (resume-add, confirmed by thread/read) and opens it.
-const IMPORTED_FROM = { cc: () => t("Imported from Claude Code"), codex: () => t("Imported from Codex"), opencode: () => t("Imported from OpenCode") };
+// The provenance badge, by the value main.cjs resume-sessions reports: thread.codeDesktop.importedFrom, which Codex's
+// own import writes as "cc" and Settings › Code › Import sessions writes as the source tool's name (Claude Code, Codex,
+// ZCode, DeepSeek Harness; electron/session-import.cjs SOURCE_LABELS).
+const IMPORTED_FROM = { cc: () => t("Imported from Claude Code"), codex: () => t("Imported from Codex"), opencode: () => t("Imported from OpenCode"),
+  "Claude Code": () => t("Imported from Claude Code"), "ZCode": () => t("Imported from ZCode"), "DeepSeek Harness": () => t("Imported from DeepSeek Harness") };
+const importedBadge = (value) => {
+  if (typeof value !== "string" || !value) return null;
+  const label = IMPORTED_FROM[value];
+  if (label) return label();
+  return t("Imported from {tool}", { tool: value });
+};
 
 /** 'Last active' text for a thread's updatedAt (seconds). */
 export function resumeActivityLabel(seconds, now = Date.now()) {
@@ -72,7 +82,7 @@ export function SourceResumeDialog({ desktopCall, cwd = "", initialQuery = "", f
             <span className="resume-meta">
               {row.cwd && <span className="resume-folder" title={row.cwd}>{folderName(row.cwd)}</span>}
               {row.updatedAt && <span>{resumeActivityLabel(row.updatedAt)}</span>}
-              {row.importedFrom && IMPORTED_FROM[row.importedFrom] && <span className="resume-badge">{IMPORTED_FROM[row.importedFrom]()}</span>}
+              {importedBadge(row.importedFrom) && <span className="resume-badge">{importedBadge(row.importedFrom)}</span>}
               {row.added && <span className="resume-badge">{t("In the sidebar")}</span>}
             </span>
           </button>)}

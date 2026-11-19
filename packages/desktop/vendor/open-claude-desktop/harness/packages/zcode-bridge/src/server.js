@@ -238,7 +238,6 @@ export async function main() {
   const children = new Map()
   const sideQuestions = new Map()
   const logins = new Map()
-  const xiatian = createXiatianAccount({ env, notify, log })
   let guestProvider = null
   let guestRefreshing = null
   let accountSessionKey = null
@@ -267,6 +266,8 @@ export async function main() {
   }
   // account/rateLimits/updated after turns (Codex sends one per turn), so the usage ring and notice stay current.
   const quotaWatch = new RateLimitWatch({ read: () => rateLimits({ details: false }), notify, log })
+  // The Xiatian AI account (device sign-in, session key, guest grant): created after notify, which it reports through.
+  const xiatian = createXiatianAccount({ env, notify, log })
 
   // ---------------------------------------------------------------- agent process
 
@@ -502,6 +503,10 @@ export async function main() {
     const named = meta.name ?? ((info.titleSource ?? thread.titleSource) === 'custom' || (info.titleSource ?? thread.titleSource) === 'generated' ? title : null)
     const selection = thread.model ?? info.model ?? null
     return {
+      // codeDesktop.importedFrom: a session that came from another tool's history (codeDesktop/history/import), so
+      // 'Resume a session' and the sidebar can say where it came from. Kept beside the Codex fields as the renderer
+      // already reads thread.codeDesktop.importedFrom (main.cjs resume-sessions).
+      ...(meta.importedFrom ? { codeDesktop: { importedFrom: meta.importedFrom } } : {}),
       id: thread.id, sessionId: thread.id, forkedFromId: meta.forkedFromId ?? info.parentSessionId ?? null, parentThreadId: null,
       preview: String(preview ?? '').slice(0, 200), ephemeral: false, section: null, sectionEnteredAt: null, projectId: null, historyMode: 'paginated',
       modelProvider: selection?.providerId ?? 'zcode', model: modelKey(selection), reasoningEffort: thread.effort ?? null,
@@ -709,6 +714,66 @@ export async function main() {
     await subscribe(thread)
     notify('thread/started', { thread: threadObject(thread) })
     return sessionResponse(thread)
+  }
+
+  /** The source tool an imported session came from, as thread.codeDesktop.importedFrom names it (Claude, Codex, …). */
+  const textSource = (source) => ({ claude: 'Claude Code', codex: 'Codex', zcode: 'ZCode', deepseek: 'DeepSeek Harness' })[source] ?? (typeof source === 'string' ? source.slice(0, 60) : 'another tool')
+
+  /**
+   * codeDesktop/history/import: write one already-normalized source conversation into ZCode as a session the user can
+   * continue. params: {sessions: [{source, sourceSessionId, targetThreadId, title, cwd, createdAt, updatedAt,
+   * messages: [{role, content, timestamp}]}]}. Returns {imported, skipped, failed, sessions: [{sourceSessionId,
+   * targetThreadId, status, reason?}]}. The source store is only ever read (by main.cjs); nothing here writes it, and
+   * ZCode's importedHistory path stores text parts alone, so no tool call of the source is replayed.
+   */
+  async function importHistory(params) {
+    // The workflow runner's own bridge is never a place a user imports into: its sessions are the runner's.
+    if (runnerRole) throw new RpcError(-32000, 'Imports run in the main window.')
+    const result = { imported: 0, skipped: 0, failed: 0, sessions: [] }
+    const list = Array.isArray(params?.sessions) ? params.sessions.slice(0, 200) : []
+    for (const session of list) {
+      const id = typeof session?.targetThreadId === 'string' ? session.targetThreadId : null
+      const messages = Array.isArray(session?.messages) ? session.messages.filter((message) => (message?.role === 'user' || message?.role === 'assistant') && typeof message.content === 'string' && message.content.trim()) : []
+      if (!id || !messages.length) { result.failed += 1; result.sessions.push({ sourceSessionId: session?.sourceSessionId ?? null, status: 'failed', reason: 'invalid' }); continue }
+      // Already in ZCode (this import ran before, or the session id was reused): report it, never write it again.
+      const existing = await sessionInfo(id)
+      if (existing || store.isDeleted(id)) {
+        result.skipped += 1
+        result.sessions.push({ sourceSessionId: session.sourceSessionId ?? null, targetThreadId: id, status: 'skipped', reason: 'already-imported' })
+        if (existing) store.update(id, { importedFrom: textSource(session.source), title: session.title ?? undefined })
+        continue
+      }
+      const cwd = typeof session.cwd === 'string' && path.isAbsolute(session.cwd) && fs.existsSync(session.cwd) ? fs.realpathSync(session.cwd) : home
+      const selection = selectionFor(params?.model) ?? modelCache?.settings?.model?.current ?? null
+      const imported = {
+        source: 'claudeCode',
+        title: String(session.title || 'Imported session').slice(0, 200),
+        createdAt: Number.isFinite(session.createdAt) ? session.createdAt : undefined,
+        updatedAt: Number.isFinite(session.updatedAt) ? session.updatedAt : undefined,
+        messages: messages.map((message) => ({ role: message.role, content: message.content.slice(0, 100_000), ...(Number.isFinite(message.timestamp) ? { timestamp: message.timestamp } : {}) })),
+      }
+      try {
+        const created = await request('session/create', {
+          sessionId: id, workspace: workspaceOf(cwd), mode: zcodeMode(params?.permission?.mode ?? 'ask'), persistence: 'immediate',
+          ...(selection ? { model: { providerId: selection.providerId, modelId: selection.modelId } } : {}),
+          titleGenerationEnabled: false, importedHistory: imported,
+        }, { timeoutMs: 120000 })
+        const createdId = created?.session?.sessionId ?? id
+        if (!created) {
+          result.failed += 1
+          result.sessions.push({ sourceSessionId: session.sourceSessionId ?? null, status: 'failed', reason: 'create-failed' })
+          continue
+        }
+        store.update(createdId, { importedFrom: textSource(session.source), title: imported.title, preview: imported.title, cwd, createdAt: imported.createdAt ?? Date.now(), updatedAt: imported.updatedAt ?? Date.now() })
+        threads.delete(createdId)
+        result.imported += 1
+        result.sessions.push({ sourceSessionId: session.sourceSessionId ?? null, targetThreadId: createdId, status: 'imported' })
+      } catch (error) {
+        result.failed += 1
+        result.sessions.push({ sourceSessionId: session.sourceSessionId ?? null, status: 'failed', reason: String(error?.message ?? error).slice(0, 300) })
+      }
+    }
+    return result
   }
 
   /** Load a thread's session in ZCode (resume) if needed. */
@@ -2259,10 +2324,11 @@ export async function main() {
 
   async function threadList(params) {
     // ZCode lists the 50 most recently updated sessions unless asked for more, and has no cursor: ask for every
-    // session (up to a high cap) and page, sort and search here.
+    // session (up to a high cap) and page, sort and search here. session/list has no archived switch of its own (ZCode
+    // 0.17 rejects includeArchived): the archived state is ZCode's own and read from each session row below.
     const offset = Number.parseInt(params.cursor ?? '0', 10) || 0
     const pageSize = Number.isInteger(params.limit) && params.limit > 0 ? params.limit : 50
-    const listed = await request('session/list', { includeArchived: true, limit: Math.max(SESSION_LIST_CAP, offset + pageSize + 1) })
+    const listed = await request('session/list', { limit: Math.max(SESSION_LIST_CAP, offset + pageSize + 1) })
     const archivedOnly = params.archived === true
     const wantChildren = (params.sourceKinds ?? []).some((kind) => String(kind).startsWith('subAgent'))
     const cwds = params.cwd == null ? null : new Set([].concat(params.cwd))
@@ -2515,6 +2581,13 @@ export async function main() {
       case 'hooks/list': return catalog.hooksList(catalog.readConfig(paths.cliConfig), { cwds: params?.cwds, sourcePath: paths.cliConfig, fallbackCwd: os.homedir(), root: paths.root })
 
       case 'thread/start': return startThread(params)
+      // ---------------------------------------------------------------- imported history (codeDesktop/history/import)
+      // XBuild's import of another tool's sessions. The renderer never names a file: main.cjs reads the source (Claude,
+      // Codex, ZCode or DeepSeek Harness), normalizes user/assistant text, and sends it here as inert history. ZCode
+      // writes it through its own createSession importedHistory path (session/create, persistence immediate), so the
+      // imported conversation is a real ZCode session the user can continue; no tool call is replayed and the source
+      // store is never written. The deterministic sessionId makes a repeated import the same session, never a second one.
+      case 'codeDesktop/history/import': return importHistory(params)
       case 'thread/resume': {
         const threadId = requireThreadId(params)
         const thread = await loadThread(threadId, params)

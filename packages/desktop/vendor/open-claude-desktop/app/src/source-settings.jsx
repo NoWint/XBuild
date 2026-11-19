@@ -5,6 +5,7 @@ import {useAccountSettings} from './source-account-settings.jsx';
 import { SourceSwitch as SettingSwitch } from './source-switch.jsx';
 import { SourceSettingsButton } from './source-settings-button.jsx';
 import { ClaudeImportDialog } from './source-claude-import.jsx';
+import { SessionImportDialog } from './source-session-import.jsx';
 import { coreSettingDefault, coreSettingLabel, coreSettingOptionLabel } from './core-settings-model.mjs';
 import { deviceDetail, deviceName, pairingTimeLeft, remoteEnabled, remoteStatusLabel } from './remote-control-model.mjs';
 import React, { useEffect, useId, useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react';
@@ -203,13 +204,12 @@ function SettingsContent({ presence, config, model, effort, permission, boot, bu
   useEffect(()=>{if(!coreSettingsCore){setCoreSettings(null);return undefined;}let live=true;
     Promise.resolve(desktopCall('rpc',{method:'codeDesktop/coreSettings/read',params:{}})).then(value=>{if(live)setCoreSettings(Array.isArray(value?.settings)?value:null);},()=>{if(live)setCoreSettings(null);});
     return()=>{live=false;};},[coreSettingsCore,boot?.core?.engine]);
-  // A core that imports other tools' sessions on request (MiMo: capabilities.historyImport, codeDesktop/history/import);
-  // imported sessions are opened from Resume a session.
-  const historySources=boot?.connected&&Array.isArray(coreCapabilities(boot?.core).historyImport)?coreCapabilities(boot?.core).historyImport:null;
+  // Import sessions (main.cjs 'session-import'): main reads Claude Code, Codex, ZCode and DeepSeek Harness history and
+  // writes the chosen conversations into the running core; imported sessions then open like any other.
+  const [sessionImportOpen,setSessionImportOpen]=useState(false);
   const [historyImport,setHistoryImport]=useState(null);
-  const importHistory=source=>commit(`history-import`,{},async()=>{setHistoryImport({source,busy:true});
-    try{const result=await desktopCall('rpc',{method:'codeDesktop/history/import',params:{sources:[source]}});const stats=result?.[source]??{};setHistoryImport({source,stats});}
-    catch(error){setHistoryImport(null);throw error;}});
+  const importHistory=sources=>{const {imported=0,skipped=0}=Object.values(sources??{}).reduce((sum,entry)=>({imported:sum.imported+(entry?.imported??0),skipped:sum.skipped+(entry?.skipped??0)}),{imported:0,skipped:0});
+    setHistoryImport({stats:{imported,skipped,scanned:imported+skipped},sources});};
   // Codex's own Memories and beta features (main.cjs 'codex-features', codex-features.cjs): read once the Codex core is
   // connected; a beta switch applies after Codex restarts (restartPending), memories to new sessions.
   const [codexFeatures,setCodexFeatures]=useState(null),[codexRestart,setCodexRestart]=useState(false);
@@ -549,11 +549,16 @@ function SettingsContent({ presence, config, model, effort, permission, boot, bu
       ...(codexRestart?[row('codex-beta-restart',t('Restart Codex to apply'),t('Beta features take effect when Codex starts.'),
         <SourceSettingsButton size="sm" variant="primary" disabled={busy||!customize?.onRestartCore} onClick={()=>{setCodexRestart(false);customize?.onRestartCore?.();}}>{t('Restart')}</SourceSettingsButton>)]:[]),
     ]}]:[]),
-    ...(historySources?.length?[{tab:'code',title:t('Import sessions'),rows:[row('history-import',t('Import sessions from other tools'),
-      historyImport?.stats?t('Imported {imported} of {scanned} sessions ({skipped} already here). Open them from Resume a session.',{imported:historyImport.stats.imported??0,scanned:historyImport.stats.scanned??0,skipped:(historyImport.stats.skipped??0)+(historyImport.stats.resynced??0)})
-        :t('{core} can copy your Claude Code, Codex or OpenCode conversations into its own history. Nothing is imported until you choose.',{core:coreName(boot?.core)}),
-      <span className="ccmd-actions">{historySources.map(source=><SourceSettingsButton key={source} size="sm" busy={historyImport?.busy&&historyImport.source===source} disabled={busy||!!historyImport?.busy}
-        onClick={()=>void importHistory(source)}>{source==='cc'?'Claude Code':source==='codex'?'Codex':'OpenCode'}</SourceSettingsButton>)}</span>)]}]:[]),
+    // Import sessions (electron/session-import.cjs, `session-import`): the host reads Claude Code, Codex, ZCode and
+    // DeepSeek Harness history on this Mac and writes the chosen conversations into the running core, where they open
+    // like any other session. The dialog lists what was found and nothing is imported until the user picks.
+    ...(boot?.connected?[{tab:'code',title:t('Import sessions'),rows:[row('history-import',t('Import sessions from other tools'),
+      historyImport?.stats?t('Imported {imported} of {scanned} sessions ({skipped} already here). Open them from Resume a session.',{imported:historyImport.stats.imported??0,scanned:historyImport.stats.scanned??0,skipped:historyImport.stats.skipped??0})
+        :t('XBuild can bring your Claude Code, Codex, ZCode and DeepSeek Harness conversations into {core}, where you can carry on with them. Your other tools’ files are only read.',{core:coreName(boot?.core)}),
+      <span className="ccmd-actions">
+        {historyImport?.stats&&<SourceSettingsButton size="sm" variant="ghost" disabled={busy} onClick={()=>setHistoryImport(null)}>{t('Done')}</SourceSettingsButton>}
+        <SourceSettingsButton size="sm" variant="secondary" data-import-sessions="" disabled={busy} onClick={()=>setSessionImportOpen(true)}>{t('Choose sessions…')}</SourceSettingsButton>
+      </span>)]}]:[]),
     // The DeepSeek core's uploads besides the model request (code-desktop-app cordis.patch.yml, main.cjs
     // CODE_DESKTOP_SHARE_*): off unless the user turns them on, as the official app's switch allows. A change restarts
     // the core so the next request follows it.
@@ -650,6 +655,8 @@ function SettingsContent({ presence, config, model, effort, permission, boot, bu
     <div className="ss-pane" data-customize={!!activeTab?.customize||activeTab?.shell==='customize'}>
     {!usagePage&&!narrow&&<div className="ss-page-header">{closeButton}</div>}
     <div className="ss-content" key={tab} data-page={tab}>{error&&<p className="ss-error" role="alert">{error}</p>}{['code','developer','advanced'].includes(tab)&&desktopErrors(desktop?.errors).map(notice=><p className="ss-connection-notice" role="status" key={notice.key}>{notice.message}</p>)}{tab==='advanced'&&!shown.length&&<p className="ss-connection-notice" role="status">{advancedEmptyNotice(boot?.core&&typeof boot.core==='object'?coreName(boot.core):windowCore()?.name??(typeof engine==='string'?coreName(engine):null))}</p>}{tab==='developer'&&<DeveloperServers desktop={desktop} connected={boot?.connected} pending={!!pending} error={rowErrors['mcp-config']} onRemove={customize?.call&&mcpWritable ? removeServer : undefined} onEditConfig={()=>action('mcp-config',()=>desktopCall('desktop-edit-config'))} onDocs={()=>action('mcp-config',()=>desktopCall('external',{url:'https://modelcontextprotocol.io/quickstart'}))}/>} {customizePage}{activeTab?.page&&<activeTab.page {...pageProps}/>}{tab==='usage'&&<SourceUsage key={usageIdentity} readUsage={readUsage} consumeResetCredit={usageActions?.consumeResetCredit} sendCreditsNudge={usageActions?.sendCreditsNudge} engine={engine} models={models} onOpenLink={url=>Promise.resolve(desktopCall('external',{url})).catch(()=>{})}/>} {shown.map(group=><section className="ss-group" key={group.tab+group.title}><h3 tabIndex={-1} className="text-heading-semibold settings-row-title">{group.badge?<span className="flex items-center gap-2">{settingsHeading(group.title)}<ListBadge variant="neutral">{group.badge}</ListBadge></span>:settingsHeading(group.title)}</h3>{group.description&&<p className="text-footnote text-secondary ss-group-description">{group.description}</p>}<div className="settings-group-dividers">{(group.skeleton?group.rows.filter(row=>row.id==='version'):group.rows).map(row=><SettingRow key={row.id} row={row} error={rowErrors[row.id]}/>)}{group.skeleton&&[0,1,2].map(index=><SettingSkeletonRow key={index}/>)}</div></section>)}
+      {sessionImportOpen&&<SessionImportDialog open desktopCall={desktopCall} onClose={()=>setSessionImportOpen(false)}
+        onDone={sources=>{importHistory(sources);setSessionImportOpen(false);}}/>}
       {claudeImport&&<ClaudeImportDialog open desktopCall={desktopCall} cwds={[customize?.cwd].filter(Boolean)} onClose={()=>setClaudeImport(false)}
         onDone={()=>{void customize?.store?.loadSkills?.({cwd:customize?.cwd,force:true});void customize?.store?.loadMcp?.({cwd:customize?.cwd,threadId:customize?.threadId??null,force:true});setDesktopRevision(n=>n+1);}}/>}</div></div>
   </section>{storage&&<StorageDialog call={desktopCall} settingsRoot={root} onClose={()=>setStorage(false)}/>}

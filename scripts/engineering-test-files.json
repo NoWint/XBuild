@@ -116,6 +116,7 @@
   "packages/desktop/test/remoteStartupProfile.test.ts",
   "packages/desktop/test/remoteToolExecutionEvidence.test.ts",
   "packages/desktop/test/run-production-build.test.ts",
+  "packages/desktop/test/sessionImport.test.ts",
   "packages/desktop/test/sharpComputerUseRequirement.test.ts",
   "packages/desktop/test/signWindowsHook.test.ts",
   "packages/desktop/test/sourceServerReleaseFaults.test.ts",

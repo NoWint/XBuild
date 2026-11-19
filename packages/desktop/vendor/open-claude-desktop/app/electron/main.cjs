@@ -279,6 +279,7 @@ let coworkSessions;
 // CODE_DESKTOP_COWORK=1 turns it on for local work.
 const COWORK_ENABLED = process.env.CODE_DESKTOP_COWORK === "1";
 let configPath;
+let sessionImport;
 let client;
 let initial;
 let connecting;
@@ -2505,6 +2506,7 @@ app.whenReady().then(async () => {
   const { carryScope, requestCarry, bindCarry, carryFor } = await import("./bypass-carry.mjs");
   let switchToken = null, bypassCarry = null;
   configPath = path.join(app.getPath("userData"), "preferences.json");
+  sessionImport = createSessionImportManager({ file: path.join(app.getPath("userData"), "session-imports.json"), env: process.env });
   // DeepSeek core privacy (code-desktop-app cordis.patch.yml): '1' only when the user turned sharing on.
   const syncPrivacyEnv = ({ pending = true } = {}) => {
     harnessProfile.setCoreEnv("CODE_DESKTOP_SHARE_SESSION_LOG", config?.deepseekSessionLog === true ? "1" : null, { pending });
@@ -4363,6 +4365,41 @@ app.whenReady().then(async () => {
         save();
         emitSessionList("added", metadata);
         return { threadId: thread.id };
+      }
+      case "session-import": {
+        // Settings › Code › Import sessions: another tool's local history (Claude Code, Codex, ZCode, DeepSeek Harness)
+        // brought into the running core as sessions the user can continue. Main owns discovery and parsing
+        // (session-import.cjs): the renderer names sources, never paths, and never sees the transcripts.
+        //   detect → what each source holds (titles, folders, times; no message text)
+        //   import → the same detection, then the not-yet-imported sessions go to the core in one call; the ledger keeps
+        //            (source:sourceSessionId) → target session, so a repeat import answers `skipped` and the same id.
+        // The source stores are only read, and only user/assistant text reaches the core: no tool call is replayed.
+        if (!sessionImport) throw new Error("Session import is not available yet.");
+        const op = p.op === "import" ? "import" : p.op === "detect" ? "detect" : null;
+        if (!op) throw new Error("Unsupported operation.");
+        const requested = sessionImport.sources.filter((source) => Array.isArray(p.sources) ? p.sources.includes(source) : true);
+        if (!requested.length) throw new Error("Choose a tool to import from.");
+        if (op === "detect") return { op, sources: await sessionImport.detect(requested) };
+        await client.start();
+        const result = await sessionImport.import(requested, (sessions) => client.request("codeDesktop/history/import", { sessions }, 10 * 60 * 1000));
+        // An imported session joins the sidebar the same way 'Resume a session' adds one (resume-add): its metadata is
+        // read back from the core, so the row shows at once without a reload.
+        const imported = Object.values(result).flatMap((stats) => stats.sessions.filter((entry) => entry.status === "imported" && entry.targetThreadId));
+        for (const entry of imported.slice(0, 200)) {
+          const read = await client.request("thread/read", { threadId: entry.targetThreadId, includeTurns: false }).catch(() => null);
+          const thread = read?.thread;
+          if (!thread || thread.id !== entry.targetThreadId) continue;
+          const { turns, ...metadata } = thread;
+          void turns;
+          config.threadIds = [...new Set([thread.id, ...config.threadIds])];
+          config.archivedThreadIds = config.archivedThreadIds.filter((id) => id !== thread.id);
+          config.threadMetadata[thread.id] = metadata;
+          config.stats[thread.id] ??= { messages: 0, tokens: 0, observedTokens: 0, observedUsage: { input: 0, output: 0, cached: 0, cacheWrite: 0 }, ids: [] };
+          if (typeof metadata.cwd === "string") observedThreadCwds.add(metadata.cwd);
+          emitSessionList("added", metadata);
+        }
+        if (imported.length) save();
+        return { op, sources: result };
       }
       // Official getInstalledEditors / openInEditor (editors.cjs): the code editors on this Mac, and one opening a file
       // or folder. The path must be absolute and exist; the editor must be one of the known, installed ones.
