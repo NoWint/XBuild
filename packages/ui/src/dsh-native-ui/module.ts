@@ -7,5 +7,5 @@ export const dshNativeUiModule = {
   id: "dsh-native-ui",
   requires: ["dsh-compat-protocol", "ui"],
   provides: ["dsh-native-ui"],
-  publicEntrypoints: ["index.ts", "contract.ts", "DshPluginsSection.tsx"],
+  publicEntrypoints: ["index.ts", "contract.ts", "DshPluginsSection.tsx", "DshNativeSurface.tsx"],
 } as const;

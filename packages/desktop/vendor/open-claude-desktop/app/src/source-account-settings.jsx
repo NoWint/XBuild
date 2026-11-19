@@ -73,6 +73,18 @@ export function useAccountSettings({snapshot,auth,connected,busy,engine,onLogin,
     // Bridge core (e.g. ZCode, OpenCode, the ACP agents): who is signed in, its plan, browser sign-ins, device codes and API keys.
     const who=account?.email||(account?.type==='apiKey'?t('Signed in with an API key'):account?t('Signed in'):snapshot==null?t('Account unavailable'):t('Not signed in'));
     const rows=[accountRow(who,`${name} account Sign out Refresh`)];
+    if(snapshot?.xiatian?.user){
+      const user=snapshot.xiatian.user;
+      const quota=Number(user.quota??0),used=Number(user.used_quota??0),requests=Number(user.request_count??0);
+      const format=value=>new Intl.NumberFormat().format(Number.isFinite(value)?value:0);
+      rows.push({id:'xiatian-profile',label:t('Xiatian AI profile'),description:t('{name} · {count} requests · {used} quota used · {remaining} remaining',{name:user.display_name||user.username||user.email||'Xiatian AI',count:format(requests),used:format(used),remaining:format(Math.max(0,quota-used))})});
+      rows.push({id:'xiatian-keys',label:t('API keys and usage'),description:t('Manage your keys, quota and request history on Xiatian AI.'),control:<Button size="sm" onClick={()=>onOpenExternal?.(snapshot.xiatian.links?.apiKeys||'https://nowint.qzz.io/console/token')}>{t('Manage keys')}</Button>});
+      if(snapshot.xiatian.notice)rows.push({id:'xiatian-notice',label:t('Xiatian AI announcement'),description:snapshot.xiatian.notice});
+      // The relay key that makes Xiatian AI models callable is issued by the server; without it the rows above would
+      // name an account whose models silently do not work, so say why instead.
+      if(snapshot.xiatian.relay?.ok===false&&snapshot.xiatian.relay.reason!=='signed-out')
+        rows.push({id:'xiatian-relay',label:t('Xiatian AI models'),description:t('The desktop relay key could not be issued, so Xiatian AI models are unavailable. Sign out and sign in again, or add your own provider key.')});
+    }
     // The core's own next step while nothing is signed in (account/read codeDesktop.hint, e.g. how Qwen Code takes a provider).
     if(!account&&typeof snapshot?.codeDesktop?.hint==='string'&&snapshot.codeDesktop.hint.trim())rows.push({id:'hint',label:t('How to sign in'),description:t(snapshot.codeDesktop.hint.trim())});
     // planLabel: a Codex PlanType id reads as its product name, 'unknown' (an ACP sign-in without a plan) is no row; a

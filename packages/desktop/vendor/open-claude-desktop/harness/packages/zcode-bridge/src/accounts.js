@@ -63,6 +63,13 @@ const apiKeyKey = (providerId, identity) => `account-provider:coding-plan:${prov
 
 // ------------------------------------------------------------------ provider configs
 
+const MANAGED_PROVIDER_IDS = new Set(['code-desktop-xiatian-guest', 'code-desktop-xiatian-account'])
+const PROVIDER_ID = /^code-desktop-[a-z][a-z0-9_-]{1,47}$/
+
+export function isManagedProviderId(providerId) {
+  return MANAGED_PROVIDER_IDS.has(String(providerId ?? ''))
+}
+
 export function readJson(file) {
   try { return JSON.parse(fs.readFileSync(file, 'utf8')) } catch { return null }
 }
@@ -192,7 +199,7 @@ export function apiKeyProviders(personal) {
  * Add or replace an API-key provider from a shipped template (default: Z.ai Coding Plan).
  * @returns {{ providerId: string }}
  */
-export function saveApiKeyProvider({ personalFile, builtin, apiKey, templateId = 'zai-api', baseUrl = null, models = null }) {
+export function saveApiKeyProvider({ personalFile, builtin, apiKey, templateId = 'zai-api', baseUrl = null, models = null, providerId: requestedProviderId = null, previousProviderId = null, displayName = null, apiType = null, allowManaged = false }) {
   const template = (builtin?.config?.providerConfigRules?.templateRules ?? []).find((rule) => rule.templateId === templateId)
   if (!template) throw new Error(`Unknown ZCode provider template: ${templateId}`)
   const document = readJson(personalFile) ?? { schemaVersion: 1, config: { providerConfigRules: { providerRules: [] }, modelConfigRules: { providerModelRules: [], manualProviderModelRules: [] } } }
@@ -200,21 +207,34 @@ export function saveApiKeyProvider({ personalFile, builtin, apiKey, templateId =
   document.config.providerConfigRules ??= { providerRules: [] }
   document.config.modelConfigRules ??= { providerModelRules: [], manualProviderModelRules: [] }
   const rules = document.config.providerConfigRules.providerRules
-  const providerId = `code-desktop-${templateId}`
+  const providerId = requestedProviderId || `code-desktop-${templateId}`
+  if (!PROVIDER_ID.test(providerId)) throw new Error('Invalid bridge provider id.')
+  if (isManagedProviderId(providerId) && !allowManaged) throw new Error('Managed Xiatian AI providers cannot be saved as custom providers.')
+  if (previousProviderId && previousProviderId !== providerId) {
+    if (!PROVIDER_ID.test(previousProviderId) || isManagedProviderId(previousProviderId)) throw new Error('Invalid previous bridge provider id.')
+  }
   const accessType = template.config?.access?.type ?? 'api-key'
   const rule = {
-    providerId, templateId, providerName: template.templateNameMap?.['en-US'] ?? templateId, enabled: true,
+    providerId, templateId, providerName: displayName || (template.templateNameMap?.['en-US'] ?? templateId), enabled: true,
     config: {
       group: 'standard-personal',
       access: { type: accessType, apiKey },
-      api: { type: template.config?.api?.type ?? 'anthropic-messages', baseUrl: baseUrl ?? template.config?.api?.baseUrl },
+      api: { type: apiType ?? template.config?.api?.type ?? 'anthropic-messages', baseUrl: baseUrl ?? template.config?.api?.baseUrl },
       ...(Array.isArray(models) && models.length ? { personalModelIds: models } : {}),
     },
   }
+  const previousIndex = previousProviderId && previousProviderId !== providerId ? rules.findIndex((candidate) => candidate.providerId === previousProviderId) : -1
   const index = rules.findIndex((candidate) => candidate.providerId === providerId)
-  if (index >= 0) rules[index] = rule
+  if (previousIndex >= 0 && index >= 0 && previousIndex !== index) throw new Error('A provider with that id already exists.')
+  const wasDefault = document.config.defaultModelSelection?.providerId === previousProviderId
+  if (previousIndex >= 0) rules.splice(previousIndex, 1)
+  const nextIndex = rules.findIndex((candidate) => candidate.providerId === providerId)
+  if (nextIndex >= 0) rules[nextIndex] = rule
   else rules.push(rule)
-  if (!document.config.defaultModelSelection) {
+  if (wasDefault) {
+    const modelId = (Array.isArray(models) && models[0]) || template.config?.builtinModelIds?.[0]
+    if (modelId) document.config.defaultModelSelection = { providerId, modelId }
+  } else if (!document.config.defaultModelSelection) {
     const modelId = (Array.isArray(models) && models[0]) || template.config?.builtinModelIds?.[0]
     if (modelId) document.config.defaultModelSelection = { providerId, modelId }
   }
@@ -222,12 +242,52 @@ export function saveApiKeyProvider({ personalFile, builtin, apiKey, templateId =
   return { providerId }
 }
 
+/**
+ * Point the default model at a provider, but only when there is no default yet
+ * or the current one names a provider that no longer exists: an explicit user
+ * choice of another provider is never overridden.
+ */
+export function ensureDefaultModel(personalFile, { providerId, modelId }) {
+  const document = readJson(personalFile)
+  if (!document) return false
+  document.config ??= {}
+  const rules = document.config.providerConfigRules?.providerRules
+  if (!Array.isArray(rules)) return false
+  const current = document.config.defaultModelSelection
+  const currentProvider = String(current?.providerId ?? '')
+  if (currentProvider && rules.some((rule) => rule.providerId === currentProvider)) return false
+  if (!providerId || !modelId) return false
+  if (!rules.some((rule) => rule.providerId === providerId)) return false
+  document.config.defaultModelSelection = { providerId, modelId }
+  writePrivate(personalFile, document)
+  return true
+}
+
+/** Remove only a provider created through this bridge, never an unrelated personal rule. */
+export function removeApiKeyProvider(personalFile, providerId) {
+  const document = readJson(personalFile)
+  const rules = document?.config?.providerConfigRules?.providerRules
+  if (!Array.isArray(rules)) return false
+  if (!String(providerId ?? '').startsWith('code-desktop-')) return false
+  const kept = rules.filter((rule) => rule.providerId !== providerId)
+  if (kept.length === rules.length) return false
+  document.config.providerConfigRules.providerRules = kept
+  if (document.config.defaultModelSelection?.providerId === providerId) {
+    const next = kept.find((rule) => String(rule.providerId ?? '').startsWith('code-desktop-'))
+    const modelId = next?.config?.personalModelIds?.[0] ?? next?.config?.builtinModelIds?.[0]
+    if (next && modelId) document.config.defaultModelSelection = { providerId: next.providerId, modelId }
+    else delete document.config.defaultModelSelection
+  }
+  writePrivate(personalFile, document)
+  return true
+}
+
 /** Remove the API-key providers OpenClaude Desktop added (other providers the user configured in ZCode stay). */
 export function removeApiKeyProviders(personalFile) {
   const document = readJson(personalFile)
   const rules = document?.config?.providerConfigRules?.providerRules
   if (!Array.isArray(rules)) return 0
-  const kept = rules.filter((rule) => !String(rule.providerId).startsWith('code-desktop-'))
+  const kept = rules.filter((rule) => !String(rule.providerId).startsWith('code-desktop-') || !['code-desktop-zai-api', 'code-desktop-zai-standard-api', 'code-desktop-xiatian-guest'].includes(rule.providerId))
   const removed = rules.length - kept.length
   if (!removed) return 0
   document.config.providerConfigRules.providerRules = kept

@@ -1,0 +1,19 @@
+{
+  "runtime": {
+    "dsh": "0.2.2-rc.3",
+    "cordis": "4.1.0"
+  },
+  "cases": [
+    { "id": "tools", "package": "@deepseek-ai/dsh-tools", "category": "tool", "entry": "./lib/index.js" },
+    { "id": "subagent", "package": "@deepseek-ai/dsh-subagent", "category": "subagent", "entry": "./lib/index.js" },
+    { "id": "llm", "package": "@deepseek-ai/dsh-llm", "category": "model-adapter", "entry": "./lib/index.js" },
+    { "id": "agent-loop", "package": "@deepseek-ai/dsh-agent-loop", "category": "agent-lifecycle", "entry": "./lib/index.js" },
+    { "id": "workflow", "package": "@deepseek-ai/dsh-workflow", "category": "workflow", "entry": "./lib/index.js" },
+    { "id": "session", "package": "@deepseek-ai/dsh-session", "category": "session", "entry": "./lib/index.js" },
+    { "id": "sandbox", "package": "@deepseek-ai/dsh-sandbox", "category": "permission-sandbox", "entry": "./lib/index.js" },
+    { "id": "approval", "package": "@deepseek-ai/dsh-user-approval", "category": "permission-approval", "entry": "./lib/index.js" },
+    { "id": "mcp", "package": "@deepseek-ai/dsh-mcp-client", "category": "mcp", "entry": "./lib/index.js" },
+    { "id": "ui-renderer", "package": "@deepseek-ai/dsh-client-ui-renderer", "category": "ui-renderer", "clientEntry": "./client" },
+    { "id": "ui-settings", "package": "@deepseek-ai/dsh-client-ui-settings", "category": "ui-settings", "clientEntry": "./client" }
+  ]
+}

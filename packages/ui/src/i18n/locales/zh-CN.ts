@@ -4857,6 +4857,8 @@ const zhCN: Record<string, string> = {
   "settings.plugins.dsh.local.import": "导入",
   "settings.plugins.dsh.local.imported": "已导入",
   "settings.plugins.dsh.sources.title": "插件来源",
+  "settings.plugins.dsh.native.open": "打开原生界面",
+  "settings.plugins.dsh.native.close": "关闭原生界面",
   "settings.plugins.dsh.sources.placeholder": "https://example.com/dsh-plugins.json",
   "settings.plugins.dsh.sources.add": "添加来源",
   "settings.plugins.dsh.sources.empty": "还没有添加 DSH 插件来源。",

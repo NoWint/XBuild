@@ -5203,6 +5203,8 @@ const enUS: Record<string, string> = {
   "settings.plugins.dsh.local.import": "Import",
   "settings.plugins.dsh.local.imported": "Imported",
   "settings.plugins.dsh.sources.title": "Plugin sources",
+  "settings.plugins.dsh.native.open": "Open native interface",
+  "settings.plugins.dsh.native.close": "Close native interface",
   "settings.plugins.dsh.sources.placeholder": "https://example.com/dsh-plugins.json",
   "settings.plugins.dsh.sources.add": "Add source",
   "settings.plugins.dsh.sources.empty": "No DSH plugin sources yet.",

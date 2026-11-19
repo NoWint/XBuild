@@ -376,9 +376,25 @@ function createModelSettings({ getConfig, getClient, app, getHarnessProfile = ()
     return params;
   }
 
+  // A bridge core (ZCode) owns its provider list and answers the provider ops itself: the DeepSeek providers file
+  // belongs to the DeepSeek core only, so a bridge must not be answered from it.
+  async function bridgeProviderOp(p) {
+    const client = getClient?.();
+    if (!client?.serverInfo || typeof client.request !== "function") return null;
+    if (coreForEngine(client.serverInfo.engine)?.kind !== "bridge") return null;
+    if (!coreSupports(client.serverInfo, "customProviders")) return null;
+    const result = await client.request("model-settings", p, 20000);
+    if (!result || typeof result !== "object") throw new Error("The core didn’t answer the provider settings request.");
+    return result;
+  }
+
   async function run(p = {}) {
     await loading;
     if (!prefs()) throw new Error("Model settings aren’t available.");
+    if (p.op === "providers-read" || p.op === "provider-save" || p.op === "provider-remove") {
+      const bridged = await bridgeProviderOp(p).catch(error => { throw new Error(error?.message || "The core’s provider settings couldn’t be reached."); });
+      if (bridged) return bridged;
+    }
     if (p.op === "providers-read") return providersView();
     if (p.op === "connection-read") return connectionView();
     if (p.op === "connection-save") {

@@ -51,6 +51,8 @@ import { contextUsageCounts } from './context-usage.js'
 import { InteractionRegistry } from './interactions.js'
 import { RateLimitWatch } from './rate-limit-watch.js'
 import * as accounts from './accounts.js'
+import { createXiatianAccount } from './xiatian-account.js'
+import { xiatianOrigin } from './xiatian-account.js'
 import * as catalog from './catalog.js'
 import { accountUsage, codeStats, databaseActivity, deleteSessionRows, sessionRevert, storedMessages } from './usage.js'
 
@@ -236,6 +238,10 @@ export async function main() {
   const children = new Map()
   const sideQuestions = new Map()
   const logins = new Map()
+  const xiatian = createXiatianAccount({ env, notify, log })
+  let guestProvider = null
+  let guestRefreshing = null
+  let accountSessionKey = null
   let agent = null
   let starting = null
   let version = ''
@@ -1778,7 +1784,33 @@ export async function main() {
     return hit ? { providerId: hit.ref.providerId, modelId: hit.ref.modelId } : null
   }
 
+  async function ensureXiatianGuest() {
+    const { personal, signedIn } = readAccounts()
+    if (Object.keys(signedIn).length || accounts.apiKeyProviders(personal).some((provider) => provider.keyed && provider.enabled && provider.providerId !== 'code-desktop-xiatian-guest')) return null
+    if (guestProvider && guestProvider.expiresAt > Date.now() + 30000) return guestProvider
+    if (guestRefreshing) return guestRefreshing
+    guestRefreshing = (async () => {
+      const response = await fetch(`${xiatianOrigin(env)}/api/xbuild/guest/session`, { method: 'POST', headers: { accept: 'application/json' }, signal: AbortSignal.timeout(15000) })
+      const payload = await response.json().catch(() => null)
+      if (!response.ok || payload?.success === false) throw new Error(payload?.message || 'Xiatian AI free guest access is unavailable. Sign in or add a provider key.')
+      const data = payload.data
+      const { builtin } = readAccounts()
+      accounts.saveApiKeyProvider({ personalFile: paths.personalProviders, builtin, apiKey: data.api_key, templateId: 'zai-api', baseUrl: xiatianOrigin(env), models: data.models, providerId: 'code-desktop-xiatian-guest', allowManaged: true })
+      accounts.ensureDefaultModel(paths.personalProviders, { providerId: 'code-desktop-xiatian-guest', modelId: data.models?.[0] })
+      mirror?.syncPersonal()
+      guestProvider = { expiresAt: data.expires_at * 1000, models: data.models }
+      modelCache = null
+      return guestProvider
+    })().finally(() => { guestRefreshing = null })
+    return guestRefreshing
+  }
+
   async function modelList() {
+    // Refresh the user-bound relay key before the catalog is consumed. The agent
+    // keeps the provider mirror alive for the process, so rotation must happen
+    // before a model selection can start a request with an expired key.
+    if (xiatian.accessToken) await syncXiatianProvider(accountSessionKey?.models ?? []).catch((error) => { log(`zcode-bridge: Xiatian provider: ${error.message}`) })
+    await ensureXiatianGuest().catch((error) => { log(`zcode-bridge: guest: ${error.message}`) })
     const settings = await settingsCatalog()
     const available = settings?.model?.available ?? []
     const current = settings?.model?.current
@@ -1804,7 +1836,51 @@ export async function main() {
 
   // ---------------------------------------------------------------- accounts
 
+  async function syncXiatianProvider(models = []) {
+    if (!xiatian.accessToken) return { ok: false, reason: 'signed-out' }
+    // The dashboard JWT is never a relay credential: the agent calls the relay
+    // with a short-lived key owned by the signed-in user instead, so per-key
+    // quota, model access and audit semantics stay the server's own.
+    if (!accountSessionKey || accountSessionKey.expiresAt < Date.now() + 60 * 60 * 1000) {
+      const key = await xiatian.sessionKey().catch((error) => { log(`zcode-bridge: Xiatian session key: ${error.message}`); return null })
+      if (!key?.apiKey) return { ok: false, reason: 'relay-key-unavailable' }
+      accountSessionKey = key
+    }
+    const { builtin } = readAccounts()
+    const providerModels = [...new Set((Array.isArray(models) ? models : []).map((entry) => typeof entry === 'string' ? entry : entry?.id ?? entry?.model_name).filter((id) => typeof id === 'string' && id.trim()).map((id) => id.trim()))].slice(0, 100)
+    const fallbackModels = accountSessionKey.models.slice(0, 100)
+    if (!providerModels.length && !fallbackModels.length) return { ok: false, reason: 'no-models' }
+    // A guest grant may have been materialized before the user completed
+    // sign-in; once the account key is ready, remove that fallback first.
+    accounts.removeApiKeyProvider(paths.personalProviders, 'code-desktop-xiatian-guest')
+    accounts.saveApiKeyProvider({ personalFile: paths.personalProviders, builtin, apiKey: accountSessionKey.apiKey, templateId: 'zai-standard-api', baseUrl: xiatianOrigin(env) + '/v1', apiType: 'openai-chat-completions', models: providerModels.length ? providerModels : fallbackModels, providerId: 'code-desktop-xiatian-account', displayName: 'Xiatian AI account', allowManaged: true })
+    // The Xiatian AI account is the product default; a third-party provider the
+    // user picked explicitly stays the default.
+    accounts.ensureDefaultModel(paths.personalProviders, { providerId: 'code-desktop-xiatian-account', modelId: (providerModels.length ? providerModels : fallbackModels)[0] })
+    mirror?.syncPersonal()
+    modelCache = null
+    return { ok: true, expiresAt: accountSessionKey.expiresAt, group: accountSessionKey.group, models: providerModels.length ? providerModels : fallbackModels }
+  }
+
+  async function removeXiatianProvider() {
+    // The sign-out flow revoked the server-side session key first; this only
+    // clears the local provider entry.
+    accountSessionKey = null
+    accounts.removeApiKeyProvider(paths.personalProviders, 'code-desktop-xiatian-account')
+    accounts.removeApiKeyProvider(paths.personalProviders, 'code-desktop-xiatian-guest')
+    mirror?.syncPersonal()
+    modelCache = null
+  }
+
   async function accountRead() {
+    const xiatianAccount = await xiatian.read().catch((error) => { log(`zcode-bridge: Xiatian account: ${error.message}`); return null })
+    if (xiatianAccount?.xiatian) {
+      const relay = await syncXiatianProvider(xiatianAccount.xiatian.models).catch((error) => { log(`zcode-bridge: Xiatian provider: ${error.message}`); return { ok: false, reason: 'provider-error' } })
+      return { ...xiatianAccount, xiatian: { ...xiatianAccount.xiatian, relay } }
+    }
+    // The Xiatian session is process-local. Remove a stale managed provider on
+    // restart instead of presenting an expired relay key as an account.
+    accounts.removeApiKeyProvider(paths.personalProviders, 'code-desktop-xiatian-account')
     const { signedIn, credentials, personal } = readAccounts()
     const user = accounts.loginUser(credentials)
     const keyed = accounts.apiKeyProviders(personal).filter((provider) => provider.keyed && provider.enabled)
@@ -1890,15 +1966,64 @@ export async function main() {
     }
   }
 
+  const managedXiatianProviderIds = new Set(['code-desktop-xiatian-guest', 'code-desktop-xiatian-account'])
+
+  async function modelSettings(params = {}) {
+    const { personal, builtin } = readAccounts()
+    const view = () => {
+      const { personal: currentPersonal } = readAccounts()
+      const rules = currentPersonal?.config?.providerConfigRules?.providerRules ?? []
+      const providers = accounts.apiKeyProviders(currentPersonal).filter((provider) => {
+        const providerId = String(provider.providerId ?? '')
+        return providerId.startsWith('code-desktop-') && !managedXiatianProviderIds.has(providerId)
+      })
+      return { available: true, protocols: ['openai-completions', 'anthropic-messages'], providers: providers.map((provider) => {
+        const providerId = String(provider.providerId ?? '')
+        return { route: providerId.replace(/^code-desktop-/, ''), displayName: provider.name, api: provider.apiType, baseURL: provider.baseUrl, hasKey: provider.keyed, keyEnv: null, models: rules.find((rule) => rule.providerId === providerId)?.config?.personalModelIds ?? [] }
+      }) }
+    }
+    if (params.op === 'providers-read') return view()
+    const provider = params.provider && typeof params.provider === 'object' ? params.provider : {}
+    const route = String(provider.route ?? provider.providerId ?? params.route ?? '').replace(/^code-desktop-/, '').trim().toLowerCase()
+    if (!/^[a-z][a-z0-9_-]{1,47}$/.test(route)) throw new RpcError(INVALID_PARAMS, 'Use 2–48 lowercase letters, digits, dashes or underscores for the provider id.')
+    const providerId = `code-desktop-${route}`
+    if (managedXiatianProviderIds.has(providerId)) throw new RpcError(INVALID_PARAMS, 'Xiatian AI providers are managed by account sign-in and cannot be edited as custom providers.')
+    const previousRoute = String(params.previousRoute ?? '').replace(/^code-desktop-/, '').trim().toLowerCase()
+    if (previousRoute && !/^[a-z][a-z0-9_-]{1,47}$/.test(previousRoute)) throw new RpcError(INVALID_PARAMS, 'Invalid previous bridge provider id.')
+    const previousProviderId = previousRoute && previousRoute !== route ? `code-desktop-${previousRoute}` : null
+    if (params.op === 'provider-remove') {
+      accounts.removeApiKeyProvider(paths.personalProviders, providerId)
+      mirror?.syncPersonal()
+      modelCache = null
+      return view()
+    }
+    if (params.op !== 'provider-save') throw new RpcError(INVALID_PARAMS, `Unsupported model settings operation: ${params.op}`)
+    const baseUrl = String(provider.baseURL ?? '').trim().replace(/\/+$/, '')
+    let parsed
+    try { parsed = new URL(baseUrl) } catch { throw new RpcError(INVALID_PARAMS, 'Enter an HTTPS endpoint URL (HTTP is allowed on loopback).') }
+    if (parsed.protocol !== 'https:' && !(parsed.protocol === 'http:' && ['127.0.0.1', 'localhost', '[::1]'].includes(parsed.hostname))) throw new RpcError(INVALID_PARAMS, 'Use HTTPS, or HTTP on loopback for a local provider.')
+    if (parsed.username || parsed.password || parsed.search || parsed.hash) throw new RpcError(INVALID_PARAMS, 'The provider URL cannot contain credentials, query parameters or a fragment.')
+    const models = Array.isArray(provider.models) ? [...new Set(provider.models.filter((id) => typeof id === 'string' && id.trim()).map((id) => id.trim()))].slice(0, 100) : []
+    if (!models.length) throw new RpcError(INVALID_PARAMS, 'Add at least one model id.')
+    const oldProviderId = previousProviderId ?? providerId
+    const old = accounts.apiKeyProviders(personal).find((entry) => entry.providerId === oldProviderId)
+    const apiKey = typeof params.apiKey === 'string' && params.apiKey.trim() ? params.apiKey.trim() : old?.apiKey
+    if (!apiKey) throw new RpcError(INVALID_PARAMS, 'Enter an API key for this provider.')
+    accounts.saveApiKeyProvider({ personalFile: paths.personalProviders, builtin, apiKey, providerId, previousProviderId, displayName: String(provider.displayName || route).slice(0, 80), templateId: provider.api === 'anthropic-messages' ? 'anthropic' : 'zai-standard-api', baseUrl, apiType: provider.api === 'anthropic-messages' ? 'anthropic-messages' : 'openai-chat-completions', models })
+    mirror?.syncPersonal()
+    modelCache = null
+    return view()
+  }
+
   async function loginStart(params) {
     if (params.type === 'apiKey') {
+      const options = isRecord(params.codeDesktop) ? params.codeDesktop : {}
       const apiKey = String(params.apiKey ?? '').trim()
       if (!apiKey) throw new RpcError(INVALID_PARAMS, 'An API key is required.')
       const { builtin } = readAccounts()
       const builtinSource = builtin ?? (located?.builtinConfig ? accounts.readJson(located.builtinConfig) : null)
-      const options = isRecord(params.codeDesktop) ? params.codeDesktop : {}
       const previous = accounts.readPersonalText(paths.personalProviders)
-      const { providerId } = accounts.saveApiKeyProvider({ personalFile: paths.personalProviders, builtin: builtinSource, apiKey, templateId: options.template ?? 'zai-api', baseUrl: options.baseUrl ?? null, models: options.models ?? null })
+      const { providerId } = accounts.saveApiKeyProvider({ personalFile: paths.personalProviders, builtin: builtinSource, apiKey, templateId: options.template ?? 'zai-api', baseUrl: options.baseUrl ?? null, models: options.models ?? null, providerId: options.providerId ?? null })
       mirror?.syncPersonal()
       await waitForProvider(providerId)
       const rejected = await testApiKey(providerId)
@@ -1917,6 +2042,7 @@ export async function main() {
       notify('account/updated', { authMode: 'apikey' })
       return { type: 'apiKey' }
     }
+    if (params.type === 'chatgpt' && params.codeDesktop?.provider === 'xiatian') return xiatian.start()
     if (params.type === 'chatgpt') {
       await ensureAgent()
       const family = params.codeDesktop?.provider === 'bigmodel' ? 'bigmodel' : 'zai'
@@ -1989,6 +2115,9 @@ export async function main() {
   }
 
   async function logout() {
+    await xiatian.logout()
+    guestProvider = null
+    await removeXiatianProvider()
     accounts.removeApiKeyProviders(paths.personalProviders)
     mirror?.syncPersonal()
     if (located?.command) await new Promise((resolve) => execFilePlatform(located.command, [...located.prefix, 'logout'], { env: { ...env }, timeout: 15000 }, () => resolve()))
@@ -2227,11 +2356,14 @@ export async function main() {
         }
       }
       case 'model/list': return modelList()
+      case 'model-settings': return modelSettings(params)
       case 'account/read': return accountRead()
       case 'account/rateLimits/read': return quotaWatch.observe(await rateLimits({ details: params?.excludeResetCreditDetails !== true }))
       case 'account/rateLimitResetCredit/consume': return consumeResetCredit(params)
       case 'account/login/start': return loginStart(params)
       case 'account/login/cancel': {
+        const result = await xiatian.cancel(params.loginId)
+        if (result.status === 'canceled') return result
         const login = logins.get(params.loginId)
         if (!login) return { status: 'notFound' }
         login.child.kill()

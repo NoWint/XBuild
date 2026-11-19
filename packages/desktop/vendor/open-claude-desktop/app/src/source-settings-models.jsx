@@ -35,6 +35,7 @@ import {
 import { CODEX_LOCAL_SERVERS, codexBaseURLError, codexLocalEndpoint, parseCodexModels } from '../electron/prefs/codex-provider.mjs';
 import { fastTierForModel, speedTiersForModel } from '../electron/preferences.mjs';
 import { coreCapabilities, coreName } from '../electron/core-registry.mjs';
+import { validateZCodeProvider, zCodeProviderApiType } from './zcode-provider-settings.mjs';
 import { modelDisplayName, modelFamily } from '../electron/prefs/model-families.mjs';
 import { ModelNameField, ModelOptionsEntry, defaultModelName } from './source-settings-model-names.jsx';
 import { customModelName } from '../electron/prefs/model-names.mjs';
@@ -92,7 +93,7 @@ function providerModelSummary(provider) {
 
 // Add / edit one custom provider. The key is write-only: it is sent once to the
 // main process (encrypted there) and never read back.
-function ProviderDialog({ initial, protocols, harness = true, coreLabel = '', onSubmit, onCancel }) {
+function ProviderDialog({ initial, protocols, harness = true, coreLabel = '', zcode = false, onSubmit, onCancel }) {
   const editing = !!initial;
   const [form, setForm] = useState(() => ({ route: initial?.route ?? '', displayName: initial?.displayName ?? '', api: initial?.api ?? protocols[0],
     baseURL: initial?.baseURL ?? '', models: (initial?.models ?? []).join('\n'), imageModels: initial?.imageModels ?? null, contextWindows: { ...(initial?.contextWindows ?? {}) }, apiKey: '' }));
@@ -103,10 +104,10 @@ function ProviderDialog({ initial, protocols, harness = true, coreLabel = '', on
     event.preventDefault(); event.stopPropagation();
     if (saving) return;
     let provider;
-    try { provider = validateProvider(form); } catch (failure) { setError(failure.message); return; }
+    try { provider = zcode ? validateZCodeProvider(form) : validateProvider(form); } catch (failure) { setError(failure.message); return; }
     if (!editing && !form.apiKey.trim()) { setError(t('Enter the API key.')); return; }
     setSaving(true); setError('');
-    try { await onSubmit({ provider, previousRoute: initial?.route, apiKey: form.apiKey.trim() ? form.apiKey : clearKey ? null : undefined }); }
+    try { await onSubmit({ provider, previousRoute: initial?.route, apiKey: form.apiKey.trim() ? form.apiKey : clearKey ? null : undefined, ...(zcode ? { apiType: zCodeProviderApiType(provider.api) } : {}) }); }
     catch (failure) { setError(failure?.message || String(failure)); setSaving(false); }
   };
   return <SourceDialog open size="md" layer={SETTINGS_LAYER} title={editing ? t('Edit {name}', { name: initial.displayName || initial.route }) : t('Add provider')} className="msx-dialog"
@@ -517,14 +518,14 @@ export function SourceModelsSettings({ config = {}, boot, engine, desktopCall, o
   const deepseek = caps.providerSettings === true, codexProvider = caps.codexProvider === true;
   // Custom providers: the DeepSeek core, and a bridge that reads the same providers file (capabilities.customProviders:
   // the OpenCode / MiMo bridge). Only the provider list is shared; the API connection and prices stay DeepSeek's.
-  const customProviders = deepseek || caps.customProviders === true;
+  const customProviders = core?.kind === 'bridge' || deepseek || caps.customProviders === true;
   // The same capability checks decorate() makes: modelParams for cores that read them (coreTakesModelParams), prices
   // for providerSettings or a bridge that reports it reads them (capabilities.priceOverrides).
   const billed = deepseek || caps.priceOverrides === true, modelParams = coreTakesModelParams(caps);
   const [optimistic, setOptimistic] = useState(undefined), [rowErrors, setRowErrors] = useState({});
   const [official, setOfficial] = useState({ loading: deepseek, prices: null, pricingUrl: null, peakWindows: null, unsupported: !deepseek });
   const [adding, setAdding] = useState(null);
-  const [providers, setProviders] = useState({ available: false, protocols: [...PROVIDER_PROTOCOLS], providers: [], changed: false, error: '' });
+  const [providers, setProviders] = useState({ available: false, protocols: core?.engine === 'zcode' ? ['openai-completions', 'anthropic-messages'] : [...PROVIDER_PROTOCOLS], providers: [], changed: false, error: '' });
   const [providerDialog, setProviderDialog] = useState(null), [providerBusy, setProviderBusy] = useState('');
   const writes = useRef(0);
   const saved = normalize(config.modelSettings);
@@ -750,10 +751,10 @@ export function SourceModelsSettings({ config = {}, boot, engine, desktopCall, o
     </div>
   </SettingsGroup>;
 
-  const providerDialogNode = providerDialog && <ProviderDialog initial={providerDialog.initial} protocols={providers.protocols?.length ? providers.protocols : [...PROVIDER_PROTOCOLS]} harness={deepseek} coreLabel={coreLabel}
-    onCancel={() => setProviderDialog(null)}
-    onSubmit={async ({ provider, previousRoute, apiKey }) => {
-      await providerCall(provider.route, { op: 'provider-save', provider, previousRoute, apiKey });
+  const providerDialogNode = providerDialog && <ProviderDialog initial={providerDialog.initial} protocols={providers.protocols?.length ? providers.protocols : core?.engine === 'zcode' ? ['openai-completions', 'anthropic-messages'] : [...PROVIDER_PROTOCOLS]} harness={deepseek} coreLabel={coreLabel}
+    onCancel={() => setProviderDialog(null)} zcode={core?.kind === 'bridge' && core?.engine === 'zcode'}
+    onSubmit={async ({ provider, previousRoute, apiKey, apiType }) => {
+      await providerCall(provider.route, { op: 'provider-save', provider, previousRoute, apiKey, ...(apiType ? { apiType } : {}) });
       setProviderDialog(null);
     }}/>;
 

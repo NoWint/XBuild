@@ -24,6 +24,8 @@ import {
 } from "./sharp-package-assets.mjs";
 import { stageKoffiIntoBundledAgents } from "./koffi-package-assets.mjs";
 import { BUNDLED_NPM_VERSION, stageBundledNpm } from "./bundled-npm-assets.mjs";
+import { stageDshRuntimeDistribution } from "./dsh-runtime-assets.mjs";
+import { stageDshNodeExecutable } from "./dsh-node-assets.mjs";
 
 const scriptDir = dirname(fileURLToPath(import.meta.url));
 const desktopRoot = resolve(scriptDir, "..");
@@ -519,5 +521,12 @@ stageBundle();
 stageOfficialPlugins();
 stageBundledSkillPack();
 await stageBundledNpmRuntime();
+// DSH 的生产闭包只随真实打包链生成：dev 复用仓库内已安装运行库，避免每次启动重复复制数百 MB。
+const dshNodeExecutable = await stageDshNodeExecutable({
+  cacheDir: resolve(repoRoot, "node_modules", ".cache", "zcode-dsh-node"),
+  platformKey,
+  executablePath: process.env.ZCODE_DSH_NODE_EXECUTABLE,
+});
+stageDshRuntimeDistribution({ repoRoot, glmDir, platformKey, nodeExecutable: dshNodeExecutable });
 stageKoffiForCuaPlugin();
 stageSharpForNodeReplPlugin();

@@ -52,7 +52,14 @@ const interpolate = (text, values) => values
 // sets it with setAssistantName. Only the assistant-as-actor uses change: DeepSeek's own product and account terms
 // (DeepSeek Harness, DeepSeek API, the Platform, official prices, its models and balance, "by DeepSeek") stay.
 // A name, or a core descriptor: its `assistant`, else its own name (a core is never called DeepSeek by default).
-const assistantOf = () => "XBuild";
+// 修复原因：XBuild 改写曾把该规则整体替换为常量 "XBuild" 与 /DeepSeek/g，导致运行内核的助手名
+// 被忽略、且 DeepSeek 自身的产品名（Harness、API、Platform、官方价格、模型、余额等）被一并改名。
+// 恢复上游语义：助手名来自运行内核的描述符，产品名保持原样；XBuild 的身份由 zcode 描述符的
+// assistant: "XBuild" 提供。
+const assistantOf = (value) => {
+  const name = value && typeof value === 'object' ? (value.assistant || value.name) : value;
+  return typeof name === 'string' && name.trim() ? name.trim() : 'DeepSeek';
+};
 let assistant = (() => {
   try { return assistantOf(globalThis.desktop?.appearance?.assistant); } catch { return 'DeepSeek'; }
 })();
@@ -62,7 +69,7 @@ export function setAssistantName(name) {
   assistant = assistantOf(name);
   return assistant;
 }
-const ASSISTANT_WORD = /DeepSeek/g;
+const ASSISTANT_WORD = /(?<!by )DeepSeek(?!\s*(?:Harness|API|Platform|platform|official|balance|account|usage|provider|models|blue|平台|官方|余额|账户|账号|用量|模型|蓝|管理)|’s (?:official|models|balance|prices)|’s\.|')/g;
 const named = (text) => (assistant === 'DeepSeek' || typeof text !== 'string' || !text.includes('DeepSeek') ? text : text.replace(ASSISTANT_WORD, assistant));
 
 export function t(source, values) {

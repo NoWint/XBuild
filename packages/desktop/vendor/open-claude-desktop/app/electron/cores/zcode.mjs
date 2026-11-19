@@ -20,7 +20,7 @@ export default Object.freeze({
   // (settings-model sandboxFacts) and drops the Sandbox network access switch.
   sandbox: false,
   available: true,
-  models: "GLM models (GLM Coding Plan sign-in or a Z.ai / BigModel API key)",
+  models: "Xiatian AI models and your third-party providers",
   homepage: "https://github.com/zai-org/ZCode",
   license: "Apache-2.0",
   // The adapter script, relative to the repository root (packaged: process.resourcesPath).
@@ -39,6 +39,7 @@ export default Object.freeze({
     generatesTitles: true, compactInstructions: true, customization: true, permissionHints: true, systemPromptPreview: true, livePermissions: true, toolSelection: true,
     deleteHistory: true, unloadOnNavigate: true, codeStats: true, skillToggle: true, mcpConfigWrite: true, pluginManage: true,
     structuredOutput: false, sideQuestion: true,
+    customProviders: true,
     // Rewind can restore the files GLM changed (ZCode's `/rewind both`, zcode-bridge revertThread).
     rewindFiles: true,
     // hooks/list: ZCode's own hooks (config.json), listed read-only in Customize › Hooks.
@@ -64,13 +65,11 @@ export default Object.freeze({
   // browser sign-in (type "chatgpt" with codeDesktop.provider) and API key (type "apiKey" with codeDesktop.template).
   login: Object.freeze({
     browser: Object.freeze([
-      Object.freeze({ provider: "zai", label: "Sign in with GLM Coding Plan (Z.ai)" }),
-      Object.freeze({ provider: "bigmodel", label: "Sign in with GLM Coding Plan (BigModel, China)" }),
+      Object.freeze({ provider: "xiatian", label: "Sign in with Xiatian AI" }),
     ]),
     apiKey: Object.freeze([
-      Object.freeze({ template: "zai-api", label: "Z.ai Coding Plan key", keyUrl: "https://z.ai/manage-apikey/apikey-list" }),
-      Object.freeze({ template: "bigmodel-api", label: "BigModel Coding Plan key (China)", keyUrl: "https://open.bigmodel.cn/" }),
-      Object.freeze({ template: "zai-standard-api", label: "Z.ai API key", keyUrl: "https://z.ai/manage-apikey/apikey-list" }),
+      Object.freeze({ template: "zai-api", label: "Xiatian AI API key", keyUrl: "https://nowint.qzz.io/console/token" }),
+      Object.freeze({ template: "zai-standard-api", label: "Xiatian AI API key (OpenAI format)", keyUrl: "https://nowint.qzz.io/console/token" }),
     ]),
     // ZCode's credential store, shared with the ZCode app (zcode-bridge accounts.js): `zcode logout` clears it.
     store: "~/.zcode/v2",

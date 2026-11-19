@@ -17,6 +17,7 @@ Status: approved product direction on 2026-11-19; implementation and production 
 ```text
 XBuild device request → server stores public request digest → browser login/consent
   → scoped user token issued to the device → profile/models/usage projection
+  → server issues a short-lived, user-bound relay key → the agent calls the relay with it
 
 Anonymous installation → short guest grant → model/group/protocol checks
   → per-grant and per-IP budget → ordinary channel selection and usage accounting
@@ -26,6 +27,21 @@ No static administrator or user API key is shipped in a client. An account token
 has `profile:read`, `api_key:read`, `api_key:reveal` and `usage:read` scopes; a
 normal Xiatian API key can be supplied directly instead. Device authorization is
 short-lived, single-use, rate-limited and cannot grant additional permissions.
+
+## Relay credential
+
+The dashboard token is a control-plane credential: it reads the account and
+authorizes desktop actions. It is never sent to the relay as a model credential,
+because relay authentication is where per-key quota, model access, group
+selection and audit are decided, and a dashboard token would bypass them.
+
+Model requests therefore use a relay key that the server issues for the signed-in
+user (`POST /api/xbuild/session-key`): the user's own group, charged against the
+user's own balance, limited to a bounded lifetime and revoked when the desktop
+signs out (`DELETE /api/xbuild/session-key`). Rotation keeps the previous key
+alive for a grace window so in-flight streams still settle, and the desktop
+re-issues the key when it approaches expiry. If the key cannot be issued, the
+account panel says so instead of silently falling back to another credential.
 
 ## Guest entitlement
 
@@ -56,9 +72,10 @@ to an unrelated paid provider or claim a completed response.
 - Show profile name, quota, used quota and request count from `/api/user/self`;
   API-key metadata and usage from the existing token endpoints. Reveal keys
   only after the user's scoped authorization and never log their full values.
-- The default Xiatian provider uses the existing Anthropic-compatible template
-  and the available default free model when entitled. Users can edit model IDs,
-  add OpenAI-compatible providers and select models independently.
+- The default Xiatian provider uses the OpenAI-compatible template against the
+  user's own group and models, and becomes the default model only when no
+  explicit third-party choice exists. Users can edit model IDs, add
+  OpenAI-compatible providers and select models independently.
 - Public notices come from `/api/notice` and `/api/status`. Channel availability
   uses only public status/performance data, not admin channel details. A
   `What's new` surface is a presentation of those notices, not a second owner.
@@ -85,6 +102,8 @@ sessions as completed or overwrite an existing XBuild session.
    oversized request, replayed/expired grant and budget exhaustion rejected.
 4. Guest free-model request and normal account request reach real providers
    with correct group/model; third-party provider selection remains functional.
+   The account's model requests authenticate with a server-issued session key,
+   and signing out revokes it.
 5. Desktop Projects, Artifacts, Routines and Customize layouts at supported
    sizes, actual navigation/actions, and no stale brand strings.
 6. Import fixture per source, duplicate import, invalid input, unsupported item,

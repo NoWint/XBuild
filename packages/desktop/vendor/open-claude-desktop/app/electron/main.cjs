@@ -34,6 +34,7 @@ const { steerTurn } = require("./steer-turn.cjs");
 const { createSessionOperations, connectionMatches } = require("./session-operations.cjs");
 const { createBtwSessions, supportsBtwChildren } = require("./btw-sessions.cjs");
 const { createCustomizeOperations } = require("./customize-operations.cjs");
+const { createManager: createSessionImportManager, SOURCES: SESSION_IMPORT_SOURCES } = require("./session-import.cjs");
 const { installShutdownHandler } = require("./shutdown.cjs");
 const { createLiveWork, backgroundSessions, createQuitGuard } = require("./quit-guard.cjs");
 const { createTerminalService } = require("./terminal-service.cjs");

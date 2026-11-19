@@ -1236,6 +1236,7 @@ modules:
       - packages/ui/src/dsh-native-ui/index.ts
       - packages/ui/src/dsh-native-ui/contract.ts
       - packages/ui/src/dsh-native-ui/DshPluginsSection.tsx
+      - packages/ui/src/dsh-native-ui/DshNativeSurface.tsx
     layers:
       adapters: .
     owner: plugin

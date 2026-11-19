@@ -8,6 +8,7 @@ const { createModelSettings } = require('../electron/model-settings.cjs');
 const tier = (cacheHit, cacheMiss, output) => ({ cacheHit, cacheMiss, output });
 const deepseek = (request = async () => ({})) => ({ serverInfo: { engine: 'deepseek-harness' }, start: async () => {}, request });
 const codex = (request = async () => { throw new Error('should not be called'); }) => ({ serverInfo: { engine: 'codex' }, start: async () => {}, request });
+const zcode = (request = async () => { throw new Error('should not be called'); }) => ({ serverInfo: { engine: 'zcode', capabilities: { customProviders: true } }, start: async () => {}, request });
 
 test('decorate adds modelParams to thread methods on the DeepSeek core only', () => {
   const config = { modelSettings: { params: { 'deepseek-flash': { maxTokens: 4096, temperature: 0.4, effort: 'max' } } } };
@@ -166,9 +167,9 @@ test('Settings › Models server-renders per-model rows and the price table on D
   // also gets Max output tokens and Temperature (decorate() sends modelParams to every customization core); a
   // reported customization:false (ZCode without a provider proxy) drops them. Prices only where they are read: the
   // providerSettings bridge, never perTokenBilling alone (OpenCode and MiMo price usage themselves).
-  const zcode = page('zcode', gpt);
-  assert.ok(zcode.includes('ZCode manages its own connection and prices.'));
-  assert.match(zcode, /<h3[^>]*>ZCode models<\/h3>/);
+  const zcodePage = page('zcode', gpt);
+  assert.ok(zcodePage.includes('Endpoints you add under Custom providers join its models.'));
+  assert.match(zcodePage, /<h3[^>]*>XBuild models<\/h3>/);
   for (const core of ['zcode', 'opencode', 'gemini']) {
     const html = page(core, gpt);
     assert.match(html, /<input type="number"[^>]*aria-label="GPT-6 Astra max output tokens"/, `${core}: max output tokens`);
@@ -186,7 +187,7 @@ test('Settings › Models server-renders per-model rows and the price table on D
   const ignores = render(React.createElement(SourceModelsSettings, { config, boot: { connected: true, models: gpt, core: { engine: 'qwen', capabilities: { modelParams: false } } }, desktopCall: async () => ({ unsupported: true }), onSave: async () => {} }));
   assert.equal(ignores.includes('max output tokens') || ignores.includes('temperature'), false, 'modelParams:false drops the rows');
   assert.ok(ignores.includes('GPT-6 Astra'), 'the models are still listed');
-  assert.equal(zcode.includes('aria-label="Codex provider"') || zcode.includes('>Pricing<'), false);
+  assert.equal(zcodePage.includes('aria-label="Codex provider"') || zcodePage.includes('>Pricing<'), false);
   for (const core of ['opencode', 'mimo']) assert.equal(page(core, gpt).includes('>Pricing<'), false, `${core}: perTokenBilling alone shows no unread prices`);
 
   // Custom mode: Base URL (/responses added), write-only key (only "Saved"), model ids, web search off, Test,
@@ -212,6 +213,21 @@ test('Settings › Models server-renders per-model rows and the price table on D
   const zhCustom = render(React.createElement(CodexConnectionGroup, { core: 'Codex', desktopCall: async () => ({}),
     initialView: { available: true, mode: 'custom', baseURL: 'https://relay.example.com/v1', models: ['relay-a'], webSearch: false, hasKey: true } }));
   assert.ok(zhCustom.includes('测试连接') && zhCustom.includes('端点 API 密钥') && zhCustom.includes('只支持 OpenAI Responses API'));
+});
+
+test('bridge cores own custom provider settings instead of the DeepSeek provider store', async () => {
+  const calls = [];
+  const client = zcode(async (method, params, timeout) => {
+    calls.push([method, params, timeout]);
+    return { available: true, protocols: ['openai-completions', 'anthropic-messages'], providers: [] };
+  });
+  const settings = createModelSettings({ getConfig: () => ({}), getClient: () => client });
+  const result = await settings.run({ op: 'providers-read' });
+  assert.deepEqual(result.providers, []);
+  assert.deepEqual(calls, [['model-settings', { op: 'providers-read' }, 20000]]);
+
+  const deepseekFile = createModelSettings({ getConfig: () => ({}), getClient: () => deepseek() });
+  assert.notEqual(deepseekFile, settings, 'the bridge and DeepSeek settings instances are independent');
 });
 
 test('custom providers: definitions on disk, keys encrypted, one managed overlay row and env per route', async (t) => {

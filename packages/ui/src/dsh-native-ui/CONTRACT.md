@@ -20,3 +20,22 @@
 - 状态在 `store.ts`（Zustand）；不要在组件里复制一份生命周期事实。
 
 验证：CLI 侧 `@zcode/dsh-runtime` 回归覆盖原生行为；服务路由由 `scripts/acceptance/dsh-service-routing.mjs` 覆盖；本模块的 UI 渲染目前只做了类型/静态校验，真实桌面交互尚未纳入验收。
+
+## 原生客户端生命周期
+
+`native-client.ts` 是上游 `@deepseek-ai/dsh-client-modules` 与 `dsh-client-connection` 的适配器，不是另一套模块加载器。每次 mount 使用独立 `ClientModuleSystem`、Cordis `Context` 和 attachment lease；React/ReactDOM 等宿主单例经 `staticModules` 注入，插件工厂使用原始同步 `require`。
+
+```text
+attach(scope, desktop-continuous) → attachment(token, generation, clientGraph)
+       → fetch 原始 bundle 字节 → 原始 __ModuleLoader__.load({id,factory})
+       → installConnection(transport.rpc) → ctx.plugin(original entry graph)
+       → surface 的真实组件 → dispose fiber/subscriptions → detach(同一 lease)
+
+mobile/web: attachment(clientMode=web-remote-replayable)，相同域、不同 lease，不另建 Host
+```
+
+- 只允许 dispatch 返回的 attachment 驱动本代模块；旧 generation 的晚到字节、事件与 RPC 不得推进状态。
+- `loadBundle` 不是通用网络 fetch：必须经由 attachment 的 `/plugins/` fetch 授权与原始响应字节执行；资源路径沿用上游 URL 语义，不能用字符串前缀绕过。
+- RPC 复用 `plugins/dsh/dispatch` 的 `invoke/cancel`，事件仅来自该 lease 的 `onDynamicDshEvent`；不把插件自定义事件丢掉或改写为 ZCode 事件。
+- `dispose` 先停止新输入，再 await Cordis fiber 与 attachment 清理；拒绝晚到应答，释放脚本、样式、React root 与事件订阅。
+- 原生 DOM 权限来自 `grant.nativeUi`，不是 ErrorBoundary 或 CSS 隔离；缺服务、加载失败或未授权均显示真实诊断，不用空卡片冒充成功。

@@ -17,6 +17,7 @@ import {
 } from "@/dsh-native-ui/contract.js";
 import { buildDshScope, useDshNativeUi } from "@/dsh-native-ui/useDshNativeUi.js";
 import { isDomainPending } from "@/dsh-native-ui/store.js";
+import { DshNativeSurface } from "@/dsh-native-ui/DshNativeSurface.js";
 
 interface DshPluginsSectionProps {
   workspacePath?: string | null;
@@ -42,6 +43,7 @@ export function DshPluginsSection({
   const requestConfirmation = useConfirmDialog();
   const [catalogUrl, setCatalogUrl] = useState("");
   const [source, setSource] = useState("");
+  const [nativeDomain, setNativeDomain] = useState<string | null>(null);
 
   const run = useCallback(
     async (action: DshManagementAction) => {
@@ -341,11 +343,28 @@ export function DshPluginsSection({
                 busy={isDomainPending(pending, domain)}
                 onAct={run}
                 onConfirm={requestConfirmation}
+                onOpenNative={setNativeDomain}
               />
             ))}
           </ul>
         )}
       </section>
+
+      {nativeDomain && (
+        <section className="flex flex-col gap-2" data-testid="dsh-native-surface-section">
+          <div className="flex items-center justify-between gap-2">
+            <h3 className="text-sm font-medium">{nativeDomain}</h3>
+            <Button variant="ghost" size="sm" onClick={() => setNativeDomain(null)}>
+              {intl.formatMessage({ id: "settings.plugins.dsh.native.close" })}
+            </Button>
+          </div>
+          <DshNativeSurface
+            scope={scope}
+            domainId={nativeDomain}
+            entry="@deepseek-ai/dsh-client-ui-renderer"
+          />
+        </section>
+      )}
     </div>
   );
 }
@@ -355,11 +374,13 @@ function DshDomainRow({
   busy,
   onAct,
   onConfirm,
+  onOpenNative,
 }: {
   domain: DshInstalledDomain;
   busy: boolean;
   onAct: (action: DshManagementAction) => Promise<void>;
   onConfirm: (options: { title: string; description?: string }) => Promise<boolean>;
+  onOpenNative: (domainId: string) => void;
 }) {
   const { intl } = useZCodeIntl();
   const trust = trustChoiceFor(domain, domain.compatibility !== "incompatible");
@@ -429,6 +450,17 @@ function DshDomainRow({
       )}
 
       <div className="flex flex-wrap items-center gap-2">
+        {domain.state === "running" && domain.revision?.grant?.nativeUi && (
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={busy}
+            onClick={() => onOpenNative(domain.domainId)}
+            data-testid="dsh-domain-native-open"
+          >
+            {intl.formatMessage({ id: "settings.plugins.dsh.native.open" })}
+          </Button>
+        )}
         <label className="flex items-center gap-2 text-xs">
           <Switch
             checked={domain.enabled}
