@@ -1,9 +1,10 @@
+import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { mkdtemp, mkdir, readFile, readlink, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, relative, isAbsolute } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { stageDshRuntimeDistribution } from "../scripts/dsh-runtime-assets.mjs";
-import { dshNodeDownloadUrl } from "../scripts/dsh-node-assets.mjs";
+import { dshNodeDownloadUrl, stageDshNodeExecutable } from "../scripts/dsh-node-assets.mjs";
 
 const roots: string[] = [];
 afterEach(async () => {
@@ -80,5 +81,36 @@ describe("DSH staged runtime distribution", () => {
       nodeExecutable: join(root, "node"),
       log: () => {},
     })).toThrow(/required dependency required-missing/);
+  });
+});
+
+describe("DSH node executable staging", () => {
+  // CI 实测：解压后 mkdir 报 ENOTDIR，因为目录名把 .tar.xz 也算进去了，
+  // 与同在 cacheDir 下的归档文件撞名。归档与解压目录必须不同名。
+  it("extracts beside the archive, never onto its name", async () => {
+    const cacheDir = await makeRoot();
+    const seen: { archivePath: string; extractDir: string }[] = [];
+    const executable = await stageDshNodeExecutable({
+      cacheDir,
+      platformKey: "darwin-x64",
+      download: async (_url: string, target: string) => {
+        await writeFile(target, "archive");
+      },
+      extract: ({ archivePath, extractDir }: { archivePath: string; extractDir: string }) => {
+        seen.push({ archivePath, extractDir });
+        mkdirSync(join(extractDir, "bin"), { recursive: true });
+        writeFileSync(join(extractDir, "bin", "node"), "node");
+      },
+      verifyArchive: () => {},
+    });
+
+    expect(seen).toHaveLength(1);
+    const [call] = seen;
+    expect(call.extractDir).not.toBe(call.archivePath);
+    expect(call.extractDir.startsWith(call.archivePath)).toBe(false);
+    expect(call.archivePath.endsWith(".tar.xz")).toBe(true);
+    expect(existsSync(call.archivePath)).toBe(true);
+    expect(existsSync(call.extractDir)).toBe(true);
+    expect(executable).toBe(join(call.extractDir, "bin", "node"));
   });
 });

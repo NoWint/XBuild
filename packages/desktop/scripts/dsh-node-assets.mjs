@@ -1,7 +1,7 @@
 // DSH worker 复用应用的 Electron Node，但安装 DSH 包时必须运行真正的 pnpm CLI。
 // Electron 二进制不能复制成 bin/node：它依赖同包 Framework；这里提供独立、固定版本的 Node。
 import { existsSync, mkdirSync, rmSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { join } from "node:path";
 import { downloadPrebuiltArchive } from "../../../scripts/prebuilt-binary-download.mjs";
 import {
   extractPrebuiltArchive,
@@ -31,7 +31,22 @@ export function resolveDshNodeExecutable({ cacheDir, platformKey, executablePath
   }
   const artifact = DSH_NODE_ARTIFACTS[platformKey];
   if (!artifact) throw new Error(`[dsh-node] unsupported target platform: ${platformKey}`);
-  return join(cacheDir, `node-v${DSH_NODE_VERSION}-${artifact.suffix}`, "bin", platformKey.startsWith("win32") ? "node.exe" : "node");
+  return join(dshNodeExtractDir({ cacheDir, platformKey }), "bin", platformKey.startsWith("win32") ? "node.exe" : "node");
+}
+
+/**
+ * 解压目录必须去掉归档扩展名。
+ *
+ * 归档本体与解压目录同放在 cacheDir 下，两者不能同名：把 suffix 也算进目录名时，
+ * 目录 `node-v24.15.0-darwin-x64.tar.xz` 会与归档文件 `node-v24.15.0-darwin-x64.tar.xz`
+ * 撞名，mkdir 直接 ENOTDIR（CI 干净检出实测）。本机因为缓存里已有解压结果，
+ * 这条路径从没被走到过。
+ */
+export function dshNodeExtractDir({ cacheDir, platformKey }) {
+  const artifact = DSH_NODE_ARTIFACTS[platformKey];
+  if (!artifact) throw new Error(`[dsh-node] unsupported target platform: ${platformKey}`);
+  const extension = artifact.suffix.endsWith("zip") ? ".zip" : ".tar.xz";
+  return join(cacheDir, `node-v${DSH_NODE_VERSION}-${artifact.suffix.slice(0, -extension.length)}`);
 }
 
 /** Download only when the verified archive or extracted executable is absent. */
@@ -41,6 +56,7 @@ export async function stageDshNodeExecutable({
   executablePath,
   download = downloadPrebuiltArchive,
   extract = extractPrebuiltArchive,
+  verifyArchive = verifyPrebuiltArchiveSha256,
 }) {
   if (executablePath) {
     if (!existsSync(executablePath)) throw new Error(`[dsh-node] missing executable: ${executablePath}`);
@@ -58,14 +74,14 @@ export async function stageDshNodeExecutable({
     await download(dshNodeDownloadUrl(platformKey), archivePath);
   }
   // 已存在和刚下载的归档都必须验真；损坏缓存不能因文件存在就进入分发。
-  verifyPrebuiltArchiveSha256(archivePath, artifact.sha256);
-  const directory = dirname(executable);
-  rmSync(directory, { recursive: true, force: true });
-  mkdirSync(directory, { recursive: true });
-  extract({ archivePath, archiveExt: artifact.suffix.endsWith("zip") ? "zip" : "tar.xz", extractDir: directory, cwd: cacheDir });
+  verifyArchive(archivePath, artifact.sha256);
+  const extractRoot = dshNodeExtractDir({ cacheDir, platformKey });
+  rmSync(extractRoot, { recursive: true, force: true });
+  mkdirSync(extractRoot, { recursive: true });
+  extract({ archivePath, archiveExt: artifact.suffix.endsWith("zip") ? "zip" : "tar.xz", extractDir: extractRoot, cwd: cacheDir });
   if (!existsSync(executable)) {
     // Windows 官方 ZIP 把 node.exe 放在包根，而非 POSIX 的 bin/ 下。
-    const windowsExecutable = join(directory, "node.exe");
+    const windowsExecutable = join(extractRoot, "node.exe");
     if (platformKey.startsWith("win32") && existsSync(windowsExecutable)) return windowsExecutable;
     throw new Error(`[dsh-node] executable missing after extraction: ${executable}`);
   }
