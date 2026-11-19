@@ -1,6 +1,10 @@
 packages:
   - apps/dev-docs
   - packages/*
+  # 桌面主入口是 vendored 的 OpenClaude Desktop 壳，它的 renderer 由自己的 vite
+  # 配置构建，依赖必须由 workspace 安装：否则干净检出（CI）构建时报
+  # Rolldown failed to resolve import "react-markdown"。该包 private，不发布。
+  - packages/desktop/vendor/open-claude-desktop/app
   - apps/zcode-cli
   - apps/zcode-cli/packages/*
   - apps/zcode-cli/tools/*
