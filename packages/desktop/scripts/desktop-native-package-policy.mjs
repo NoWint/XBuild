@@ -38,6 +38,29 @@ const SHARP_VARIANTS_BY_PLATFORM = {
   "linux-arm64": ["sharp-linux-arm64", "sharp-libvips-linux-arm64"],
 };
 
+// koffi build/koffi/ 下实际发行的全部平台目录（2026-11-20 对 4.37.x 实测枚举）。
+// 目标平台的目录名是 platformKey 的连字符换下划线形式。
+const KOFFI_PREBUILD_PLATFORM_DIRS = [
+  "darwin_arm64",
+  "darwin_x64",
+  "freebsd_arm64",
+  "freebsd_ia32",
+  "freebsd_x64",
+  "linux_arm64",
+  "linux_armhf",
+  "linux_ia32",
+  "linux_loong64",
+  "linux_riscv64d",
+  "linux_x64",
+  "musl_arm64",
+  "musl_x64",
+  "openbsd_ia32",
+  "openbsd_x64",
+  "win32_arm64",
+  "win32_ia32",
+  "win32_x64",
+];
+
 function assertSupportedTargetPlatformKey(targetPlatformKey) {
   if (!SUPPORTED_DESKTOP_PLATFORM_KEYS.includes(targetPlatformKey)) {
     throw new Error(`不支持的桌面目标平台: ${targetPlatformKey}`);
@@ -66,8 +89,11 @@ export function createDesktopNativePackagePrunePatterns(targetPlatformKey) {
     ).map((name) => `!node_modules/@img/${name}/**`),
     // koffi（Windows 窗口背景材质）随包携带全平台 prebuild；只保留目标平台。
     // 其余平台的 koffi.node 既无用，又会被 Windows 签名链路当成待签名 PE 处理。
-    ...SUPPORTED_DESKTOP_PLATFORM_KEYS.filter((key) => key !== targetPlatformKey).map(
-      (key) => `!node_modules/koffi/build/koffi/${key.replace("-", "_")}/**`,
+    // v3.18.8 Windows CI 实测：只按 SUPPORTED keys 裁剪漏掉了 koffi 自带的
+    // freebsd/musl/openbsd/loong64/riscv64/armhf/ia32 等 14 个目录，win-unpacked
+    // 里全部存活。按 koffi 实际发行的平台目录全量枚举，只留目标那一个。
+    ...KOFFI_PREBUILD_PLATFORM_DIRS.filter((dir) => dir !== targetPlatformKey.replace("-", "_")).map(
+      (dir) => `!node_modules/koffi/build/koffi/${dir}/**`,
     ),
   ];
 }
