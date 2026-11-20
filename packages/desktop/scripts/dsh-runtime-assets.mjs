@@ -5,6 +5,7 @@ import {
   existsSync,
   mkdirSync,
   readFileSync,
+  readdirSync,
   realpathSync,
   rmSync,
   symlinkSync,
@@ -63,6 +64,87 @@ function isOptional(manifest, name) {
   return Boolean(
     manifest.optionalDependencies?.[name] || manifest.peerDependenciesMeta?.[name]?.optional,
   );
+}
+
+/**
+ * 已知的「每平台一份」原生二进制包家族。
+ *
+ * 这些包全部经 optionalDependencies 安装（pnpm hoisted 会把所有平台变体都装进
+ * 源安装），加载器在运行时按 process.platform/arch 自行挑选；v3.18.7 的包体审计
+ * 实测：一份 darwin-arm64 暂存树带着 5 个平台的 libreoffice-kit（约 835MB）和全部
+ * 平台的 sherpa-onnx / sharp / ripgrep 变体，zip 直接突破 500MiB 预算。
+ * targetAliases 处理家族命名与平台 key 的差异（如 sherpa 用 win-x64 而平台是 win32-x64）。
+ * wasm/wasm32 后缀是加载器的软回退引擎，所有平台保留。
+ */
+const NATIVE_PACKAGE_FAMILIES = [
+  {
+    prefix: "@deepseek-ai/libreoffice-kit-",
+    suffixes: ["darwin-arm64", "darwin-x64", "win32-arm64", "win32-x64", "linux-x64-glibc"],
+    wasmFallback: true,
+  },
+  {
+    // 注意顺序：libvips 必须排在 @img/sharp- 前面，前缀匹配取第一个命中，
+    // 排在后面会被 @img/sharp- 家族吃掉而把 libvips-darwin-x64 这类后缀判成非平台包。
+    prefix: "@img/sharp-libvips-",
+    suffixes: ["darwin-arm64", "darwin-x64", "linux-arm64", "linux-x64", "linuxmusl-arm64", "linuxmusl-x64", "win32-x64"],
+  },
+  {
+    prefix: "@img/sharp-",
+    suffixes: [
+      "darwin-arm64", "darwin-x64", "linux-arm64", "linux-x64", "linuxmusl-arm64", "linuxmusl-x64",
+      "win32-ia32", "win32-arm64", "win32-x64", "freebsd-x64", "openbsd-x64",
+    ],
+    wasmFallback: true,
+  },
+  {
+    prefix: "@vscode/ripgrep-",
+    suffixes: ["darwin-arm64", "darwin-x64", "linux-arm64", "linux-x64", "win32-arm64", "win32-x64"],
+  },
+  {
+    prefix: "sherpa-onnx-",
+    suffixes: ["darwin-arm64", "darwin-x64", "linux-arm64", "linux-x64", "win-arm64", "win-x64"],
+    targetAliases: { "win32-arm64": "win-arm64", "win32-x64": "win-x64" },
+  },
+  {
+    prefix: "node-addon-require-builtin-",
+    suffixes: [
+      "darwin-arm64", "darwin-x64", "linux-arm64-gnu", "linux-arm64-musl", "linux-x64-gnu", "linux-x64-musl",
+      "win32-arm64-msvc", "win32-x64-msvc",
+    ],
+  },
+  {
+    prefix: "@deepseek-ai/node-addon-system-",
+    suffixes: ["darwin-arm64", "darwin-x64", "linux-arm64", "linux-x64", "win32-arm64", "win32-x64"],
+  },
+  {
+    prefix: "@koromix/koffi-",
+    suffixes: [
+      "darwin-arm64", "darwin-x64", "linux-arm64", "linux-x64", "linux-ia32", "linux-riscv64", "linux-loong64",
+      "linux-musl-arm64", "linux-musl-x64", "freebsd-ia32", "freebsd-x64", "freebsd-arm64",
+      "openbsd-ia32", "openbsd-x64", "win32-ia32", "win32-arm64", "win32-x64",
+    ],
+  },
+];
+
+/**
+ * 判断一个包是否是「不属于目标平台」的原生二进制包；这类包在分发里是纯死重，
+ * 见 NATIVE_PACKAGE_FAMILIES 注释。
+ */
+export function isForeignNativePackage(packageName, platformKey) {
+  const family = NATIVE_PACKAGE_FAMILIES.find((candidate) => packageName.startsWith(candidate.prefix));
+  if (!family) return false;
+  const suffix = packageName.slice(family.prefix.length);
+  const targetSuffix = family.targetAliases?.[platformKey] ?? platformKey;
+  const targetHasNative = family.suffixes.includes(targetSuffix);
+  if (family.wasmFallback && (suffix === "wasm" || suffix === "wasm32")) {
+    // wasm 是加载器缺原生引擎时的软回退。发布目标全部有原生构建，wasm 是死重；
+    // 只有目标平台没有原生构建（如未来加 linux-musl）时才保留 wasm 回退。
+    return targetHasNative;
+  }
+  if (suffix === targetSuffix) return false;
+  // 只有落在家族已知的平台后缀清单里才算平台变体；同前缀的非平台包
+  // （如 JS 包装器 sherpa-onnx-node）必须原样保留。
+  return family.suffixes.includes(suffix);
 }
 
 /**
@@ -134,6 +216,18 @@ export function stageDshRuntimeDistribution({
       ...manifest.optionalDependencies,
     };
     for (const packageName of Object.keys(dependencies)) {
+      // 其他平台的原生二进制不进分发。它们全部来自 optionalDependencies（加载器按
+      // process.platform 挑选目标平台那一份）；若某个 manifest 竟然把它声明为必需
+      // 依赖，宁可让打包失败也不静默裁剪。
+      if (isForeignNativePackage(packageName, platformKey)) {
+        if (!isOptional(manifest, packageName)) {
+          throw new Error(
+            `[stage:dsh-runtime] required dependency ${packageName} is foreign-platform native for ${platformKey} (from ${sourceDirectory})`,
+          );
+        }
+        optionalSkipped += 1;
+        continue;
+      }
       const existing = resolve(sourceDirectory, "node_modules", ...packageName.split("/"));
       if (existsSync(existing)) {
         // Existing real directories and symlinks were copied as-is. Follow the real target
@@ -160,6 +254,10 @@ export function stageDshRuntimeDistribution({
       pending.push(dependencyPackageJson);
     }
   }
+  // cpSync 是整目录照搬：源安装里若有包自带嵌套 node_modules 且其中含其他平台
+  // 变体（v3.18.7 实测 cordis-plugin-loader 嵌套 node-addon-require-builtin 全平台），
+  // 上面的依赖跳过拦不住，这里在整棵暂存树统一再清一遍。
+  const prunedForeignNatives = pruneForeignNativePackages(targetRoot, platformKey);
   const pnpmManifest = readManifest(resolve(targetRoot, "node_modules", "pnpm", "package.json"));
   if (pnpmManifest.name !== "pnpm" || pnpmManifest.version !== "10.33.2") {
     throw new Error(`[stage:dsh-runtime] expected pinned pnpm 10.33.2`);
@@ -179,7 +277,66 @@ export function stageDshRuntimeDistribution({
   }
   log(
     `[stage:dsh-runtime] staged ${copied.size} installed packages for ${platformKey}` +
-      (optionalSkipped ? ` (${optionalSkipped} unavailable optional packages skipped)` : ""),
+      (optionalSkipped ? ` (${optionalSkipped} unavailable optional packages skipped)` : "") +
+      (prunedForeignNatives ? ` (pruned ${prunedForeignNatives} foreign-platform native packages)` : ""),
   );
   return { targetRoot, stagedNode, packageCount: copied.size };
+}
+
+/** 清掉暂存树里所有 node_modules 层级上的其他平台原生包，返回删除数量。 */
+function pruneForeignNativePackages(targetRoot, platformKey) {
+  let pruned = 0;
+  const pruneLevel = (nodeModulesDir) => {
+    let entries;
+    try {
+      entries = readdirSync(nodeModulesDir, { withFileTypes: true });
+    } catch {
+      return;
+    }
+    for (const entry of entries) {
+      if (!entry.isDirectory()) continue;
+      if (entry.name.startsWith("@")) {
+        const scopeDir = join(nodeModulesDir, entry.name);
+        let scopeEntries;
+        try {
+          scopeEntries = readdirSync(scopeDir, { withFileTypes: true });
+        } catch {
+          continue;
+        }
+        for (const child of scopeEntries) {
+          if (!child.isDirectory()) continue;
+          const packageName = `${entry.name}/${child.name}`;
+          if (isForeignNativePackage(packageName, platformKey)) {
+            rmSync(join(scopeDir, child.name), { recursive: true, force: true });
+            pruned += 1;
+          }
+        }
+        continue;
+      }
+      if (isForeignNativePackage(entry.name, platformKey)) {
+        rmSync(join(nodeModulesDir, entry.name), { recursive: true, force: true });
+        pruned += 1;
+      }
+    }
+  };
+  const visit = (directory) => {
+    let entries;
+    try {
+      entries = readdirSync(directory, { withFileTypes: true });
+    } catch {
+      return;
+    }
+    for (const entry of entries) {
+      if (!entry.isDirectory()) continue;
+      if (entry.name === "node_modules") {
+        const level = join(directory, entry.name);
+        pruneLevel(level);
+        visit(level);
+        continue;
+      }
+      visit(join(directory, entry.name));
+    }
+  };
+  visit(targetRoot);
+  return pruned;
 }

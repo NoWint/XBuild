@@ -115,6 +115,87 @@ describe("DSH staged runtime distribution", () => {
     expect(cycles).toBe(0);
   });
 
+  // v3.18.7 包体审计实测：暂存树带着全部平台的原生二进制（5 份 libreoffice-kit、
+  // 全平台 sherpa-onnx / sharp / ripgrep），zip 突破 500MiB。目标平台分发只能带
+  // 目标平台的那一份；同前缀的非平台包装器（sherpa-onnx-node）和 wasm 软回退
+  // 必须保留；父包目录里照搬进来的嵌套其他平台变体也要在整树清掉。
+  it("stages only the target platform's native binaries", async () => {
+    const root = await makeRoot();
+    await writePackage(root, "apps/zcode-cli/packages/dsh-runtime", {
+      "@deepseek-ai/libreoffice-kit": "1.0.0",
+      "@deepseek-ai/dsh-speech": "1.0.0",
+    });
+    await mkdir(join(root, "apps/zcode-cli/packages/dsh-runtime/dist"), { recursive: true });
+    await writeFile(join(root, "apps/zcode-cli/packages/dsh-runtime/dist/index.js"), "export {}\n");
+    await writeFile(join(root, "apps/zcode-cli/packages/dsh-runtime/dist/worker.js"), "export {}\n");
+    await writeFile(join(root, "apps/zcode-cli/packages/dsh-runtime/dist/worker-entry.js"), "export {}\n");
+    await writePackage(root, "node_modules/@deepseek-ai/libreoffice-kit");
+    await writeFile(
+      join(root, "node_modules/@deepseek-ai/libreoffice-kit/package.json"),
+      JSON.stringify({
+        name: "@deepseek-ai/libreoffice-kit",
+        version: "1.0.0",
+        optionalDependencies: {
+          "@deepseek-ai/libreoffice-kit-darwin-arm64": "1.0.0",
+          "@deepseek-ai/libreoffice-kit-darwin-x64": "1.0.0",
+          "@deepseek-ai/libreoffice-kit-wasm": "1.0.0",
+        },
+      }),
+    );
+    // 源安装里 libreoffice-kit 自带嵌套 node_modules（照搬路径），里面同时有
+    // 其他平台变体与目标平台变体：前者要被整树清理，后者必须留下。
+    await mkdir(join(root, "node_modules/@deepseek-ai/libreoffice-kit/node_modules/@img/sharp-win32-x64"), { recursive: true });
+    await writeFile(
+      join(root, "node_modules/@deepseek-ai/libreoffice-kit/node_modules/@img/sharp-win32-x64/package.json"),
+      JSON.stringify({ name: "@img/sharp-win32-x64", version: "1.0.0" }),
+    );
+    await mkdir(join(root, "node_modules/@deepseek-ai/libreoffice-kit/node_modules/@img/sharp-darwin-arm64"), { recursive: true });
+    await writeFile(
+      join(root, "node_modules/@deepseek-ai/libreoffice-kit/node_modules/@img/sharp-darwin-arm64/package.json"),
+      JSON.stringify({ name: "@img/sharp-darwin-arm64", version: "1.0.0" }),
+    );
+    // libvips 前缀与 @img/sharp- 重叠，必须命中自己的家族而不是被吃掉。
+    await mkdir(join(root, "node_modules/@deepseek-ai/libreoffice-kit/node_modules/@img/sharp-libvips-darwin-x64"), { recursive: true });
+    await writeFile(
+      join(root, "node_modules/@deepseek-ai/libreoffice-kit/node_modules/@img/sharp-libvips-darwin-x64/package.json"),
+      JSON.stringify({ name: "@img/sharp-libvips-darwin-x64", version: "1.0.0" }),
+    );
+    for (const name of ["@deepseek-ai/libreoffice-kit-darwin-arm64", "@deepseek-ai/libreoffice-kit-darwin-x64", "@deepseek-ai/libreoffice-kit-wasm"]) {
+      await writePackage(root, `node_modules/${name}`);
+    }
+    await writePackage(root, "node_modules/@deepseek-ai/dsh-speech", { "sherpa-onnx-node": "1.0.0" }, { "sherpa-onnx-darwin-x64": "1.0.0" });
+    await writePackage(root, "node_modules/sherpa-onnx-node");
+    await writePackage(root, "node_modules/sherpa-onnx-darwin-x64");
+    await writePackage(root, "node_modules/pnpm");
+    await writeFile(join(root, "node_modules/pnpm/package.json"), JSON.stringify({ name: "pnpm", version: "10.33.2" }));
+    await mkdir(join(root, "node_modules/pnpm/bin"), { recursive: true });
+    await writeFile(join(root, "node_modules/pnpm/bin/pnpm.cjs"), "// test\n");
+    const node = join(root, "node");
+    await writeFile(node, "not executed by this structural regression");
+
+    const logs: string[] = [];
+    const { targetRoot } = stageDshRuntimeDistribution({
+      repoRoot: root,
+      glmDir: join(root, "glm"),
+      platformKey: "darwin-arm64",
+      nodeExecutable: node,
+      log: (line) => logs.push(line),
+    });
+
+    const staged = (relativePath: string) => existsSync(join(targetRoot, "node_modules", relativePath));
+    expect(staged("@deepseek-ai/libreoffice-kit-darwin-arm64")).toBe(true);
+    // darwin-arm64 有原生引擎，wasm 软回退是死重，不进分发。
+    expect(staged("@deepseek-ai/libreoffice-kit-wasm")).toBe(false);
+    expect(staged("@deepseek-ai/libreoffice-kit-darwin-x64")).toBe(false);
+    expect(staged("sherpa-onnx-node")).toBe(true);
+    expect(staged("sherpa-onnx-darwin-x64")).toBe(false);
+    // 嵌套照搬的变体：目标平台保留，其他平台清掉（含 libvips 这种前缀重叠家族）。
+    expect(staged("@deepseek-ai/libreoffice-kit/node_modules/@img/sharp-darwin-arm64")).toBe(true);
+    expect(staged("@deepseek-ai/libreoffice-kit/node_modules/@img/sharp-win32-x64")).toBe(false);
+    expect(staged("@deepseek-ai/libreoffice-kit/node_modules/@img/sharp-libvips-darwin-x64")).toBe(false);
+    expect(logs.join("\n")).toContain("foreign-platform native packages");
+  });
+
   it("preserves installed peer resolution and emits only relative staged links", async () => {
     const root = await makeRoot();
     await writePackage(root, "apps/zcode-cli/packages/dsh-runtime", { "@deepseek-ai/dsh-app-boot": "1.0.0" });
