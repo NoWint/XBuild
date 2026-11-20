@@ -972,6 +972,13 @@ export default {
   nsis: {
     oneClick: false,
     allowToChangeInstallationDirectory: true,
+    // differentialPackage 的增量更新要求非固实压缩（solid=false）+ 1MB 字典，
+    // 否则 blockmap 的块级差分没有意义。v3.18.8/3.18.9 Windows CI 实测：win-unpacked
+    // 1555MiB 的载荷在非固实 LZMA 下几乎压不动（几万个小 node_modules 文件各自
+    // 独立成流），exe 反而 1691MiB——比未压缩内容还大。关掉增量优化换回 solid
+    // lzma（-mx=9 默认字典），exe 应回落到 ~750MiB；代价是 Windows 更新走全量
+    // 安装包下载。如果未来要恢复增量更新，先解决非固实压缩对小文件的放大。
+    differentialPackage: false,
     // Windows 安装流程使用独立安装图标，和应用运行时图标解耦。
     installerIcon: "build/icon_installer.ico",
     uninstallerIcon: "build/icon_installer.ico",
